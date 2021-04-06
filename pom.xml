@@ -15,6 +15,7 @@
 	<description>Project_OC_Java-5</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<cucumber.version>6.10.2</cucumber.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -29,7 +30,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -56,6 +56,33 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- ================ -->
+		<!-- === Cucumber === -->
+		<!-- ================ -->
+		<!-- cucumber-jvm -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-jvm</artifactId>
+		    <version>${cucumber.version}</version>
+		    <scope>test</scope>
+		    <type>pom</type>
+		</dependency>
+		<!-- cucumber-spring -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-spring</artifactId>
+		    <version>${cucumber.version}</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- cucumber-junit -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-junit</artifactId>
+		    <version>${cucumber.version}</version>
+		    <scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
