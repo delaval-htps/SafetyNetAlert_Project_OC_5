@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 @RunWith(Cucumber.class)
 @CucumberOptions(
     features = "src/test/resources/features",
-    plugin = {"pretty", "html:target/html-cucumber-report"},
+    plugin = {"pretty", "html:target/html-cucumber-report.html"},
     stepNotifications = true)
 public class CucumberAIT {
 
