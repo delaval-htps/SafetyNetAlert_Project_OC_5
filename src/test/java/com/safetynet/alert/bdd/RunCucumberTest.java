@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
     features = "src/test/resources/features",
     plugin = {"pretty", "html:target/html-cucumber-report.html"},
     stepNotifications = true)
-public class CucumberAIT {
+public class RunCucumberTest {
 
 
 }
