@@ -15,8 +15,12 @@
 	<description>Project_OC_Java-5</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<cucumber.version>6.10.2</cucumber.version>
 	</properties>
 	<dependencies>
+		<!-- ========================== -->
+		<!-- === Springboot starter === -->
+		<!-- ========================== -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -29,13 +33,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
-		<dependency>
+			
+			<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
+		<!-- =================== -->
+		<!-- === Datasources === -->
+		<!-- =================== -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -46,15 +52,61 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- ============== -->
+		<!-- === Lombok === -->
+		<!-- ============== -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- ===================== -->
+		<!-- === junit vintage === -->
+		<!-- ===================== -->
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+	
+		<!-- ================ -->
+		<!-- === Cucumber === -->
+		<!-- ================ -->
+		
+		<!-- cucumber-java -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-java</artifactId>
+		    <version>6.10.2</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- cucumber-spring -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-spring</artifactId>
+		    <version>6.10.2</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- cucumber-junit -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-junit</artifactId>
+		    <version>6.10.2</version>
+		    <scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<!-- ==================== -->
+		<!-- === ASSERTJ-db ===== -->
+		<!-- ==================== -->
+		<dependency>
+		  <groupId>org.assertj</groupId>
+		  <artifactId>assertj-db</artifactId>
+		  <version>2.0.2</version>
+		  <scope>test</scope>
 		</dependency>
 	</dependencies>
 
