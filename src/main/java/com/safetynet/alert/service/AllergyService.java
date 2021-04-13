@@ -22,4 +22,8 @@ public class AllergyService {
   public Allergy saveAllergy(Allergy allergy) {
     return allergyRepository.save(allergy);
   }
+
+  public Allergy getAllergyByDesignation(String designation) {
+    return allergyRepository.getOneByDesignation(designation);
+  }
 }
