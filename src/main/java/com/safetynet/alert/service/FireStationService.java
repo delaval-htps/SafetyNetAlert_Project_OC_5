@@ -22,4 +22,8 @@ public class FireStationService {
   public FireStation saveFireStation(FireStation fireStation) {
     return fireStationRepository.save(fireStation);
   }
+
+  public FireStation getFireStationByNumberStation(int numberStation) {
+    return fireStationRepository.getOneByNumberStation(numberStation);
+  }
 }
