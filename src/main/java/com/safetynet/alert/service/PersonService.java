@@ -23,4 +23,12 @@ public class PersonService {
     return personRepository.save(dorian);
   }
 
+  public Iterable<Person> getPersonByAddress(String addressFireStation) {
+    return personRepository.getOneByAddress(addressFireStation);
+  }
+
+  public Person getPersonByNames(String firstName, String lastName) {
+    return personRepository.getOneByNames(firstName, lastName);
+  }
+
 }

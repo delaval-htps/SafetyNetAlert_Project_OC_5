@@ -121,9 +121,11 @@ public class LoadDatabaseFromJsonImpl implements LoadDatabaseService {
 
     // save medicalRecords
 
-    List<String> designationAllergy = new ArrayList<>();// permet d'eviter les doublons dans
-                                                        // allergy
-    List<String> designationPosologies = new ArrayList<>();// permet d'eviter les doublons dans
+    // to avoid duplicate allergy
+    List<String> designationAllergy = new ArrayList<>();
+
+    // to avoid duplicate medication
+    List<String> designationPosologies = new ArrayList<>();
 
     // enregristrement des medications
 

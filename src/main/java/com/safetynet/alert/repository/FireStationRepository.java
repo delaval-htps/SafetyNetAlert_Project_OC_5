@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface FireStationRepository extends JpaRepository<FireStation, Long> {
 
   @Query("SELECT f FROM FireStation AS f WHERE f.numberStation= ?1")
-  public FireStation getOneByNumberStation(int numberStation);
+  FireStation getOneByNumberStation(int numberStation);
 
 }
