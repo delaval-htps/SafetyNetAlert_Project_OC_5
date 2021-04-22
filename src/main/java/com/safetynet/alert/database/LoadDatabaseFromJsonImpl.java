@@ -1,7 +1,6 @@
 package com.safetynet.alert.database;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.model.Allergy;
@@ -15,205 +14,252 @@ import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Getter
-@Setter
 public class LoadDatabaseFromJsonImpl implements LoadDatabaseService {
 
-  @Autowired
-  private PersonService personService;
-  @Autowired
-  private FireStationService fireStationService;
-  @Autowired
-  private MedicalRecordService medicalRecordService;
-  @Autowired
-  private MedicationService medicationService;
-  @Autowired
-  private AllergyService allergyService;
+  private final PersonService personService;
+  private final FireStationService fireStationService;
+  private final MedicalRecordService medicalRecordService;
+  private final MedicationService medicationService;
+  private final AllergyService allergyService;
 
-  private File fileJson;
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
+  private final Resource resource;
 
-  public LoadDatabaseFromJsonImpl(File file) {
-    this.fileJson = file;
-    this.objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static Logger logger =
+      LoggerFactory.getLogger(LoadDatabaseFromJsonImpl.class);
+
+  @Autowired
+  public LoadDatabaseFromJsonImpl(ObjectMapper mapper,
+                                  @Value(
+                                    "classpath:json/data.json"
+                                  ) Resource resource,
+                                  PersonService ps,
+                                  FireStationService fs,
+                                  MedicalRecordService mrs,
+                                  MedicationService ms,
+                                  AllergyService as) {
+    this.objectMapper = mapper;
+    this.resource = resource;
+    this.allergyService = as;
+    this.fireStationService = fs;
+    this.medicalRecordService = mrs;
+    this.medicationService = ms;
+    this.personService = ps;
   }
 
-  public LoadDatabaseFromJsonImpl() {}
-
   @Override
+  @Transactional
   public boolean loadDatabaseFromSource() {
+
+    // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    // definie dans application.properties for test
+
+    File fileJson = null;
+    try {
+      fileJson = resource.getFile();
+    } catch (IOException e1) {
+      if (e1 instanceof FileNotFoundException) {
+        logger.error("File Data.json is not Found in resources");
+      } else {
+        logger.error("Reading Failure for File Data.json");
+      }
+      e1.printStackTrace();
+      return false;
+    }
 
     JsonNode root = null;
     try {
       root = objectMapper.readTree(fileJson);
     } catch (JsonProcessingException e) {
+      logger.error("Json's datas are not valid");
       e.printStackTrace();
+      return false;
     } catch (IOException e) {
+      logger.error("File Data.json is missing to be parsed");
       e.printStackTrace();
       return false;
     }
     // initilaisation des jsonNode pour chaque Ogject Person,FireStation,MedicalRecord
-    JsonNode personArray = root.get("persons");
-    JsonNode fireStationArray = root.get("firestations");
-    JsonNode medicalRecordArray = root.get("medicalrecords");
+    if (root != null) {
 
-    // initialisation des itérators respectifs
-    Iterator<JsonNode> personNode = personArray.elements();
-    Iterator<JsonNode> fireStationNode = fireStationArray.elements();
-    Iterator<JsonNode> medicalRecordNode = medicalRecordArray.elements();
+      JsonNode personArray = root.get("persons");
+      JsonNode fireStationArray = root.get("firestations");
+      JsonNode medicalRecordArray = root.get("medicalrecords");
 
-    // enregistrement des persons}
-    System.out.println("******** sauvegarde des Persons ... ");
-    while (personNode.hasNext()) {
-      String element = personNode.next().toString(); // attention au to string pour utiliser
-                                                     // objectMapper sinon on y arrive pas
-      try {
-        Person person = objectMapper.readValue(element, Person.class);
-        personService.savePerson(person);
-      } catch (JsonProcessingException e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
+      // initialisation des itérators respectifs
+      Iterator<JsonNode> personNode = personArray.elements();
+      Iterator<JsonNode> fireStationNode = fireStationArray.elements();
+      Iterator<JsonNode> medicalRecordNode = medicalRecordArray.elements();
 
-    // save firestations
+      // save persons
 
-    List<Integer> numberStations = new ArrayList<Integer>();
+      logger.info("********** sauvegarde des Persons ***********");
 
-    // pour ne pas enregistrer de doublon on verifie avec cette liste que la station n'exite pas
-    // dejà
+      while (personNode.hasNext()) {
 
-    while (fireStationNode.hasNext()) {
-      FireStation fireStation = null;
-      JsonNode elementFireStation = fireStationNode.next();
+        String element = personNode.next().toString();
 
-      int numberStation = elementFireStation.get("station").asInt();
-
-      if (!numberStations.contains(numberStation)) {
-        fireStation = new FireStation();
-        fireStation.setNumberStation(numberStation);
-        fireStationService.saveFireStation(fireStation);
-        numberStations.add(numberStation);
-
-      } else {
-        fireStation = fireStationService.getFireStationByNumberStation(numberStation);
-      }
-
-      String addressFireStation = elementFireStation.get("address").asText();
-      Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
-      for (Person person : persons) {
-        if (person.getAddress().equals(addressFireStation)) {
-          fireStation.add(person);
+        try {
+          Person person = objectMapper.readValue(element, Person.class);
+          personService.savePerson(person);
+        } catch (JsonProcessingException e) {
+          e.printStackTrace();
+          logger.error("problem to parse persons with objectMapper");
+          return false;
         }
       }
-    }
 
-    // save medicalRecords
+      // save firestations
 
-    // to avoid duplicate allergy
-    List<String> designationAllergy = new ArrayList<>();
+      // to avoid duplicate FireStations
+      List<Integer> numberStations = new ArrayList<Integer>();
 
-    // to avoid duplicate medication
-    List<String> designationPosologies = new ArrayList<>();
+      logger.info("********** save FireStation **********");
 
-    // enregristrement des medications
+      while (fireStationNode.hasNext()) {
 
-    while (medicalRecordNode.hasNext()) {
+        FireStation fireStation = null;
+        JsonNode elementFireStation = fireStationNode.next();
 
-      JsonNode elementMedicalRecord = medicalRecordNode.next();
+        int numberStation = elementFireStation.get("station").asInt();
 
-      MedicalRecord medicalRecord = new MedicalRecord();
-
-      // get person with this medicalrecord
-
-      System.out.println(elementMedicalRecord.get("firstName").asText()
-          + elementMedicalRecord.get("lastName").asText());
-      Person currentPerson =
-          personService.getPersonByNames(elementMedicalRecord.get("firstName").asText().toString(),
-              elementMedicalRecord.get("lastName").asText().toString());
-
-      // update ForeignKey for medicalRecord and Person
-      System.out.println(currentPerson);
-
-      System.out.println("currentPerson: " + currentPerson.getId_Person() + " "
-          + currentPerson.getLastName() + " " + currentPerson.getFirstName() + "setMedicalRecord :"
-          + medicalRecord.getId_MedicalRecord());
-
-      // update birthdate for person
-      String birthDate;
-      birthDate = elementMedicalRecord.get("birthdate").asText();
-
-      currentPerson.setBirthDate(birthDate);
-      currentPerson.setMedicalRecord(medicalRecord);
-
-
-      // save medication instance
-
-      JsonNode medicationArray = elementMedicalRecord.get("medications");
-      JsonNode allergyArray = elementMedicalRecord.get("allergies");
-
-      Iterator<JsonNode> medicationElement = medicationArray.elements();
-      Iterator<JsonNode> allergyElement = allergyArray.elements();
-
-      while (medicationElement.hasNext()) {
-
-        String designationPosology = medicationElement.next().asText();
-        String[] composition = designationPosology.split(":");
-
-        Medication medication = null;
-
-        if (!designationPosologies.contains(designationPosology)) {
-
-          medication = new Medication();
-          medication.setDesignation(composition[0]);
-          medication.setPosology(composition[1]);
-
-          designationPosologies.add(designationPosology);
-
-          medicationService.saveMedication(medication);
+        if (!numberStations.contains(numberStation)) {
+          fireStation = new FireStation();
+          fireStation.setNumberStation(numberStation);
+          fireStationService.saveFireStation(fireStation);
+          numberStations.add(numberStation);
 
         } else {
-          medication = medicationService.getMedicationByDesignationAndPosology(composition[0],
-              composition[1]);
+          fireStation =
+              fireStationService.getFireStationByNumberStation(numberStation);
         }
+        String addressFireStation = elementFireStation.get("address").asText();
+        Iterable<Person> persons =
+            personService.getPersonByAddress(addressFireStation);
 
-        medication.add(medicalRecord);
+        for (Person person : persons) {
+          if (person.getAddress().equals(addressFireStation)) {
+            fireStation.add(person);
+          }
+        }
       }
 
+      // to avoid duplicate allergy
+      List<String> designationAllergy = new ArrayList<>();
 
-      // save allergies
-      while (allergyElement.hasNext()) {
-        String designation = allergyElement.next().asText();
-        Allergy allergy = null;
-        if (!designationAllergy.contains(designation)) {
-          allergy = new Allergy();
-          allergy.setDesignation(designation);
+      // to avoid duplicate medication
+      List<String> designationPosologies = new ArrayList<>();
 
-          designationAllergy.add(designation);
+      // save medications
 
-          allergyService.saveAllergy(allergy);
+      logger.info("********** save MedicalRecord **********");
 
-        } else {
-          allergy = allergyService.getAllergyByDesignation(designation);
+      while (medicalRecordNode.hasNext()) {
+
+        JsonNode elementMedicalRecord = medicalRecordNode.next();
+
+        MedicalRecord medicalRecord = new MedicalRecord();
+
+        // get person with this medicalrecord
+
+        Person currentPerson =
+            personService.getPersonByNames(
+                                           elementMedicalRecord.get("firstName")
+                                               .asText().toString(),
+                                           elementMedicalRecord.get("lastName")
+                                               .asText().toString());
+
+        // update birthdate and medicalRecord for person
+
+        String birthDate;
+        birthDate = elementMedicalRecord.get("birthdate").asText();
+
+        currentPerson.setBirthDate(birthDate);
+        currentPerson.setMedicalRecord(medicalRecord);
+
+
+        // save medication instance
+
+        logger.info("********** save Medication **********");
+
+        JsonNode medicationArray = elementMedicalRecord.get("medications");
+        JsonNode allergyArray = elementMedicalRecord.get("allergies");
+
+        Iterator<JsonNode> medicationElement = medicationArray.elements();
+        Iterator<JsonNode> allergyElement = allergyArray.elements();
+
+        while (medicationElement.hasNext()) {
+
+          String designationPosology = medicationElement.next().asText();
+          String[] composition = designationPosology.split(":");
+
+          Medication medication = null;
+
+          if (!designationPosologies.contains(designationPosology)) {
+
+            medication = new Medication();
+            medication.setDesignation(composition[0]);
+            medication.setPosology(composition[1]);
+
+            designationPosologies.add(designationPosology);
+
+            medicationService.saveMedication(medication);
+
+          } else {
+            medication = medicationService
+                .getMedicationByDesignationAndPosology(composition[0],
+                                                       composition[1]);
+          }
+
+          medication.add(medicalRecord);
         }
-        allergy.add(medicalRecord);
+
+        // save allergies
+
+        logger.info("********** save Allergy **********");
+
+        while (allergyElement.hasNext()) {
+
+          String designation = allergyElement.next().asText();
+
+          Allergy allergy = null;
+
+          if (!designationAllergy.contains(designation)) {
+
+            allergy = new Allergy();
+            allergy.setDesignation(designation);
+
+            designationAllergy.add(designation);
+
+            allergyService.saveAllergy(allergy);
+
+          } else {
+            allergy = allergyService.getAllergyByDesignation(designation);
+          }
+          allergy.add(medicalRecord);
+        }
+
+        // save medicalRecord
+        logger.info("********** save MedicalRecord **********");
+        medicalRecordService.saveMedicalRecord(medicalRecord);
+
       }
-
-      // save medicalRecord
-      medicalRecordService.saveMedicalRecord(medicalRecord);
-
+      return true;
     }
-    return true;
+    return false;
   }
 }
