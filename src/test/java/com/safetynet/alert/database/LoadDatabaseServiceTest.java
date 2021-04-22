@@ -1,16 +1,14 @@
 package com.safetynet.alert.database;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.safetynet.alert.model.Allergy;
-import com.safetynet.alert.model.FireStation;
-import com.safetynet.alert.model.MedicalRecord;
-import com.safetynet.alert.model.Medication;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.AllergyService;
 import com.safetynet.alert.service.FireStationService;
@@ -18,6 +16,7 @@ import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.Resource;
+import nl.altindag.log.LogCaptor;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -41,79 +42,196 @@ class LoadDatabaseServiceTest {
   @Mock
   private AllergyService allergyService;
   @Mock
-  private static ObjectMapper objectMapper;
+  private Resource resource;
+  @Mock
+  private ObjectMapper objectMapper;
+  @Mock
+  private File mockFile;
 
-  private static String filePathJSon;
-  private static File fileJson;
-  private static LoadDatabaseService classUnderTest;
+
+  private LogCaptor logCaptor =
+      LogCaptor.forClass(LoadDatabaseFromJsonImpl.class);
+
+  private static String[] expectedErrorMessages =
+      {"File Data.json is not Found in resources",
+       "Reading Failure for File Data.json",
+       "Json's datas are not valid",
+       "File Data.json is missing to be parsed",
+       "problem to parse persons with objectMapper"};
+  private LoadDatabaseService classUnderTest;
 
   @BeforeEach
-  void setUpInit() {
-    filePathJSon = "classpath:json/data.json";
-    fileJson = new File(filePathJSon);
+  void setup() {
+    classUnderTest = new LoadDatabaseFromJsonImpl(objectMapper, resource,
+        personService, fireStationService, medicalRecordService,
+        medicationService, allergyService);
   }
 
   @Test
-  void loadDatabaseService_shouldPersistData_whenDataJSonCorrect() {
+  void loadDatabaseService_shouldNotPersistData_whenObjectMapperCantReadFireStation()
+      throws IOException {
     // Given
-    classUnderTest = new LoadDatabaseFromJsonImpl(fileJson);
-    doNothing().when(personService).savePerson(Mockito.any(Person.class));
-    doNothing().when(fireStationService).saveFireStation(Mockito.any(FireStation.class));
-    doNothing().when(medicalRecordService).saveMedicalRecord(Mockito.any(MedicalRecord.class));
-    doNothing().when(medicationService).saveMedication(Mockito.any(Medication.class));
-    doNothing().when(allergyService).saveAllergy(Mockito.any(Allergy.class));
+
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode mockJsonNodeRoot = mapper.readTree("{\"persons\":"
+        + " [ { \"firstName\":\"John\"," + "\"lastName\":\"Boyd\","
+        + " \"address\":\"1509 Culver St\"," + " \"city\":\"Culver\", "
+        + "\"zip\":\"97451\"," + " \"phone\":\"841-874-6512\","
+        + " \"email\":\"jaboyd@email.com\"}],"
+        + "\"firestations\": [{ \"address\":\"1509 Culver St\",  \"station\":\"3\" }],"
+        + "\"medicalrecords\": [" + "{ \"firstName\":\"John\","
+        + " \"lastName\":\"Boyd\"," + " \"birthdate\":\"03/06/1984\", "
+        + "\"medications\":[\"aznol:350mg\", " + "\"hydrapermazol:100mg\"],"
+        + " \"allergies\":[\"nillacilan\"] }]}");
+
+    when(resource.getFile()).thenReturn(mockFile);
+
+    when(objectMapper.readTree(Mockito.any(File.class)))
+        .thenReturn(mockJsonNodeRoot);
+
+    when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(Person.class)))
+        .thenThrow(JsonProcessingException.class);
 
     // When
     boolean result = classUnderTest.loadDatabaseFromSource();
 
     // Then
-    assertTrue(result);
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[4]);
+    // assertThatThrownBy(() -> objectMapper
+    // .readValue(Mockito.anyString(), Mockito.eq(Person.class)))
+    // .isInstanceOfAny(JsonProcessingException.class);
+    verify(objectMapper, times(1)).readValue(Mockito.anyString(),
+                                             Mockito.eq(Person.class));
   }
 
   @Test
-  void loadDatabaseService_shouldThrowsException_whenDataJSonIsNull() {
-    // Given
-    fileJson = null;
-    classUnderTest = new LoadDatabaseFromJsonImpl(fileJson);
-
-    // Then
-    assertThrows(NullPointerException.class, () -> {
-      classUnderTest.loadDatabaseFromSource();
-    });
-  }
-
-  @Test
-  void loadDatabaseService_shouldThrowsException_whenDataNotJson() {
+  void loadDatabaseService_shouldNotPersistData_whenObjectMapperCantReadPerson()
+      throws IOException {
     // Given
 
-    classUnderTest = new LoadDatabaseFromJsonImpl(fileJson);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode mockJsonNodeRoot = mapper.readTree("{\"persons\":"
+        + " [ { \"firstName\":\"John\"," + "\"lastName\":\"Boyd\","
+        + " \"address\":\"1509 Culver St\"," + " \"city\":\"Culver\", "
+        + "\"zip\":\"97451\"," + " \"phone\":\"841-874-6512\","
+        + " \"email\":\"jaboyd@email.com\"}],"
+        + "\"firestations\": [{ \"address\":\"1509 Culver St\",  \"station\":\"3\" }],"
+        + "\"medicalrecords\": [" + "{ \"firstName\":\"John\","
+        + " \"lastName\":\"Boyd\"," + " \"birthdate\":\"03/06/1984\", "
+        + "\"medications\":[\"aznol:350mg\", " + "\"hydrapermazol:100mg\"],"
+        + " \"allergies\":[\"nillacilan\"] }]}");
+
+    when(resource.getFile()).thenReturn(mockFile);
+
+    when(objectMapper.readTree(Mockito.any(File.class)))
+        .thenReturn(mockJsonNodeRoot);
+
+    when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(Person.class)))
+        .thenThrow(JsonProcessingException.class);
 
     // When
-    try {
-      when(objectMapper.readTree(any(File.class))).thenThrow(JsonProcessingException.class);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    boolean result = classUnderTest.loadDatabaseFromSource();
+
     // Then
-    assertThrows(JsonProcessingException.class, () -> {
-      classUnderTest.loadDatabaseFromSource();
-    });
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[4]);
+    // assertThatThrownBy(() -> objectMapper
+    // .readValue(Mockito.anyString(), Mockito.eq(Person.class)))
+    // .isInstanceOfAny(JsonProcessingException.class);
+    verify(objectMapper, times(1)).readValue(Mockito.anyString(),
+                                             Mockito.eq(Person.class));
   }
 
   @Test
-  void loadDatabaseService_shouldThrowsException_whenDataJSonProblemToRead() {
+  void loadDatabaseService_shouldNotPersistData_whenObjectMapperNoContentIsFound()
+      throws IOException {
     // Given
-    classUnderTest = new LoadDatabaseFromJsonImpl(fileJson);
+    when(resource.getFile()).thenReturn(mockFile);
+    when(objectMapper.readTree(Mockito.any(File.class))).thenReturn(null);
 
     // When
-    try {
-      when(objectMapper.readTree(any(File.class))).thenThrow(IOException.class);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    boolean result = classUnderTest.loadDatabaseFromSource();
+
     // Then
-    assertThrows(IOException.class, () -> {
-      classUnderTest.loadDatabaseFromSource();
-    });
+    assertFalse(result);
+  }
+
+  @Test
+  void loadDatabaseService_shouldThrowsException_whenFileDataJSonIsNullOrNotFound()
+      throws IOException {
+    // Given
+
+    when(resource.getFile()).thenThrow(FileNotFoundException.class);
+
+    // When
+
+    boolean result = classUnderTest.loadDatabaseFromSource();
+    // Then
+
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[0]);
+    assertThatThrownBy(() -> resource.getFile())
+        .isInstanceOf(FileNotFoundException.class);
+
+  }
+
+  @Test
+  void loadDatabaseService_shouldThrowsException_whenFileDataJsonNotReadable()
+      throws IOException {
+    // Given
+    when(resource.getFile()).thenThrow(IOException.class);
+
+
+    // When
+    boolean result = classUnderTest.loadDatabaseFromSource();
+    // Then
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[1]);
+    assertThatThrownBy(() -> resource.getFile())
+        .isInstanceOf(IOException.class);
+  }
+
+  @Test
+  void loadDatabaseService_shouldThrowsException_whenDatasJsonNotValid()
+      throws JsonProcessingException, IOException {
+    // Given
+
+    when(resource.getFile()).thenReturn(mockFile);
+    when(objectMapper.readTree(Mockito.any(File.class)))
+        .thenThrow(JsonProcessingException.class);
+
+    // When
+    boolean result = classUnderTest.loadDatabaseFromSource();
+
+    // Then
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[2]);
+    assertThatThrownBy(() -> objectMapper.readTree(resource.getFile()))
+        .isInstanceOfAny(JsonProcessingException.class);
+  }
+
+  @Test
+  void loadDatabaseService_shouldThrowsException_whenDatasJsonIsMissed()
+      throws JsonProcessingException, IOException {
+    // Given
+    when(resource.getFile()).thenReturn(mockFile);
+    when(objectMapper.readTree(Mockito.any(File.class)))
+        .thenThrow(IOException.class);
+
+    // When
+    boolean result = classUnderTest.loadDatabaseFromSource();
+
+    // Then
+    assertFalse(result);
+    assertThat(logCaptor.getErrorLogs())
+        .containsExactly(expectedErrorMessages[3]);
+    assertThatThrownBy(() -> objectMapper.readTree(resource.getFile()))
+        .isInstanceOfAny(IOException.class);
   }
 }
