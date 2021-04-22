@@ -2,6 +2,8 @@ package com.safetynet.alert.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,8 +15,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @Setter
@@ -50,17 +50,28 @@ public class Person {
   @Column
   private String email;
 
+
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "id_MedicalRecord")
   private MedicalRecord medicalRecord;
 
   @ManyToMany(
-      fetch = FetchType.LAZY,
-      cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
+              fetch = FetchType.LAZY,
+              cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH,
+                  CascadeType.PERSIST}
+  )
   @JoinTable(
-      name = "FireStation_Person",
-      joinColumns = @JoinColumn(name = "id_Person"),
-      inverseJoinColumns = @JoinColumn(name = "id_FireStation"))
+             name = "FireStation_Person",
+             joinColumns = @JoinColumn(name = "id_Person"),
+             inverseJoinColumns = @JoinColumn(name = "id_FireStation")
+  )
   private Set<FireStation> fireStations = new HashSet<>();
 
+  @Override
+  public String toString() {
+    return "Person [id_Person=" + id_Person + ", firstName=" + firstName + ", lastName=" + lastName
+        + ", birthDate=" + birthDate + ", address=" + address + ", city=" + city + ", zip=" + zip
+        + ", phone=" + phone + ", email=" + email + ", medicalRecord=" + medicalRecord
+        + ", fireStations=" + fireStations + "]";
+  }
 }

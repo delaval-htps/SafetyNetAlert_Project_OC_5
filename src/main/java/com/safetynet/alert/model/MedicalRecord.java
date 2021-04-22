@@ -2,6 +2,8 @@ package com.safetynet.alert.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,8 +15,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @Setter
@@ -32,22 +32,16 @@ public class MedicalRecord {
   private Person person;
 
 
-  @ManyToMany(
-      fetch = FetchType.LAZY,
+  @ManyToMany(fetch = FetchType.LAZY,
       cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-  @JoinTable(
-      name = "attribution_medication",
-      joinColumns = @JoinColumn(name = "id_MedicalRecord"),
+  @JoinTable(name = "attribution_medication", joinColumns = @JoinColumn(name = "id_MedicalRecord"),
       inverseJoinColumns = @JoinColumn(name = "id_Medication"))
   private Set<Medication> medications = new HashSet<>();
 
 
-  @ManyToMany(
-      fetch = FetchType.LAZY,
+  @ManyToMany(fetch = FetchType.LAZY,
       cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-  @JoinTable(
-      name = "attribution_allergy",
-      joinColumns = @JoinColumn(name = "id_MedicalRecord"),
+  @JoinTable(name = "attribution_allergy", joinColumns = @JoinColumn(name = "id_MedicalRecord"),
       inverseJoinColumns = @JoinColumn(name = "id_Allergy"))
   private Set<Allergy> allergies = new HashSet<>();
 
