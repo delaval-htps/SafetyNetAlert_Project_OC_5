@@ -22,4 +22,8 @@ public class MedicationService {
   public Medication saveMedication(Medication medication) {
     return medicationRepository.save(medication);
   }
+
+  public Medication getMedicationByDesignationAndPosology(String designation, String posology) {
+    return medicationRepository.getOneByDesignationAndPosology(designation, posology);
+  }
 }

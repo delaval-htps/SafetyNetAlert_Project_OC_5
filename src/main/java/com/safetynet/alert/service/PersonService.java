@@ -19,8 +19,16 @@ public class PersonService {
     return personRepository.findAll();
   }
 
-  public Person savePerson(Person dorian) {
-    return personRepository.save(dorian);
+  public Person savePerson(Person person) {
+    return personRepository.save(person);
+  }
+
+  public Iterable<Person> getPersonByAddress(String addressFireStation) {
+    return personRepository.getOneByAddress(addressFireStation);
+  }
+
+  public Person getPersonByNames(String firstName, String lastName) {
+    return personRepository.getOneByNames(firstName, lastName);
   }
 
 }
