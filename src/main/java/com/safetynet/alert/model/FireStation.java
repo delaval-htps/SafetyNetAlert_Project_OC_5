@@ -1,6 +1,9 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -19,6 +22,10 @@ import javax.persistence.ManyToMany;
 @Getter
 @Setter
 @Entity
+@JsonIdentityInfo(
+                  generator = ObjectIdGenerators.PropertyGenerator.class,
+                  property = "id_FireStation"
+)
 public class FireStation {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +50,7 @@ public class FireStation {
              joinColumns = @JoinColumn(name = "id_FireStation"),
              inverseJoinColumns = @JoinColumn(name = "id_Person")
   )
+  @JsonIgnore
   private Set<Person> persons = new HashSet<>();
 
   public void add(Person person) {
@@ -53,7 +61,7 @@ public class FireStation {
 
   @Override
   public String toString() {
-    return "FireStation [Id_FireStation=" + Id_FireStation + ", numberStation=" + numberStation
-        + ", persons=" + persons + "]";
+    return "FireStation [Id_FireStation=" + Id_FireStation + ", numberStation="
+        + numberStation + ", persons=" + persons + "]";
   }
 }

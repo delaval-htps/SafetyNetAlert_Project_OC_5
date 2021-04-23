@@ -1,5 +1,8 @@
 package com.safetynet.alert.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -18,6 +21,10 @@ import javax.persistence.ManyToMany;
 @Getter
 @Setter
 @Entity
+@JsonIdentityInfo(
+                  generator = ObjectIdGenerators.PropertyGenerator.class,
+                  property = "id_Allergy"
+)
 public class Allergy {
 
   @Id
@@ -28,10 +35,19 @@ public class Allergy {
   @Column
   private String designation;
 
-  @ManyToMany(fetch = FetchType.EAGER,
-      cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-  @JoinTable(name = "attribution_allergy", joinColumns = @JoinColumn(name = "id_Allergy"),
-      inverseJoinColumns = @JoinColumn(name = "id_MedicalRecord"))
+  @ManyToMany(
+              fetch = FetchType.EAGER,
+              cascade = {CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH}
+  )
+  @JoinTable(
+             name = "attribution_allergy",
+             joinColumns = @JoinColumn(name = "id_Allergy"),
+             inverseJoinColumns = @JoinColumn(name = "id_MedicalRecord")
+  )
+  @JsonIgnore
   private Set<MedicalRecord> medicalRecords = new HashSet<>();
 
   public void add(MedicalRecord medicalRecord) {

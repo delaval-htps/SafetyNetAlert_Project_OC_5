@@ -1,5 +1,7 @@
 package com.safetynet.alert.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -19,6 +21,10 @@ import javax.persistence.OneToOne;
 @Getter
 @Setter
 @Entity
+@JsonIdentityInfo(
+                  generator = ObjectIdGenerators.PropertyGenerator.class,
+                  property = "id_MedicalRecord"
+)
 public class MedicalRecord {
 
   @Id
@@ -29,20 +35,39 @@ public class MedicalRecord {
   // declaration of relationship 1:1 to have bidirectionnal relation
   // ( we can with a MedicalRecord add a Person)
   @OneToOne(mappedBy = "medicalRecord", cascade = CascadeType.ALL)
+
   private Person person;
 
 
-  @ManyToMany(fetch = FetchType.LAZY,
-      cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-  @JoinTable(name = "attribution_medication", joinColumns = @JoinColumn(name = "id_MedicalRecord"),
-      inverseJoinColumns = @JoinColumn(name = "id_Medication"))
+  @ManyToMany(
+              fetch = FetchType.LAZY,
+              cascade = {CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH}
+  )
+  @JoinTable(
+             name = "attribution_medication",
+             joinColumns = @JoinColumn(name = "id_MedicalRecord"),
+             inverseJoinColumns = @JoinColumn(name = "id_Medication")
+  )
+
   private Set<Medication> medications = new HashSet<>();
 
 
-  @ManyToMany(fetch = FetchType.LAZY,
-      cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-  @JoinTable(name = "attribution_allergy", joinColumns = @JoinColumn(name = "id_MedicalRecord"),
-      inverseJoinColumns = @JoinColumn(name = "id_Allergy"))
+  @ManyToMany(
+              fetch = FetchType.LAZY,
+              cascade = {CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH}
+  )
+  @JoinTable(
+             name = "attribution_allergy",
+             joinColumns = @JoinColumn(name = "id_MedicalRecord"),
+             inverseJoinColumns = @JoinColumn(name = "id_Allergy")
+  )
+
   private Set<Allergy> allergies = new HashSet<>();
 
 }
