@@ -46,7 +46,7 @@ public class AdminRestController {
     return fireStationService.getFireStations();
   }
 
-  @GetMapping("/medicalrecords")
+  @GetMapping("/medicalRecords")
   public Iterable<MedicalRecord> getMedicalRecords() {
     return medicalRecordService.getMedicalRecords();
   }
