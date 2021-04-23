@@ -10,19 +10,19 @@ import com.safetynet.alert.service.PersonService;
 import java.io.IOException;
 import org.assertj.db.type.Source;
 import org.assertj.db.type.Table;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@Transactional
+
 class LoadDatabaseServiceIT {
 
   // instance to check database
@@ -48,32 +48,45 @@ class LoadDatabaseServiceIT {
   @Autowired
   private AllergyService allergyService;
 
+  @Value("${spring.datasource.url}")
+  private String databaseSource;
+  @Value("${spring.datasource.username}")
+  private String datasourceUsername;
+  @Value("${spring.datasource.password}")
+  private String datasourcePassword;
+
   private ObjectMapper objectMapper;
   private Resource resource;
+
 
   // class under test
   private LoadDatabaseService classUnderTestLoadDatabaseService;
 
-  @BeforeAll
-  static void initSetUp() {
-    source = new Source("jdbc:mysql://localhost:3306/SafetyNetAlert", "root", "Jsadmin4all");
+  @BeforeEach
+  void initSetUp() {
+    System.out
+        .println(databaseSource + datasourcePassword + datasourceUsername);
+    source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
     fireStationPersonJointTable = new Table(source, "fire_station_person");
     medicalRecordTable = new Table(source, "medical_record");
     medicationTable = new Table(source, "medication");
     allergyTable = new Table(source, "allergy");
-    attributionMedicationJointTable = new Table(source, "attribution_medication");
+    attributionMedicationJointTable =
+        new Table(source, "attribution_medication");
     attributionAllergyJointTable = new Table(source, "attribution_allergy");
   }
 
   @Test
-  void loadDatabaseService_shouldPersistDataJson_whenBootingApplication() throws IOException {
+  void loadDatabaseService_shouldPersistDataJson_whenBootingApplication()
+      throws IOException {
     // ARRANGE... booting application
     resource = new ClassPathResource("json/data.json");
     objectMapper = new ObjectMapper();
-    classUnderTestLoadDatabaseService = new LoadDatabaseFromJsonImpl(objectMapper, resource,
-        personService, fireStationService, medicalRecordService, medicationService, allergyService);
+    classUnderTestLoadDatabaseService = new LoadDatabaseFromJsonImpl(
+        objectMapper, resource, personService, fireStationService,
+        medicalRecordService, medicationService, allergyService);
     // ACT nothing to do because application start alone with commandLineRunner
     // boolean result = classUnderTestLoadDatabaseService.loadDatabaseFromSource();
 
@@ -101,7 +114,8 @@ class LoadDatabaseServiceIT {
 
     // verify relationship between first person and medical record
     assertThat(personTable).column(9).hasColumnName("id_medical_record");
-    assertThat(personTable).column("id_medical_record").row(0).value(9).isEqualTo(1L);
+    assertThat(personTable).column("id_medical_record").row(0).value(9)
+        .isEqualTo(1L);
     assertThat(fireStationPersonJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
