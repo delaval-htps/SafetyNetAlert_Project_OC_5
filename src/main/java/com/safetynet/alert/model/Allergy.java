@@ -1,8 +1,6 @@
 package com.safetynet.alert.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -21,10 +19,6 @@ import javax.persistence.ManyToMany;
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo(
-                  generator = ObjectIdGenerators.PropertyGenerator.class,
-                  property = "id_Allergy"
-)
 public class Allergy {
 
   @Id

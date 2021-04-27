@@ -1,9 +1,7 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -22,17 +20,13 @@ import javax.persistence.ManyToMany;
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo(
-                  generator = ObjectIdGenerators.PropertyGenerator.class,
-                  property = "id_FireStation"
-)
 public class FireStation {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
   private Long Id_FireStation;
 
-  @Column(name = "station", unique = true)
+  @Column(name = "station")
   @JsonAlias("station") // for deserialize with another name that numberStation using
                         // jacksonAnnotation
   private int numberStation;

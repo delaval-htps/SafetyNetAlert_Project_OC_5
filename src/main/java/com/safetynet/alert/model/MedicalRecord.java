@@ -1,7 +1,5 @@
 package com.safetynet.alert.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -17,14 +15,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo(
-                  generator = ObjectIdGenerators.PropertyGenerator.class,
-                  property = "id_MedicalRecord"
-)
 public class MedicalRecord {
 
   @Id
@@ -51,7 +46,7 @@ public class MedicalRecord {
              joinColumns = @JoinColumn(name = "id_MedicalRecord"),
              inverseJoinColumns = @JoinColumn(name = "id_Medication")
   )
-
+  @OrderBy("id_Medication") // to impose jsonPath to be ordered by id when response
   private Set<Medication> medications = new HashSet<>();
 
 
@@ -67,7 +62,7 @@ public class MedicalRecord {
              joinColumns = @JoinColumn(name = "id_MedicalRecord"),
              inverseJoinColumns = @JoinColumn(name = "id_Allergy")
   )
-
+  @OrderBy("id_Allergy") // to impose jsonPath to be ordered by id when response
   private Set<Allergy> allergies = new HashSet<>();
 
 }
