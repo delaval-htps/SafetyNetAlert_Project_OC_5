@@ -64,8 +64,7 @@ class LoadDatabaseServiceIT {
 
   @BeforeEach
   void initSetUp() {
-    System.out
-        .println(databaseSource + datasourcePassword + datasourceUsername);
+    databaseSource = databaseSource.split(";")[0];
     source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
