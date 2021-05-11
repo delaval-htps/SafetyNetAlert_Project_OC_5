@@ -5,6 +5,7 @@ import static org.assertj.db.api.Assertions.assertThat;
 import java.util.Map;
 import org.assertj.db.type.Source;
 import org.assertj.db.type.Table;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
@@ -28,12 +29,19 @@ public class BootingApplication_DataPersited_Steps {
   private static Table attributionAllergyJointTable;
   private static Table attributionMedicationJointTable;
 
+  @Value("${spring.datasource.url}")
+  private String databaseSource;
+  @Value("${spring.datasource.username}")
+  private String datasourceUsername;
+  @Value("${spring.datasource.password}")
+  private String datasourcePassword;
+
   private static Map<String, String> personMap;
 
   @Before
   public void doSomething() {
-    source = new Source("jdbc:mysql://localhost:3306/SafetyNetAlert", "root",
-        "Jsadmin4all");
+    databaseSource = databaseSource.split(";")[0];
+    source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
     fireStationPersonJointTable = new Table(source, "fire_station_person");
@@ -66,9 +74,12 @@ public class BootingApplication_DataPersited_Steps {
 
   @Then("the datas from this file are correctly persited in database")
   public void datas_from_file_persisted_in_database() {
-    // check that one entity instance is correctly persisted in database with correct relationship
-    // with the other entity instances. If for one instance, it is the case then it will be the same
-    // for the others.For this check , we use the instance of Person with the id :
+    // check that one entity instance is correctly persisted in database with
+    // correct relationship
+    // with the other entity instances. If for one instance, it is the case then
+    // it will be the same
+    // for the others.For this check , we use the instance of Person with the id
+    // :
 
     // verify creation Of Tables
 
@@ -82,21 +93,19 @@ public class BootingApplication_DataPersited_Steps {
     assertThat(attributionMedicationJointTable).exists().hasNumberOfRows(19);
 
     // verify data from first person
-    assertThat(personTable).row(0).hasValues(1L,
-                                             personMap.get("address"),
+    assertThat(personTable).row(0).hasValues(1L, personMap.get("address"),
                                              "03/06/1984",
                                              personMap.get("city"),
                                              personMap.get("email"),
                                              personMap.get("firstName"),
                                              personMap.get("lastName"),
                                              personMap.get("phone"),
-                                             personMap.get("zip"),
-                                             1L);
+                                             personMap.get("zip"), 1L);
 
     // verify relationship between first person and medical record
     assertThat(personTable).column(9).hasColumnName("id_medical_record");
     assertThat(personTable).column("id_medical_record").row(0).value(9)
-        .isEqualTo(1L);
+                           .isEqualTo(1L);
     assertThat(fireStationPersonJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
