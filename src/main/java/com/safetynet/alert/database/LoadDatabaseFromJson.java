@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+<<<<<<< HEAD
 public class LoadDatabaseFromJson implements LoadDatabaseService {
 
   private final PersonService personService;

@@ -1,6 +1,7 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -25,7 +26,7 @@ public class FireStation {
   @Column
   private Long Id_FireStation;
 
-  @Column(name = "station", unique = true)
+  @Column(name = "station")
   @JsonAlias("station") // for deserialize with another name that numberStation using
                         // jacksonAnnotation
   private int numberStation;
@@ -43,6 +44,7 @@ public class FireStation {
              joinColumns = @JoinColumn(name = "id_FireStation"),
              inverseJoinColumns = @JoinColumn(name = "id_Person")
   )
+  @JsonIgnore
   private Set<Person> persons = new HashSet<>();
 
   public void add(Person person) {
@@ -53,7 +55,7 @@ public class FireStation {
 
   @Override
   public String toString() {
-    return "FireStation [Id_FireStation=" + Id_FireStation + ", numberStation=" + numberStation
-        + ", persons=" + persons + "]";
+    return "FireStation [Id_FireStation=" + Id_FireStation + ", numberStation="
+        + numberStation + ", persons=" + persons + "]";
   }
 }
