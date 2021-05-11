@@ -7,18 +7,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.PersonService;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,36 +26,32 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(OrderAnnotation.class)
+@Log4j2
 class PersonRestControllerIT {
 
   @Autowired
   private MockMvc mockMvc;
+
   @Autowired
   private PersonService personService;
 
-  private static Logger logger =
-      LoggerFactory.getLogger(PersonRestControllerIT.class);
 
-  private Person personTest = new Person(null,
-                                         "Dorian",
-                                         "Delaval",
-                                         "27/12/76",
-                                         "26 av maréchal foch",
-                                         "Cassis",
-                                         13260,
-                                         "06-18-46-01-60",
-                                         "delava.htps@gmail.com",
-                                         null,
-                                         null);
+
+  private Person personTest =
+      new Person(null, "Dorian", "Delaval", "27/12/76", "26 av maréchal foch",
+                 "Cassis", 13260, "06-18-46-01-60", "delava.htps@gmail.com",
+                 null, null);
 
   @Test
   @Order(1)
   void getPersons() throws Exception {
 
-    // assume that we check one line of jsonPAth : if it's correct then it is for the others
+    // assume that we check one line of jsonPAth : if it's
+    // correct then it is for the others
     mockMvc.perform(get("/persons")).andExpect(status().isOk())
            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
            .andExpect(jsonPath("$").exists())
@@ -76,18 +72,21 @@ class PersonRestControllerIT {
   void postPerson() throws Exception {
 
     // When and Then
-    mockMvc.perform(post("/person").contentType(MediaType.APPLICATION_JSON)
-                                   .content(asJsonString(personTest))
-                                   .accept(MediaType.APPLICATION_JSON))
-           .andExpect(status().isCreated()).andDo(print());
+    mockMvc.perform(post("/person").accept(MediaType.APPLICATION_JSON)
+                                   .contentType(MediaType.APPLICATION_JSON)
+                                   .content(asJsonString(personTest)))
+           .andExpect(status().isCreated())
+           // how to verify URI ?
+           .andExpect(header().exists("/person/24")).andDo(print());
   }
 
   @Test
   @Order(3)
   void putPerson() throws Exception {
 
-    // Given add id= 1L to check if it changes the first person in database
-    personTest.setId_Person(1L);
+    // Given add id= 1L to check if it changes the first person
+    // in database
+    personTest.setIdPerson(1L);
 
 
     mockMvc.perform(put("/person/{id}",
@@ -109,7 +108,8 @@ class PersonRestControllerIT {
   @Order(4)
   void deletePerson() throws Exception {
 
-    // Given : we pass firstName and lastName of the first person
+    // Given : we pass firstName and lastName of the first
+    // person
     LinkedMultiValueMap<String, String> multipleValues =
         new LinkedMultiValueMap<String, String>();
 
@@ -128,7 +128,7 @@ class PersonRestControllerIT {
     try {
       result = mapper.writeValueAsString(personToString);
     } catch (JsonProcessingException e) {
-      logger.error("Unable to parse Person to string", e);
+      log.error("Unable to parse Person to string", e);
       e.printStackTrace();
       return null;
     }
