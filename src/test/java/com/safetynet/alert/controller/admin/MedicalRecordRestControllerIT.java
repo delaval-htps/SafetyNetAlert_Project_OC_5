@@ -39,7 +39,7 @@ class MedicalRecordRestControllerIT {
     mockMvc.perform(get("/medicalRecords")).andExpect(status().isOk())
            .andExpect(jsonPath("$.length()", is(23)))
            .andExpect(jsonPath("$[0].id_MedicalRecord", is(1)))
-           .andExpect(jsonPath("$[0].person.id_Person", is(1)))
+           .andExpect(jsonPath("$[0].person.idPerson", is(1)))
            .andExpect(jsonPath("$[0].person.address", is("1509 Culver St")))
            .andExpect(jsonPath("$[0].person.firstName", is("John")))
            .andExpect(jsonPath("$[0].person.lastName", is("Boyd")))
