@@ -29,7 +29,7 @@ import nl.altindag.log.LogCaptor;
 
 
 @ExtendWith(MockitoExtension.class)
-class LoadDatabaseServiceTest {
+class LoadDatabaseFromJsonTest {
 
   @Mock
   private PersonService personService;
@@ -50,7 +50,7 @@ class LoadDatabaseServiceTest {
 
 
   private LogCaptor logCaptor =
-      LogCaptor.forClass(LoadDatabaseFromJsonImpl.class);
+      LogCaptor.forClass(LoadDatabaseFromJson.class);
 
   private static String[] expectedErrorMessages =
       {"File Data.json is not Found in resources",
@@ -62,7 +62,7 @@ class LoadDatabaseServiceTest {
 
   @BeforeEach
   void setup() {
-    classUnderTest = new LoadDatabaseFromJsonImpl(objectMapper, resource,
+    classUnderTest = new LoadDatabaseFromJson(objectMapper, resource,
         personService, fireStationService, medicalRecordService,
         medicationService, allergyService);
   }

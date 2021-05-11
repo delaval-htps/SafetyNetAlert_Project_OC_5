@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class LoadDatabaseFromJsonImpl implements LoadDatabaseService {
+public class LoadDatabaseFromJson implements LoadDatabaseService {
 
   private final PersonService personService;
   private final FireStationService fireStationService;
@@ -40,10 +40,10 @@ public class LoadDatabaseFromJsonImpl implements LoadDatabaseService {
   private final Resource resource;
 
   private static Logger logger =
-      LoggerFactory.getLogger(LoadDatabaseFromJsonImpl.class);
+      LoggerFactory.getLogger(LoadDatabaseFromJson.class);
 
   @Autowired
-  public LoadDatabaseFromJsonImpl(ObjectMapper mapper,
+  public LoadDatabaseFromJson(ObjectMapper mapper,
                                   @Value(
                                     "classpath:json/data.json"
                                   ) Resource resource,
