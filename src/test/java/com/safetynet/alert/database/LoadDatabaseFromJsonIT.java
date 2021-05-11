@@ -10,10 +10,11 @@ import com.safetynet.alert.service.PersonService;
 import java.io.IOException;
 import org.assertj.db.type.Source;
 import org.assertj.db.type.Table;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -21,7 +22,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-
 
 class LoadDatabaseFromJsonIT {
 
@@ -48,16 +48,24 @@ class LoadDatabaseFromJsonIT {
   @Autowired
   private AllergyService allergyService;
 
+  @Value("${spring.datasource.url}")
+  private String databaseSource;
+  @Value("${spring.datasource.username}")
+  private String datasourceUsername;
+  @Value("${spring.datasource.password}")
+  private String datasourcePassword;
+
   private ObjectMapper objectMapper;
   private Resource resource;
+
 
   // class under test
   private LoadDatabaseService classUnderTestLoadDatabaseService;
 
-  @BeforeAll
-  static void initSetUp() {
-    source = new Source("jdbc:mysql://localhost:3306/SafetyNetAlert", "root",
-                        "Jsadmin4all");
+  @BeforeEach
+  void initSetUp() {
+    databaseSource = databaseSource.split(";")[0];
+    source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
     fireStationPersonJointTable = new Table(source, "fire_station_person");
@@ -75,7 +83,6 @@ class LoadDatabaseFromJsonIT {
     // ARRANGE... booting application
     resource = new ClassPathResource("json/data.json");
     objectMapper = new ObjectMapper();
-
     classUnderTestLoadDatabaseService =
         new LoadDatabaseFromJson(objectMapper, resource, personService,
                                  fireStationService, medicalRecordService,
