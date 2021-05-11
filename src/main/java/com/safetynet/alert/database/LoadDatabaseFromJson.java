@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-<<<<<<< HEAD
 public class LoadDatabaseFromJson implements LoadDatabaseService {
 
   private final PersonService personService;
@@ -45,14 +45,11 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
   @Autowired
   public LoadDatabaseFromJson(ObjectMapper mapper,
-                                  @Value(
-                                    "classpath:json/data.json"
-                                  ) Resource resource,
-                                  PersonService ps,
-                                  FireStationService fs,
-                                  MedicalRecordService mrs,
-                                  MedicationService ms,
-                                  AllergyService as) {
+                              @Value(
+                                "classpath:json/data.json"
+                              ) Resource resource, PersonService ps,
+                              FireStationService fs, MedicalRecordService mrs,
+                              MedicationService ms, AllergyService as) {
     this.objectMapper = mapper;
     this.resource = resource;
     this.allergyService = as;
@@ -66,7 +63,8 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
   @Transactional
   public boolean loadDatabaseFromSource() {
 
-    // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+    // false);
     // definie dans application.properties for test
 
     File fileJson = null;
@@ -94,7 +92,8 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
       e.printStackTrace();
       return false;
     }
-    // initilaisation des jsonNode pour chaque Ogject Person,FireStation,MedicalRecord
+    // initilaisation des jsonNode pour chaque Ogject
+    // Person,FireStation,MedicalRecord
     if (root != null) {
 
       JsonNode personArray = root.get("persons");
@@ -177,20 +176,21 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
         // get person with this medicalrecord
 
-        Person currentPerson =
-            personService.getPersonByNames(
-                                           elementMedicalRecord.get("firstName")
-                                               .asText().toString(),
+        Optional<Person> currentPerson =
+            personService.getPersonByNames(elementMedicalRecord.get("firstName")
+                                                               .asText()
+                                                               .toString(),
                                            elementMedicalRecord.get("lastName")
-                                               .asText().toString());
+                                                               .asText()
+                                                               .toString());
 
         // update birthdate and medicalRecord for person
 
         String birthDate;
         birthDate = elementMedicalRecord.get("birthdate").asText();
 
-        currentPerson.setBirthDate(birthDate);
-        currentPerson.setMedicalRecord(medicalRecord);
+        currentPerson.get().setBirthDate(birthDate);
+        currentPerson.get().setMedicalRecord(medicalRecord);
 
 
         // save medication instance
@@ -221,9 +221,9 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
             medicationService.saveMedication(medication);
 
           } else {
-            medication = medicationService
-                .getMedicationByDesignationAndPosology(composition[0],
-                                                       composition[1]);
+            medication =
+                medicationService.getMedicationByDesignationAndPosology(composition[0],
+                                                                        composition[1]);
           }
 
           medication.add(medicalRecord);
