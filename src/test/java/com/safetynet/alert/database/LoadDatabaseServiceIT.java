@@ -23,7 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 
-class LoadDatabaseFromJsonIT {
+class LoadDatabaseServiceIT {
 
   // instance to check database
   private static Source source;
@@ -83,13 +83,11 @@ class LoadDatabaseFromJsonIT {
     // ARRANGE... booting application
     resource = new ClassPathResource("json/data.json");
     objectMapper = new ObjectMapper();
-    classUnderTestLoadDatabaseService =
-        new LoadDatabaseFromJson(objectMapper, resource, personService,
-                                 fireStationService, medicalRecordService,
-                                 medicationService, allergyService);
+    classUnderTestLoadDatabaseService = new LoadDatabaseFromJsonImpl(
+        objectMapper, resource, personService, fireStationService,
+        medicalRecordService, medicationService, allergyService);
     // ACT nothing to do because application start alone with commandLineRunner
-    // boolean result =
-    // classUnderTestLoadDatabaseService.loadDatabaseFromSource();
+    // boolean result = classUnderTestLoadDatabaseService.loadDatabaseFromSource();
 
     // ASSERT
     assertThat(personTable).exists().hasNumberOfRows(23);
@@ -102,15 +100,21 @@ class LoadDatabaseFromJsonIT {
     assertThat(attributionMedicationJointTable).exists().hasNumberOfRows(19);
 
     // verify data from first person
-    assertThat(personTable).row(0).hasValues(1L, "1509 Culver St", "03/06/1984",
-                                             "Culver", "jaboyd@email.com",
-                                             "John", "Boyd", "841-874-6512",
-                                             97451, 1L);
+    assertThat(personTable).row(0).hasValues(1L,
+                                             "1509 Culver St",
+                                             "03/06/1984",
+                                             "Culver",
+                                             "jaboyd@email.com",
+                                             "John",
+                                             "Boyd",
+                                             "841-874-6512",
+                                             97451,
+                                             1L);
 
     // verify relationship between first person and medical record
     assertThat(personTable).column(9).hasColumnName("id_medical_record");
     assertThat(personTable).column("id_medical_record").row(0).value(9)
-                           .isEqualTo(1L);
+        .isEqualTo(1L);
     assertThat(fireStationPersonJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
