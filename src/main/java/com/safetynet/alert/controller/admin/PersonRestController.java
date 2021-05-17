@@ -59,6 +59,7 @@ public class PersonRestController {
     // if (savedPerson == null) {
     // return ResponseEntity.noContent().build();
     // } else {
+
     URI locationUri =
         ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                                    .buildAndExpand(savedPerson.getIdPerson())

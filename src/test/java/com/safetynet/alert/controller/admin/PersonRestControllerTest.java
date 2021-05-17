@@ -53,9 +53,6 @@ class PersonRestControllerTest {
   @MockBean
   private PersonService personService;
 
-  // // need to mock LoadDatabaseService
-  // @MockBean
-  // private LoadDatabaseProdFromJson lds;
 
   private static Person mockPerson1;
   private static Person mockPerson2;
@@ -159,24 +156,6 @@ class PersonRestControllerTest {
     assertThat(personCaptor.getValue().getPhone()).isEqualTo("061-846-0160");
   }
 
-  // PersonService.savePerson(person) ne retourne jamais un null donc pas besoin
-  // de faire ce test !!! de plus le retour 204 sert a dire que la request est
-  // passée mais qu'il n'ya pas de corps de réponse. donc test ci desous faux!
-
-  // @Test
-  // @Order(3)
-  // void testPostPerson_WhenSavePersonReturnNull_thenReturn204()
-  // throws Exception {
-  //
-  // ObjectMapper mapper = mapperBuilder.build();
-  //
-  // when(personService.savePerson(Mockito.any(Person.class))).thenReturn(null);
-  //
-  // mockMvc.perform(post("/person").accept(MediaType.APPLICATION_JSON)
-  // .content(mapper.writeValueAsString(mockPersonWithoutId))
-  // .contentType(MediaType.APPLICATION_JSON))
-  // .andExpect(status().isNoContent()).andDo(print());
-  // }
 
   @ParameterizedTest
   @Order(3)
