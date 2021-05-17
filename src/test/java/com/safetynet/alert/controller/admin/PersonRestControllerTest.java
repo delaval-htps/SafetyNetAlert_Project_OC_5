@@ -16,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.safetynet.alert.database.LoadDatabaseService;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.PersonService;
@@ -54,9 +53,9 @@ class PersonRestControllerTest {
   @MockBean
   private PersonService personService;
 
-  // need to mock LoadDatabaseService
-  @MockBean
-  private LoadDatabaseService lds;
+  // // need to mock LoadDatabaseService
+  // @MockBean
+  // private LoadDatabaseProdFromJson lds;
 
   private static Person mockPerson1;
   private static Person mockPerson2;
