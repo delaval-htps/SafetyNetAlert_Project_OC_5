@@ -1,25 +1,26 @@
 package com.safetynet.alert;
 
-import com.safetynet.alert.database.LoadDatabaseService;
+import com.safetynet.alert.database.LoadDataStrategyFactory;
+import com.safetynet.alert.database.StrategyName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 
 @Component
+@Profile("!test")
 public class CommandLineRunnerTaskExcecutor implements CommandLineRunner {
 
-  private LoadDatabaseService loadDatabaseService;
-
   @Autowired
-  public CommandLineRunnerTaskExcecutor(LoadDatabaseService lds) {
-    this.loadDatabaseService = lds;
-  }
+  private LoadDataStrategyFactory loadDataStrategyFactory;
+
 
   @Override
   public void run(String... args) throws Exception {
-    loadDatabaseService.loadDatabaseFromSource();
 
+    loadDataStrategyFactory.findStrategy(StrategyName.StrategyProd)
+                           .loadDatabaseFromSource();
   }
 
 }
