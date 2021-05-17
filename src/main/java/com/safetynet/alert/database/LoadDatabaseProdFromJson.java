@@ -20,43 +20,48 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
-public class LoadDatabaseFromJson implements LoadDatabaseService {
-
-  private final PersonService personService;
-  private final FireStationService fireStationService;
-  private final MedicalRecordService medicalRecordService;
-  private final MedicationService medicationService;
-  private final AllergyService allergyService;
-
-  private final ObjectMapper objectMapper;
-  private final Resource resource;
-
-  private static Logger logger =
-      LoggerFactory.getLogger(LoadDatabaseFromJson.class);
+@Service
+@Log4j2
+public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
   @Autowired
-  public LoadDatabaseFromJson(ObjectMapper mapper,
-                              @Value(
-                                "classpath:json/data.json"
-                              ) Resource resource, PersonService ps,
-                              FireStationService fs, MedicalRecordService mrs,
-                              MedicationService ms, AllergyService as) {
+  private PersonService personService;
+  @Autowired
+  private FireStationService fireStationService;
+  @Autowired
+  private MedicalRecordService medicalRecordService;
+  @Autowired
+  private MedicationService medicationService;
+  @Autowired
+  private AllergyService allergyService;
+
+
+  private String filePath;
+  private ObjectMapper objectMapper;
+  private ResourceLoader resourceLoader;
+
+
+  @Autowired
+  public LoadDatabaseProdFromJson(ObjectMapper mapper,
+                                  ResourceLoader resourceLoader,
+                                  @Value(
+                                    "classpath:${filejson.app}"
+                                  ) String filePath) {
     this.objectMapper = mapper;
-    this.resource = resource;
-    this.allergyService = as;
-    this.fireStationService = fs;
-    this.medicalRecordService = mrs;
-    this.medicationService = ms;
-    this.personService = ps;
+    this.resourceLoader = resourceLoader;
+    this.filePath = filePath;
+  }
+
+  @Override
+  public StrategyName getStrategyName() {
+    return StrategyName.StrategyProd;
   }
 
   @Override
@@ -66,15 +71,17 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
     // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
     // false);
     // definie dans application.properties for test
+    //
+
 
     File fileJson = null;
     try {
-      fileJson = resource.getFile();
+      fileJson = resourceLoader.getResource(filePath).getFile();
     } catch (IOException e1) {
       if (e1 instanceof FileNotFoundException) {
-        logger.error("File Data.json is not Found in resources");
+        log.error("File Data.json is not Found in resources");
       } else {
-        logger.error("Reading Failure for File Data.json");
+        log.error("Reading Failure for File Data.json");
       }
       e1.printStackTrace();
       return false;
@@ -84,11 +91,11 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
     try {
       root = objectMapper.readTree(fileJson);
     } catch (JsonProcessingException e) {
-      logger.error("Json's datas are not valid");
+      log.error("Json's datas are not valid");
       e.printStackTrace();
       return false;
     } catch (IOException e) {
-      logger.error("File Data.json is missing to be parsed");
+      log.error("File Data.json is missing to be parsed");
       e.printStackTrace();
       return false;
     }
@@ -107,7 +114,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
       // save persons
 
-      logger.info("********** sauvegarde des Persons ***********");
+      log.info("********** sauvegarde des Persons ***********");
 
       while (personNode.hasNext()) {
 
@@ -118,7 +125,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
           personService.savePerson(person);
         } catch (JsonProcessingException e) {
           e.printStackTrace();
-          logger.error("problem to parse persons with objectMapper");
+          log.error("problem to parse persons with objectMapper");
           return false;
         }
       }
@@ -128,7 +135,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
       // to avoid duplicate FireStations
       List<Integer> numberStations = new ArrayList<Integer>();
 
-      logger.info("********** save FireStation **********");
+      log.info("********** save FireStation **********");
 
       while (fireStationNode.hasNext()) {
 
@@ -166,7 +173,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
       // save medications
 
-      logger.info("********** save MedicalRecord **********");
+      log.info("********** save MedicalRecord **********");
 
       while (medicalRecordNode.hasNext()) {
 
@@ -195,7 +202,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
         // save medication instance
 
-        logger.info("********** save Medication **********");
+        log.info("********** save Medication **********");
 
         JsonNode medicationArray = elementMedicalRecord.get("medications");
         JsonNode allergyArray = elementMedicalRecord.get("allergies");
@@ -231,7 +238,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
 
         // save allergies
 
-        logger.info("********** save Allergy **********");
+        log.info("********** save Allergy **********");
 
         while (allergyElement.hasNext()) {
 
@@ -255,7 +262,7 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
         }
 
         // save medicalRecord
-        logger.info("********** save MedicalRecord **********");
+        log.info("********** save MedicalRecord **********");
         medicalRecordService.saveMedicalRecord(medicalRecord);
 
       }
@@ -263,4 +270,6 @@ public class LoadDatabaseFromJson implements LoadDatabaseService {
     }
     return false;
   }
+
 }
+

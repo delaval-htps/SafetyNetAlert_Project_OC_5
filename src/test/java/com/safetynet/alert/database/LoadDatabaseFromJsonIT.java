@@ -16,13 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-
 class LoadDatabaseFromJsonIT {
 
   // instance to check database
@@ -54,13 +52,13 @@ class LoadDatabaseFromJsonIT {
   private String datasourceUsername;
   @Value("${spring.datasource.password}")
   private String datasourcePassword;
+  @Value("classpath:${filejson.app}")
+  private String filePath;
 
-  private ObjectMapper objectMapper;
-  private Resource resource;
-
+  private ResourceLoader resourceLoader;
 
   // class under test
-  private LoadDatabaseService classUnderTestLoadDatabaseService;
+  private LoadDatabaseProdFromJson classUnderTest;
 
   @BeforeEach
   void initSetUp() {
@@ -75,21 +73,18 @@ class LoadDatabaseFromJsonIT {
     attributionMedicationJointTable =
         new Table(source, "attribution_medication");
     attributionAllergyJointTable = new Table(source, "attribution_allergy");
+
+    classUnderTest = new LoadDatabaseProdFromJson(new ObjectMapper(),
+                                                  resourceLoader, filePath);
   }
 
   @Test
   void loadDatabaseService_shouldPersistDataJson_whenBootingApplication()
       throws IOException {
     // ARRANGE... booting application
-    resource = new ClassPathResource("json/data.json");
-    objectMapper = new ObjectMapper();
-    classUnderTestLoadDatabaseService =
-        new LoadDatabaseFromJson(objectMapper, resource, personService,
-                                 fireStationService, medicalRecordService,
-                                 medicationService, allergyService);
+
+
     // ACT nothing to do because application start alone with commandLineRunner
-    // boolean result =
-    // classUnderTestLoadDatabaseService.loadDatabaseFromSource();
 
     // ASSERT
     assertThat(personTable).exists().hasNumberOfRows(23);
