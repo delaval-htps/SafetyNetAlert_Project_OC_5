@@ -40,27 +40,30 @@ public class BootingApplication_DataPersited_Steps {
 
   @Before
   public void doSomething() {
+
     databaseSource = databaseSource.split(";")[0];
     source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
-    fireStationPersonJointTable = new Table(source, "fire_station_person");
     medicalRecordTable = new Table(source, "medical_record");
     medicationTable = new Table(source, "medication");
     allergyTable = new Table(source, "allergy");
     attributionMedicationJointTable =
         new Table(source, "attribution_medication");
     attributionAllergyJointTable = new Table(source, "attribution_allergy");
+
   }
 
   @Given("application starts and creates databases")
   public void application_starts_and_creates_databases() {
+
     // Nothing to do:just to start application
     // with application.properties database is automatically created
   }
 
   @And("data file contains this first person:")
   public void file_data_json_contains_this_first_person(DataTable table) {
+
     personMap = table.asMaps().get(0);
 
   }
@@ -68,6 +71,7 @@ public class BootingApplication_DataPersited_Steps {
 
   @When("application reads the data.json")
   public void application_read_data() {
+
     // Nothing to do:just to start application
     // with method run of main class, file data.json is read automatically
   }
@@ -75,6 +79,7 @@ public class BootingApplication_DataPersited_Steps {
   @Then("the datas from this file are correctly persited in database")
   public void datas_from_file_persisted_in_database() {
     // check that one entity instance is correctly persisted in database with
+
     // correct relationship
     // with the other entity instances. If for one instance, it is the case then
     // it will be the same
@@ -88,27 +93,28 @@ public class BootingApplication_DataPersited_Steps {
     assertThat(medicalRecordTable).exists().hasNumberOfRows(23);
     assertThat(medicationTable).exists().hasNumberOfRows(18);
     assertThat(allergyTable).exists().hasNumberOfRows(6);
-    assertThat(fireStationPersonJointTable).exists();
     assertThat(attributionAllergyJointTable).exists().hasNumberOfRows(11);
     assertThat(attributionMedicationJointTable).exists().hasNumberOfRows(19);
 
     // verify data from first person
-    assertThat(personTable).row(0).hasValues(1L, personMap.get("address"),
-                                             "03/06/1984",
-                                             personMap.get("city"),
-                                             personMap.get("email"),
-                                             personMap.get("firstName"),
-                                             personMap.get("lastName"),
-                                             personMap.get("phone"),
-                                             personMap.get("zip"), 1L);
+    assertThat(personTable).row(0).hasValues(1L,
+        personMap.get("address"),
+        "03/06/1984",
+        personMap.get("city"),
+        personMap.get("email"),
+        personMap.get("firstName"),
+        personMap.get("lastName"),
+        personMap.get("phone"),
+        personMap.get("zip"),
+        1L,
+        1L);
 
     // verify relationship between first person and medical record
-    assertThat(personTable).column(9).hasColumnName("id_medical_record");
-    assertThat(personTable).column("id_medical_record").row(0).value(9)
-                           .isEqualTo(1L);
-    assertThat(fireStationPersonJointTable).row(0).hasValues(1L, 1L);
+    assertThat(personTable).column(9).hasColumnName("id_fire_station");
+    assertThat(personTable).column(10).hasColumnName("id_medical_record");
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(1).hasValues(2L, 1L);
+
   }
 }

@@ -71,6 +71,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
   public boolean loadDatabaseFromSource() {
 
     // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+
     // false);
     // definie dans application.properties for test
     //
@@ -169,6 +170,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
         JsonNode elementFireStation = fireStationNode.next();
 
         int numberStation = elementFireStation.get("station").asInt();
+        String addressFireStation = elementFireStation.get("address").asText();
 
         if (!numberStations.contains(numberStation)) {
 
@@ -183,7 +185,8 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         }
 
-        String addressFireStation = elementFireStation.get("address").asText();
+        fireStation.add(addressFireStation);
+
         Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
 
         for (Person person : persons) {
