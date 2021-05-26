@@ -62,11 +62,11 @@ class LoadDatabaseFromJsonIT {
 
   @BeforeEach
   void initSetUp() {
+
     databaseSource = databaseSource.split(";")[0];
     source = new Source(databaseSource, datasourceUsername, datasourcePassword);
     personTable = new Table(source, "person");
     fireStationTable = new Table(source, "fire_station");
-    fireStationPersonJointTable = new Table(source, "fire_station_person");
     medicalRecordTable = new Table(source, "medical_record");
     medicationTable = new Table(source, "medication");
     allergyTable = new Table(source, "allergy");
@@ -75,7 +75,9 @@ class LoadDatabaseFromJsonIT {
     attributionAllergyJointTable = new Table(source, "attribution_allergy");
 
     classUnderTest = new LoadDatabaseProdFromJson(new ObjectMapper(),
-                                                  resourceLoader, filePath);
+        resourceLoader,
+        filePath);
+
   }
 
   @Test
@@ -92,23 +94,28 @@ class LoadDatabaseFromJsonIT {
     assertThat(medicalRecordTable).exists().hasNumberOfRows(23);
     assertThat(medicationTable).exists().hasNumberOfRows(18);
     assertThat(allergyTable).exists().hasNumberOfRows(6);
-    assertThat(fireStationPersonJointTable).exists();
     assertThat(attributionAllergyJointTable).exists().hasNumberOfRows(11);
     assertThat(attributionMedicationJointTable).exists().hasNumberOfRows(19);
 
     // verify data from first person
-    assertThat(personTable).row(0).hasValues(1L, "1509 Culver St", "03/06/1984",
-                                             "Culver", "jaboyd@email.com",
-                                             "John", "Boyd", "841-874-6512",
-                                             97451, 1L);
+    assertThat(personTable).row(0).hasValues(1L,
+        "1509 Culver St",
+        "03/06/1984",
+        "Culver",
+        "jaboyd@email.com",
+        "John",
+        "Boyd",
+        "841-874-6512",
+        97451,
+        1L,
+        1L);
 
     // verify relationship between first person and medical record
-    assertThat(personTable).column(9).hasColumnName("id_medical_record");
-    assertThat(personTable).column("id_medical_record").row(0).value(9)
-                           .isEqualTo(1L);
-    assertThat(fireStationPersonJointTable).row(0).hasValues(1L, 1L);
+    assertThat(personTable).column(9).hasColumnName("id_fire_station");
+    assertThat(personTable).column(10).hasColumnName("id_medical_record");
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(1).hasValues(2L, 1L);
+
   }
 }

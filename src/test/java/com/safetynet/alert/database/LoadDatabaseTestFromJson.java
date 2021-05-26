@@ -50,17 +50,19 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
   @Autowired
   public LoadDatabaseTestFromJson(ObjectMapper mapper,
                                   ResourceLoader resourceLoader,
-                                  @Value(
-                                    "classpath:${filejson.test}"
-                                  ) String filePath) {
+                                  @Value("classpath:${filejson.test}") String filePath) {
+
     this.objectMapper = mapper;
     this.resourceLoader = resourceLoader;
     this.filePath = filePath;
+
   }
 
   @Override
   public StrategyName getStrategyName() {
+
     return StrategyName.StrategyTest;
+
   }
 
 
@@ -69,36 +71,56 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
   public boolean loadDatabaseFromSource() {
 
     // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+
     // false);
     // definie dans application.properties for test
 
 
     File fileJson = null;
+
     try {
-      fileJson = resourceLoader.getResource(filePath).getFile();
+
+      fileJson = resourceLoader.getResource(filePath)
+          .getFile();
+
       // ClassPathResource(filePath).getFile();
     } catch (IOException e1) {
+
       if (e1 instanceof FileNotFoundException) {
+
         log.error("File Data.json is not Found in resources");
+
       } else {
+
         log.error("Reading Failure for File Data.json");
+
       }
+
       e1.printStackTrace();
       return false;
+
     }
 
     JsonNode root = null;
+
     try {
+
       root = objectMapper.readTree(fileJson);
+
     } catch (JsonProcessingException e) {
+
       log.error("Json's datas are not valid");
       e.printStackTrace();
       return false;
+
     } catch (IOException e) {
+
       log.error("File Data.json is missing to be parsed");
       e.printStackTrace();
       return false;
+
     }
+
     // initilaisation des jsonNode pour chaque Ogject
     // Person,FireStation,MedicalRecord
     if (root != null) {
@@ -121,13 +143,18 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
         String element = personNode.next().toString();
 
         try {
+
           Person person = objectMapper.readValue(element, Person.class);
           personService.savePerson(person);
+
         } catch (JsonProcessingException e) {
+
           e.printStackTrace();
           log.error("problem to parse persons with objectMapper");
           return false;
+
         }
+
       }
 
       // save firestations
@@ -143,26 +170,37 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
         JsonNode elementFireStation = fireStationNode.next();
 
         int numberStation = elementFireStation.get("station").asInt();
+        String addressFireStation = elementFireStation.get("address").asText();
 
         if (!numberStations.contains(numberStation)) {
+
           fireStation = new FireStation();
           fireStation.setNumberStation(numberStation);
           fireStationService.saveFireStation(fireStation);
           numberStations.add(numberStation);
 
         } else {
+
           fireStation =
-              fireStationService.getFireStationByNumberStation(numberStation);
+              fireStationService.getFireStationByNumberStation(numberStation).get();
+
         }
-        String addressFireStation = elementFireStation.get("address").asText();
-        Iterable<Person> persons =
-            personService.getPersonByAddress(addressFireStation);
+
+        fireStation.add(addressFireStation);
+
+        Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
 
         for (Person person : persons) {
+
           if (person.getAddress().equals(addressFireStation)) {
+
             fireStation.add(person);
+            person.setFireStation(fireStation);
+
           }
+
         }
+
       }
 
       // to avoid duplicate allergy
@@ -184,12 +222,9 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
         // get person with this medicalrecord
 
         Optional<Person> currentPerson =
-            personService.getPersonByNames(elementMedicalRecord.get("firstName")
-                                                               .asText()
-                                                               .toString(),
-                                           elementMedicalRecord.get("lastName")
-                                                               .asText()
-                                                               .toString());
+            personService.getPersonByNames(
+                elementMedicalRecord.get("firstName").asText().toString(),
+                elementMedicalRecord.get("lastName").asText().toString());
 
         // update birthdate and medicalRecord for person
 
@@ -228,12 +263,14 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
             medicationService.saveMedication(medication);
 
           } else {
-            medication =
-                medicationService.getMedicationByDesignationAndPosology(composition[0],
-                                                                        composition[1]);
+
+            medication = medicationService
+                .getMedicationByDesignationAndPosology(composition[0], composition[1]);
+
           }
 
           medication.add(medicalRecord);
+
         }
 
         // save allergies
@@ -256,9 +293,13 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
             allergyService.saveAllergy(allergy);
 
           } else {
+
             allergy = allergyService.getAllergyByDesignation(designation);
+
           }
+
           allergy.add(medicalRecord);
+
         }
 
         // save medicalRecord
@@ -266,9 +307,13 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
         medicalRecordService.saveMedicalRecord(medicalRecord);
 
       }
+
       return true;
+
     }
+
     return false;
+
   }
 
 }

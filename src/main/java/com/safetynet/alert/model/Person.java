@@ -1,8 +1,6 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,10 +15,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -42,8 +40,7 @@ public class Person {
   @Pattern(
            regexp = "^[A-Z]+[a-z]*",
            message = "this firstName must contains first capital letter "
-               + "and for the other letter lowercase  "
-  )
+               + "and for the other letter lowercase  ")
   private String firstName;
 
   @Column
@@ -51,8 +48,7 @@ public class Person {
   @Pattern(
            regexp = "^[A-Z]+[a-z]*",
            message = "this firstName must contains first capital letter"
-               + " and for the other letter lowercase  "
-  )
+               + " and for the other letter lowercase  ")
   private String lastName;
 
   @Column
@@ -61,6 +57,7 @@ public class Person {
 
   @Column
   @NotNull(message = "this address must not be null")
+  @NotBlank
   private String address;
 
   @Column
@@ -68,16 +65,14 @@ public class Person {
   @Pattern(
            regexp = "^[A-Z]+[a-zA-Z ]*",
            message = "this City must contains first capital letter "
-               + "and for the other letter lowercase  "
-  )
+               + "and for the other letter lowercase  ")
   private String city;
 
   @Column
   @Range(
          min = 0,
          max = 99999,
-         message = "this zip must not be beetween 0 and 99999"
-  )
+         message = "this zip must not be beetween 0 and 99999")
   private int zip;
 
   @Column
@@ -85,15 +80,13 @@ public class Person {
   @Pattern(
            regexp = "[0-9]{3}-[0-9]{3}-[0-9]{4}",
            message = "this phone number must match "
-               + "with this pattern xxx-xxx-xxxx with x for a integer"
-  )
+               + "with this pattern xxx-xxx-xxxx with x for a integer")
   private String phone;
 
   @Column
   @NotNull(message = "this email must be not null")
   @Email(
-         message = "this field need to be a correct Email, example: john.boyd@email.com"
-  )
+         message = "this field need to be a correct Email, example: john.boyd@email.com")
   private String email;
 
   @OneToOne(cascade = CascadeType.ALL)
@@ -101,20 +94,15 @@ public class Person {
   @JsonIgnore
   private MedicalRecord medicalRecord;
 
-  @ManyToMany(
-              fetch = FetchType.LAZY,
-              cascade = {CascadeType.DETACH,
-                         CascadeType.MERGE,
-                         CascadeType.REFRESH,
-                         CascadeType.PERSIST}
-  )
-  @JoinTable(
-             name = "FireStation_Person",
-             joinColumns = @JoinColumn(name = "id_Person"),
-             inverseJoinColumns = @JoinColumn(name = "id_FireStation")
-  )
+  @ManyToOne(
+             fetch = FetchType.LAZY,
+             cascade = {CascadeType.DETACH,
+                        CascadeType.MERGE,
+                        CascadeType.REFRESH,
+                        CascadeType.PERSIST})
+  @JoinColumn(name = "idFireStation")
   @JsonIgnore
-  private Set<FireStation> fireStations = new HashSet<>();
+  private FireStation fireStation;
 
 
 }

@@ -15,10 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
 import com.safetynet.alert.database.LoadDataStrategyFactory;
 import com.safetynet.alert.database.StrategyName;
+import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.PersonService;
-import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -69,11 +69,20 @@ class PersonRestControllerIT {
   void setup() {
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyTest)
-                           .loadDatabaseFromSource();
+        .loadDatabaseFromSource();
     personTest =
-        new Person(null, "John", "Boyd", "27/12/76", "26 av maréchal foch",
-                   "Cassis", 13260, "061-846-0160", "delaval.htps@gmail.com",
-                   null, null);
+        new Person(null,
+            "John",
+            "Boyd",
+            "27/12/76",
+            "26 av maréchal foch",
+            "Cassis",
+            13260,
+            "061-846-0160",
+            "delaval.htps@gmail.com",
+            null,
+            null);
+
   }
 
   @Test
@@ -83,18 +92,19 @@ class PersonRestControllerIT {
     // assume that we check one line of jsonPAth : if it's
     // correct then it is for the others
     mockMvc.perform(get("/person")).andExpect(status().isOk())
-           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-           .andExpect(jsonPath("$").exists())
-           .andExpect(jsonPath("$.length()", is(1)))
-           .andExpect(jsonPath("$[0].idPerson", is(1)))
-           .andExpect(jsonPath("$[0].address", is("1509 Culver St")))
-           .andExpect(jsonPath("$[0].birthDate", is("03/06/1984")))
-           .andExpect(jsonPath("$[0].city", is("Culver")))
-           .andExpect(jsonPath("$[0].email", is("jaboyd@email.com")))
-           .andExpect(jsonPath("$[0].firstName", is("John")))
-           .andExpect(jsonPath("$[0].lastName", is("Boyd")))
-           .andExpect(jsonPath("$[0].phone", is("841-874-6512")))
-           .andExpect(jsonPath("$[0].zip", is(97451))).andDo(print());
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").exists())
+        .andExpect(jsonPath("$.length()", is(1)))
+        .andExpect(jsonPath("$[0].idPerson", is(1)))
+        .andExpect(jsonPath("$[0].address", is("1509 Culver St")))
+        .andExpect(jsonPath("$[0].birthDate", is("03/06/1984")))
+        .andExpect(jsonPath("$[0].city", is("Culver")))
+        .andExpect(jsonPath("$[0].email", is("jaboyd@email.com")))
+        .andExpect(jsonPath("$[0].firstName", is("John")))
+        .andExpect(jsonPath("$[0].lastName", is("Boyd")))
+        .andExpect(jsonPath("$[0].phone", is("841-874-6512")))
+        .andExpect(jsonPath("$[0].zip", is(97451))).andDo(print());
+
   }
 
   @Test
@@ -102,18 +112,19 @@ class PersonRestControllerIT {
   void getPersonById() throws Exception {
 
     mockMvc.perform(get("/person/{id}", 1)).andExpect(status().isOk())
-           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-           .andExpect(jsonPath("$").exists())
-           .andExpect(jsonPath("$.length()", is(9)))
-           .andExpect(jsonPath("$.idPerson", is(1)))
-           .andExpect(jsonPath("$.address", is("1509 Culver St")))
-           .andExpect(jsonPath("$.birthDate", is("03/06/1984")))
-           .andExpect(jsonPath("$.city", is("Culver")))
-           .andExpect(jsonPath("$.email", is("jaboyd@email.com")))
-           .andExpect(jsonPath("$.firstName", is("John")))
-           .andExpect(jsonPath("$.lastName", is("Boyd")))
-           .andExpect(jsonPath("$.phone", is("841-874-6512")))
-           .andExpect(jsonPath("$.zip", is(97451))).andDo(print());
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").exists())
+        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.address", is("1509 Culver St")))
+        .andExpect(jsonPath("$.birthDate", is("03/06/1984")))
+        .andExpect(jsonPath("$.city", is("Culver")))
+        .andExpect(jsonPath("$.email", is("jaboyd@email.com")))
+        .andExpect(jsonPath("$.firstName", is("John")))
+        .andExpect(jsonPath("$.lastName", is("Boyd")))
+        .andExpect(jsonPath("$.phone", is("841-874-6512")))
+        .andExpect(jsonPath("$.zip", is(97451))).andDo(print());
+
   }
 
   @Test
@@ -122,7 +133,8 @@ class PersonRestControllerIT {
     // given
 
     mockMvc.perform(get("/person/{id}", 2)).andExpect(status().isNotFound())
-           .andDo(print());
+        .andDo(print());
+
   }
 
   @Test
@@ -134,121 +146,135 @@ class PersonRestControllerIT {
 
     // When and Then
     mockMvc.perform(post("/person").accept(MediaType.APPLICATION_JSON)
-                                   .contentType(MediaType.APPLICATION_JSON)
-                                   .content(mapper.writeValueAsString(personTest)))
-           .andExpect(status().isCreated())
-           .andExpect(redirectedUrl(ServletUriComponentsBuilder.fromCurrentRequest()
-                                                               .build()
-                                                               .toString()
-               + "/person/2"))
-           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-           .andExpect(jsonPath("$").exists())
-           .andExpect(jsonPath("$.length()", is(9)))
-           .andExpect(jsonPath("$.idPerson", is(2)))
-           .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
-           .andExpect(jsonPath("$.birthDate", is("27/12/76")))
-           .andExpect(jsonPath("$.city", is("Cassis")))
-           .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
-           .andExpect(jsonPath("$.firstName", is("John")))
-           .andExpect(jsonPath("$.lastName", is("Boyd")))
-           .andExpect(jsonPath("$.phone", is("061-846-0160")))
-           .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(personTest)))
+        .andExpect(status().isCreated())
+        .andExpect(redirectedUrl(ServletUriComponentsBuilder.fromCurrentRequest()
+            .build()
+            .toString()
+            + "/person/2"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").exists())
+        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.idPerson", is(2)))
+        .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
+        .andExpect(jsonPath("$.birthDate", is("27/12/76")))
+        .andExpect(jsonPath("$.city", is("Cassis")))
+        .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
+        .andExpect(jsonPath("$.firstName", is("John")))
+        .andExpect(jsonPath("$.lastName", is("Boyd")))
+        .andExpect(jsonPath("$.phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
+
   }
 
   @ParameterizedTest
   @Order(5)
-  @CsvSource(
-    {" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-        + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-         + " , delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260, 061-846-0160, , , "}
-  )
+  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+      + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+                  + " , delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260, 061-846-0160, , , "})
   void testPostPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
 
     Person falsePerson =
-        new Person(args.getLong(0), args.getString(1), args.getString(2),
-                   args.getString(3), args.getString(4), args.getString(5),
-                   args.getInteger(6), args.getString(7), args.getString(8),
-                   args.get(9, MedicalRecord.class), args.get(10, Set.class));
+        new Person(args.getLong(0),
+            args.getString(1),
+            args.getString(2),
+            args.getString(3),
+            args.getString(4),
+            args.getString(5),
+            args.getInteger(6),
+            args.getString(7),
+            args.getString(8),
+            args.get(9, MedicalRecord.class),
+            args.get(10, FireStation.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 
     mockMvc.perform(post("/person").accept(MediaType.APPLICATION_JSON)
-                                   .content(mapper.writeValueAsString(falsePerson))
-                                   .contentType(MediaType.APPLICATION_JSON))
-           .andExpect(status().isBadRequest());
+        .content(mapper.writeValueAsString(falsePerson))
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+
   }
 
   @Test
   @Order(6)
   void putPerson_withValidInput_thenReturn200() throws Exception {
+
     // Given
     ObjectMapper mapper = mapperBuilder.build();
 
     // when & then
     mockMvc.perform(put("/person/{id}",
-                        1).accept(MediaType.APPLICATION_JSON)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .content(mapper.writeValueAsString(personTest)))
-           .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(9)))
-           .andExpect(jsonPath("$.firstName", is("John")))
-           .andExpect(jsonPath("$.lastName", is("Boyd")))
-           .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
-           .andExpect(jsonPath("$.city", is("Cassis")))
-           .andExpect(jsonPath("$.birthDate", is("27/12/76")))
-           .andExpect(jsonPath("$.zip", is(13260)))
-           .andExpect(jsonPath("$.phone", is("061-846-0160")))
-           .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
-           .andDo(print());
+        1).accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(personTest)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.firstName", is("John")))
+        .andExpect(jsonPath("$.lastName", is("Boyd")))
+        .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
+        .andExpect(jsonPath("$.city", is("Cassis")))
+        .andExpect(jsonPath("$.birthDate", is("27/12/76")))
+        .andExpect(jsonPath("$.zip", is(13260)))
+        .andExpect(jsonPath("$.phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
+        .andDo(print());
+
   }
 
   @ParameterizedTest
   @Order(7)
-  @CsvSource(
-    {" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-        + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
-         + " 061-846-0160, delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
-         + " , delaval.htps@gmail.com, , ",
-     " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260, 061-846-0160, , , "}
-  )
+  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+      + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+                  + " 061-846-0160, delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+                  + " , delaval.htps@gmail.com, , ",
+              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260, 061-846-0160, , , "})
   void testPutPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
 
     Person falsePerson =
-        new Person(args.getLong(0), args.getString(1), args.getString(2),
-                   args.getString(3), args.getString(4), args.getString(5),
-                   args.getInteger(6), args.getString(7), args.getString(8),
-                   args.get(9, MedicalRecord.class), args.get(10, Set.class));
+        new Person(args.getLong(0),
+            args.getString(1),
+            args.getString(2),
+            args.getString(3),
+            args.getString(4),
+            args.getString(5),
+            args.getInteger(6),
+            args.getString(7),
+            args.getString(8),
+            args.get(9, MedicalRecord.class),
+            args.get(10, FireStation.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 
     mockMvc.perform(put("/person/{id}",
-                        1).accept(MediaType.APPLICATION_JSON)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .content(mapper.writeValueAsString(falsePerson)))
-           .andExpect(status().is(400)).andDo(print());
+        1).accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(falsePerson)))
+        .andExpect(status().is(400)).andDo(print());
 
   }
 
@@ -265,10 +291,10 @@ class PersonRestControllerIT {
 
     // when & then
     mockMvc.perform(put("/person/{id}",
-                        1).accept(MediaType.APPLICATION_JSON)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .content(mapper.writeValueAsString(personTest)))
-           .andExpect(status().isBadRequest()).andDo(print());
+        1).accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(personTest)))
+        .andExpect(status().isBadRequest()).andDo(print());
 
   }
 
@@ -279,10 +305,10 @@ class PersonRestControllerIT {
     ObjectMapper mapper = mapperBuilder.build();
 
     mockMvc.perform(put("/person/{id}",
-                        2).accept(MediaType.APPLICATION_JSON)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .content(mapper.writeValueAsString(personTest)))
-           .andExpect(status().isNotFound()).andDo(print());
+        2).accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(personTest)))
+        .andExpect(status().isNotFound()).andDo(print());
 
   }
 
@@ -292,7 +318,7 @@ class PersonRestControllerIT {
       throws Exception {
 
     mockMvc.perform(delete("/person/{lastName}/{firstName}", "Boyd", "John"))
-           .andExpect(status().isOk());
+        .andExpect(status().isOk());
 
   }
 
@@ -302,7 +328,7 @@ class PersonRestControllerIT {
       throws Exception {
 
     mockMvc.perform(delete("/person/{lastName}/{firstName}", "Boyd", "Dorian"))
-           .andExpect(status().isNotFound()).andDo(print());
+        .andExpect(status().isNotFound()).andDo(print());
 
   }
 

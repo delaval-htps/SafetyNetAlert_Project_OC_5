@@ -2,60 +2,96 @@ package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 
+/**
+ * Entity FireStation.
+ *
+ * @author delaval
+ */
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-public class FireStation {
+@Table(name = "FireStation",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"idFireStation",
+                                                            "station"}))
+public class FireStation implements Serializable {
+
+  private static final long serialVersionUID = 5090513180865338976L;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Long Id_FireStation;
+  private Long idFireStation;
 
   @Column(name = "station")
-  @JsonAlias("station") // for deserialize with another name that numberStation using
-                        // jacksonAnnotation
+  @Min(value = 1)
+  @JsonAlias("station")
   private int numberStation;
 
+  @ElementCollection
+  @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation",
+                                             referencedColumnName = "idFireStation"))
 
-  @ManyToMany(
-              fetch = FetchType.LAZY,
-              cascade = {CascadeType.REFRESH,
-                         CascadeType.DETACH,
-                         CascadeType.MERGE,
-                         CascadeType.PERSIST}
-  )
-  @JoinTable(
-             name = "FireStation_Person",
-             joinColumns = @JoinColumn(name = "id_FireStation"),
-             inverseJoinColumns = @JoinColumn(name = "id_Person")
-  )
+  private Set<@NotBlank String> addresses = new HashSet<String>();
+
+
+  @OneToMany(fetch = FetchType.LAZY,
+             cascade = {CascadeType.REFRESH,
+                        CascadeType.DETACH,
+                        CascadeType.MERGE,
+                        CascadeType.PERSIST},
+             mappedBy = "fireStation")
+
   @JsonIgnore
   private Set<Person> persons = new HashSet<>();
 
+  /**
+   * method to add a Person in Set persons of this FireStation.
+   *
+   * @param person
+   *             a Person to map with FireStation
+   */
   public void add(Person person) {
 
     persons.add(person);
 
   }
 
-  @Override
-  public String toString() {
-    return "FireStation [Id_FireStation=" + Id_FireStation + ", numberStation="
-        + numberStation + ", persons=" + persons + "]";
+  /**
+   * method to add a address in Set addresses of this FireStation.
+   *
+   * @param address
+   *             a address to map with FireStation
+   */
+  public void add(String address) {
+
+    addresses.add(address);
+
   }
 }
