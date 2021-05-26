@@ -1,6 +1,9 @@
 package com.safetynet.alert.exceptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
+import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
+import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
 import java.util.Date;
@@ -20,7 +23,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
       handlerPersonNotFoundException(PersonNotFoundException exception,
-                                     final HttpServletRequest request) {
+          final HttpServletRequest request) {
 
     GlobalErrorResponse errorResponse = new GlobalErrorResponse();
 
@@ -30,9 +33,11 @@ public class GlobalExceptionHandler {
     errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
 
     log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
-              errorResponse.getStatus(), errorResponse.getError(),
-              request.getMethod(), request.getRequestURI(),
-              errorResponse.getErrorMessage());
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
     return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
 
   }
@@ -40,7 +45,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
       handlerPersonChangedNamesException(PersonChangedNamesException exception,
-                                         final HttpServletRequest request) {
+          final HttpServletRequest request) {
 
     GlobalErrorResponse errorResponse = new GlobalErrorResponse();
 
@@ -50,17 +55,87 @@ public class GlobalExceptionHandler {
     errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
 
     log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
-              errorResponse.getStatus(), errorResponse.getError(),
-              request.getMethod(), request.getRequestURI(),
-              errorResponse.getErrorMessage());
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
   }
 
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
+      handlerFireStationAllreadyMappedbyAddressException(
+          FireStationAllreadyMappedByAddressException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+    errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerFireStationNotValidException(
+          FireStationNotValidException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+    errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerFireStationNotFoundException(FireStationNotFoundException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+    errorResponse.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
       handlerGlobalException(Exception exception,
-                             final HttpServletRequest request) {
+          final HttpServletRequest request) {
 
     GlobalErrorResponse errorResponse = new GlobalErrorResponse();
 
@@ -69,9 +144,11 @@ public class GlobalExceptionHandler {
     errorResponse.setErrorMessage(exception.getMessage());
     errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
     log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
-              errorResponse.getStatus(), errorResponse.getError(),
-              request.getMethod(), request.getRequestURI(),
-              errorResponse.getErrorMessage());
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
   }
@@ -79,15 +156,18 @@ public class GlobalExceptionHandler {
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
       handlerMethodArgumentNotValidException(MethodArgumentNotValidException exception,
-                                             final HttpServletRequest request)
+          final HttpServletRequest request)
           throws JsonProcessingException {
 
     GlobalErrorResponse errorResponse = new GlobalErrorResponse();
 
 
     for (FieldError error : exception.getBindingResult().getFieldErrors()) {
-      errorResponse.addFieldError(error.getObjectName(), error.getField(),
-                                  error.getDefaultMessage());
+
+      errorResponse.addFieldError(error.getObjectName(),
+          error.getField(),
+          error.getDefaultMessage());
+
     }
 
     errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -96,10 +176,12 @@ public class GlobalExceptionHandler {
     errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
 
     log.error("Status:{} {} ; Request: {} {} ; Message: {} ; FieldsValidationError {} ",
-              errorResponse.getStatus(), errorResponse.getError(),
-              request.getMethod(), request.getRequestURI(),
-              errorResponse.getErrorMessage(),
-              errorResponse.getFieldValidationErrors());
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage(),
+        errorResponse.getFieldValidationErrors());
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
   }
