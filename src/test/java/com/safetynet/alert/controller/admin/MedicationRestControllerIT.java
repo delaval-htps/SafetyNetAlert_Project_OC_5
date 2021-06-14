@@ -34,11 +34,13 @@ class MedicationRestControllerIT {
   @Test
   @Order(1)
   void getMedications() throws Exception {
+
     mockMvc.perform(get("/medications")).andExpect(status().isOk())
-           .andExpect(jsonPath("$.length()", is(18)))
-           .andExpect(jsonPath("$[0].id_Medication", is(1)))
-           .andExpect(jsonPath("$[0].designation", is("aznol")))
-           .andExpect(jsonPath("$[0].posology", is("350mg")));
+        .andExpect(jsonPath("$.length()", is(18)))
+        .andExpect(jsonPath("$[0].idMedication", is(1)))
+        .andExpect(jsonPath("$[0].designation", is("aznol")))
+        .andExpect(jsonPath("$[0].posology", is("350mg")));
+
   }
 
 }
