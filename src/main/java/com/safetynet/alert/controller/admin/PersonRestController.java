@@ -1,8 +1,11 @@
 package com.safetynet.alert.controller.admin;
 
+import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
+import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
+import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
 import java.net.URI;
 import java.util.Optional;
@@ -29,6 +32,9 @@ public class PersonRestController {
   @Autowired
   private PersonService personService;
 
+  @Autowired
+  private FireStationService fireStationService;
+
   @GetMapping("/person")
   public Iterable<Person> getPersons() {
 
@@ -46,7 +52,7 @@ public class PersonRestController {
       log.info("Person with id {} was found and show in body response",
           id);
       return new ResponseEntity<Person>(person.get(),
-          HttpStatus.OK);
+                                        HttpStatus.OK);
 
     } else {
 
@@ -61,23 +67,40 @@ public class PersonRestController {
   public ResponseEntity<Person> postPerson(@Valid
   @RequestBody Person personToAdd) {
 
-    Person savedPerson = personService.savePerson(personToAdd);
+    Optional<Person> existedPerson =
+        personService.getPersonByNames(personToAdd.getFirstName(), personToAdd.getLastName());
 
-    // return of savePerson will be never null so don't be obliged to check :
-    // if (savedPerson == null) {
-    // return ResponseEntity.noContent().build();
-    // } else {
+    if (!existedPerson.isPresent()) {
 
-    URI locationUri =
-        ServletUriComponentsBuilder.fromCurrentRequest()
-            .path("/{id}")
-            .buildAndExpand(savedPerson.getIdPerson())
-            .toUri();
-    log.info("POST /person: Creation of Person {} sucessed with the locationId {}",
-        savedPerson,
-        locationUri.getPath());
-    return ResponseEntity.created(locationUri)
-        .body(savedPerson);
+      //check if address of personToAdd have a address already mapped with a fireStation
+
+      Optional<FireStation> fireStationMappedToAddress =
+          fireStationService.getFireStationMappedToAddress(personToAdd.getAddress());
+
+      if (fireStationMappedToAddress.isPresent()) {
+
+        personToAdd.setFireStation(fireStationMappedToAddress.get());
+      }
+
+      Person savedPerson = personService.savePerson(personToAdd);
+
+      URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest()
+          .path("/{id}")
+          .buildAndExpand(savedPerson.getIdPerson())
+          .toUri();
+
+      log.info("POST /person: Creation of Person {} sucessed with the locationId {}",
+          savedPerson,
+          locationUri.getPath());
+
+      return ResponseEntity.created(locationUri).body(savedPerson);
+    } else {
+
+      Person currentPerson = existedPerson.get();
+      throw new PersonAlreadyExistedException("this Person with firstname:"
+          + currentPerson.getFirstName() + " and lastname:" + currentPerson.getLastName()
+          + " already exist ! Can't add an already existed Person!");
+    }
 
   }
 
@@ -100,16 +123,28 @@ public class PersonRestController {
           && updatedPerson.getLastName()
               .equals(currentPerson.getLastName())) {
 
-        // a verifier mais comment faire pour changer la fireStation si
-        // l'address change la fireStation aussi normalement?...
-
-        // avec le @Valid dans le RequestBody , hibernate fait la verification
-        // de savoir si adress est non null donc pour moi il est inutile de
-        // refaire un check avec un if ...
-        // if (address != null) {
         currentPerson.setBirthDate(updatedPerson.getBirthDate());
 
-        currentPerson.setAddress(updatedPerson.getAddress());
+        //If Person.address change then need to map it with another fireStation if it exists
+        if (!currentPerson.getAddress().equals(updatedPerson.getAddress())) {
+
+          //check if address of updatedPerson have a address already mapped with a fireStation
+
+          Optional<FireStation> fireStationMappedToAddress =
+              fireStationService.getFireStationMappedToAddress(updatedPerson.getAddress());
+
+          if (fireStationMappedToAddress.isPresent()) {
+
+            //update fireStation for currentPerson
+            currentPerson.setFireStation(fireStationMappedToAddress.get());
+
+          } else {
+
+            currentPerson.setFireStation(null);
+          }
+
+          currentPerson.setAddress(updatedPerson.getAddress());
+        }
 
         currentPerson.setCity(updatedPerson.getCity());
 
@@ -120,15 +155,13 @@ public class PersonRestController {
         currentPerson.setEmail(updatedPerson.getEmail());
 
         personService.savePerson(currentPerson);
-        log.info("Person with id {} was correctly updated",
-            id);
-        return new ResponseEntity<>(currentPerson,
-            HttpStatus.OK);
+
+        log.info("Person with id {} was correctly updated", id);
+
+        return new ResponseEntity<Person>(currentPerson, HttpStatus.OK);
 
       } else {
 
-        // log.error("unable to update person with {} "
-        // + "because of names are not the same in the body request", id);
         throw new PersonChangedNamesException("When updating a person with id:"
             + id + " you can't change names");
 
@@ -136,10 +169,7 @@ public class PersonRestController {
 
     } else {
 
-      // log.error("unable to update person:{} with id {} because he was not
-      // found in database",
-      // id, updatedPerson);
-      throw new PersonNotFoundException("PUT \"/person/{id}\" : Person to update with id: "
+      throw new PersonNotFoundException("Person to update with id: "
           + id + " was not found");
 
     }
@@ -147,30 +177,34 @@ public class PersonRestController {
   }
 
   @DeleteMapping("/person/{lastName}/{firstName}")
-  public ResponseEntity deletePerson(@PathVariable String lastName,
+  public ResponseEntity<?> deletePerson(@PathVariable String lastName,
       @PathVariable String firstName) {
 
-    Optional<Person> personToDelete =
-        personService.getPersonByNames(firstName,
-            lastName);
+    Optional<Person> personToDelete = personService.getPersonByNames(firstName, lastName);
 
     if (personToDelete.isPresent()) {
 
+      //For MedicalRecord relation 1:1 but in Cascade.ALL so:
+      //    when delete Person, hibernate delete MedicalRecord
+      //    update junction table with allergy and medication
+
+      //For FireStation, as we delete Person, hibernate automatically
+      //    remove this person in mapped fireStation without deleting fireStation
+      //    cause of relation M:1 in Cascade without DELETE even if fetch.LAZY
       personService.deletePerson(personToDelete.get());
+
       log.info(
-          "DELETE \"/person/{lastName}/{firstName}\" : Person with lastName: {} and firstName: {} was successed",
+          "DELETE \"/person/{lastName}/{firstName}\" :"
+              + " Person with lastName: {} and firstName: {} was successed",
           lastName,
           firstName);
       return new ResponseEntity<>(HttpStatus.OK);
 
     } else {
 
-      // log.error("Deleting Person with lastName {} and FirstName {} was not
-      // Found",
-      // lastName, firstName);
-      throw new PersonNotFoundException(
-          "DELETE \"/person/{lastName}/{firstName}\" :Deleting Person with lastName: "
-              + lastName + " and FirstName: " + firstName + " was not Found");
+      throw new PersonNotFoundException("Deleting Person with lastName: " + lastName
+          + " and FirstName: "
+          + firstName + " was not Found");
 
     }
 
