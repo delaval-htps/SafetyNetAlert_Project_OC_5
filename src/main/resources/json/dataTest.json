@@ -1,6 +1,7 @@
 {
     "persons": [
-        { "firstName":"John", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6512", "email":"jaboyd@email.com" }
+        { "firstName":"John", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6512", "email":"jaboyd@email.com" },
+        { "firstName":"Jonanathan", "lastName":"Marrack", "address":"29 15th St", "city":"Culver", "zip":"97451", "phone":"841-874-6513", "email":"drk@email.com" }
        ],
     "firestations": [
     	{ "address":"1509 Culver St", "station":"3" },

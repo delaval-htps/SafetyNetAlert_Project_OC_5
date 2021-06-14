@@ -85,4 +85,20 @@ public class FireStationService {
 
   }
 
+  /**
+   * retrieve fireStation with id in parameter but with all it's fields du to a inner join
+   * To not have a lazyInitializationException with Hibernate.
+   *
+   * @param l   l'Id of FireStation
+   *
+   * @return  Optional firestation
+   *          if fireStation present return firestation else a empty Optional Firestation
+   */
+  public Optional<FireStation> getFireStationJoinAllById(long l) {
+
+    return fireStationRepository.getOneJoinAllById(l);
+
+  }
+
+
 }

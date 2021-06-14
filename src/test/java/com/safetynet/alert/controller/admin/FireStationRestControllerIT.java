@@ -8,18 +8,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
 import com.safetynet.alert.database.LoadDataStrategyFactory;
 import com.safetynet.alert.database.StrategyName;
+import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.service.FireStationService;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,14 +40,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestMethodOrder(OrderAnnotation.class)
 class FireStationRestControllerIT {
@@ -137,13 +136,35 @@ class FireStationRestControllerIT {
         .content(mapper.writeValueAsString(fireStationTest)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrl(ServletUriComponentsBuilder.fromCurrentRequest()
-            .build().toString() + "/firestation/3"))
+        .andExpect(redirectedUrlPattern("http://*/firestation/3"))
         .andExpect(jsonPath("$.length()", is(3)))
         .andExpect(jsonPath("$.idFireStation", is(3)))
         .andExpect(jsonPath("$.numberStation", is(5)))
         .andExpect(jsonPath("$.addresses[0]", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.addresses[1]", is("310 av jean Jaures")));
+
+  }
+
+  @Test
+  @Order(5)
+  void postFireStation_whenFireStationAlreadyExisted_thenReturn400() throws Exception {
+
+    //Given
+    ObjectMapper mapper = mapperBuilder.build();
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationJoinAllById(1L);
+    //when& then
+    MvcResult result = mockMvc
+        .perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(existedFireStation.get())))
+        .andExpect(status().isBadRequest()).andDo(print()).andReturn();
+
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("this FireStation with NumberStation: "
+            + existedFireStation.get().getNumberStation() + " already Existed");
+    assertThat(result.getResolvedException())
+        .isInstanceOf(FireStationAlreadyExistedException.class);
 
   }
 
@@ -158,7 +179,7 @@ class FireStationRestControllerIT {
 
   @ParameterizedTest
   @MethodSource("factoryArgumentPost")
-  @Order(5)
+  @Order(6)
   void postFireStation_withInValidInput_thenReturn400(int numberStation,
       List<String> addresses) throws Exception {
 
@@ -181,7 +202,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   void putFireStation_withValidAddressNotMappedAndFireStation_thenReturn200()
       throws Exception {
 
@@ -215,7 +236,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(7)
+  @Order(8)
   void putFireStation_withValidAddressAlreadyMappedAndFireStation_thenReturn200()
       throws Exception {
 
@@ -253,7 +274,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(8)
+  @Order(9)
   void putFireStation_withValidAddressAllreadyMappedWithGivenFireStation_thenReturn400()
       throws Exception {
 
@@ -282,7 +303,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(9)
+  @Order(10)
   void putFireStation_withNotFoundNumberStation_thenReturn404() throws Exception {
 
     // given
@@ -304,7 +325,7 @@ class FireStationRestControllerIT {
   @ParameterizedTest
   @NullAndEmptySource
   // @ValueSource(strings= {" "})    doesn't work !!!
-  @Order(10)
+  @Order(11)
   void putFireStation_withInValidInputAddress_thenReturn400(String addressToMap)
       throws Exception {
 
@@ -333,7 +354,7 @@ class FireStationRestControllerIT {
 
   @ParameterizedTest
   @MethodSource("factoryArgumentPutInvalidFireStation")
-  @Order(11)
+  @Order(12)
   void putFireStation_withInValidInputFireStation_thenReturn400(String addressToMap,
       Long id,
       int numberStation,
@@ -362,7 +383,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(12)
+  @Order(13)
   void deleteMappingFireStation_withValidNumberStation_thenReturn200() throws Exception {
 
     // when & then
@@ -376,7 +397,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(12)
+  @Order(14)
   void deleteMappingFireStation_withNotFoundNumberStation_thenReturn404() throws Exception {
 
     // when & then
@@ -386,7 +407,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(13)
+  @Order(15)
   void deleteMappingFireStation_withNoValidNumberStation_thenReturn400()
       throws Exception {
 
@@ -399,7 +420,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(14)
+  @Order(16)
   void deleteAddressfromFireStation_withValidAddress_thenReturn200() throws Exception {
 
     // when & then
@@ -413,7 +434,7 @@ class FireStationRestControllerIT {
   }
 
   @Test
-  @Order(15)
+  @Order(17)
   void deleteAddressfromFireStation_withNotFoundAddress_thenReturn404() throws Exception {
 
     // when & then
@@ -425,7 +446,7 @@ class FireStationRestControllerIT {
   @ParameterizedTest
   @NullAndEmptySource
   //@ValueSource(strings = {" "})
-  @Order(16)
+  @Order(18)
   void deleteAddressfromFireStation_withNoValidAddress_thenReturn400(String address)
       throws Exception {
 

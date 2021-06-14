@@ -2,8 +2,11 @@ package com.safetynet.alert.exceptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
+import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
+import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordNotFoundException;
+import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
 import java.util.Date;
@@ -19,6 +22,28 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 @Log4j2
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerMedicalRecordNotFoundException(MedicalRecordNotFoundException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+    errorResponse.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+
+  }
 
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
@@ -45,6 +70,50 @@ public class GlobalExceptionHandler {
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
       handlerPersonChangedNamesException(PersonChangedNamesException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+    errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerPersonAlreadyExistedException(PersonAlreadyExistedException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+    errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerFireStationAlreadyExistedException(FireStationAlreadyExistedException exception,
           final HttpServletRequest request) {
 
     GlobalErrorResponse errorResponse = new GlobalErrorResponse();

@@ -1,6 +1,9 @@
 package com.safetynet.alert.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,18 +20,53 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"medicalRecord",
+                     "fireStation"})
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "Person",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"idPerson",
+                                                            "lastName",
+                                                            "firstName"}))
 @Entity
 public class Person {
+
+
+  //  public Person(Long idPerson, String firstName, String lastName, String BirthDateAsString,
+  //                String address, String city, int zip, String phone, String email,
+  //                MedicalRecord medicalRecord, FireStation fireStation) {
+  //
+  //    this.idPerson = idPerson;
+  //    this.firstName = firstName;
+  //    this.lastName = lastName;
+  //
+  //    try {
+  //
+  //      this.birthDate = new SimpleDateFormat("dd/MM/yyyy").parse(BirthDateAsString);
+  //    } catch (ParseException e) {
+  //
+  //      this.birthDate = null;
+  //      e.printStackTrace();
+  //    }
+  //    this.address = address;
+  //    this.city = city;
+  //    this.zip = zip;
+  //    this.phone = phone;
+  //    this.email = email;
+  //    this.medicalRecord = medicalRecord;
+  //    this.fireStation = fireStation;
+  //
+  //  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,8 +90,10 @@ public class Person {
   private String lastName;
 
   @Column
-  // @NotNull(message = "this birthDate must not be null")
-  private String birthDate;
+  @Past(message = "this birthdate must be past today")
+  @JsonFormat(shape = JsonFormat.Shape.STRING,
+              pattern = "dd/MM/yyyy")
+  private Date birthDate;
 
   @Column
   @NotNull(message = "this address must not be null")
@@ -89,9 +129,13 @@ public class Person {
          message = "this field need to be a correct Email, example: john.boyd@email.com")
   private String email;
 
+  //Cascade ALL to delete automatically all relationships
+  //with medicalRecord,medications and allergies when deleting person
+
   @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "id_MedicalRecord")
-  @JsonIgnore
+  @JoinColumn(name = "idMedicalRecord",
+              referencedColumnName = "idMedicalRecord")
+  @JsonBackReference
   private MedicalRecord medicalRecord;
 
   @ManyToOne(
@@ -105,4 +149,7 @@ public class Person {
   private FireStation fireStation;
 
 
+
 }
+
+
