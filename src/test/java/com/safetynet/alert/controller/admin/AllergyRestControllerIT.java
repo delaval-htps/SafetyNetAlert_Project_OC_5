@@ -35,10 +35,12 @@ class AllergyRestControllerIT {
   @Test
   @Order(1)
   void getAllergies() throws Exception {
+
     mockMvc.perform(get("/allergies")).andExpect(status().isOk())
-           .andExpect(jsonPath("$.length()", is(6)))
-           .andExpect(jsonPath("$[0].id_Allergy", is(1)))
-           .andExpect(jsonPath("$[0].designation", is("nillacilan")));
+        .andExpect(jsonPath("$.length()", is(6)))
+        .andExpect(jsonPath("$[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$[0].designation", is("nillacilan")));
+
   }
 
 }
