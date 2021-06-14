@@ -1,6 +1,7 @@
 package com.safetynet.alert.controller.admin;
 
 import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
+import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
 import com.safetynet.alert.model.FireStation;
@@ -64,18 +65,28 @@ public class FireStationRestController {
   public ResponseEntity<FireStation>
       postMappingStationAddress(@Valid @RequestBody FireStation fireStation) {
 
-    FireStation savedFireStation = fireStationService.saveFireStation(fireStation);
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationByNumberStation(fireStation.getNumberStation());
 
-    URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-        .buildAndExpand(savedFireStation.getIdFireStation()).toUri();
+    if (!existedFireStation.isPresent()) {
 
-    log.info("POST /fireStation: Creation of FireStation {} sucessed "
-        + "with the locationId {} and mapping with address:{}",
-        savedFireStation,
-        savedFireStation.getIdFireStation(),
-        savedFireStation.getAddresses());
+      FireStation savedFireStation = fireStationService.saveFireStation(fireStation);
 
-    return ResponseEntity.created(locationUri).body(savedFireStation);
+      URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+          .buildAndExpand(savedFireStation.getIdFireStation()).toUri();
+
+      log.info("POST /fireStation: Creation of FireStation {} sucessed "
+          + "with the locationId {} and mapping with address:{}",
+          savedFireStation,
+          savedFireStation.getIdFireStation(),
+          savedFireStation.getAddresses());
+
+      return ResponseEntity.created(locationUri).body(savedFireStation);
+    } else {
+
+      throw new FireStationAlreadyExistedException("this FireStation with NumberStation: "
+          + existedFireStation.get().getNumberStation() + " already Existed");
+    }
 
   }
 
@@ -107,8 +118,8 @@ public class FireStationRestController {
         if (existedFireStation.getAddresses().contains(address)) {
 
           throw new FireStationAllreadyMappedByAddressException(
-              "This FireStation already mapped with given address."
-                  + "Please give a another fireStation to map !");
+                                                                "This FireStation already mapped with given address."
+                                                                    + "Please give a another fireStation to map !");
         } else {
 
           //check for firestation mapped with the address
@@ -136,15 +147,17 @@ public class FireStationRestController {
       } else {
 
         throw new FireStationNotValidException(
-            "fireStation in body request doesn't match with a existed fireStation !"
-                + " Check fields are correctly entered");
+                                               "fireStation in body request doesn't match with a existed fireStation !"
+                                                   + " Check fields are correctly entered");
       }
 
     } else {
 
       throw new FireStationNotFoundException(
-          "fireStation given in body request with numberStation:"
-              + fireStationToMapWithAddress.getNumberStation() + " doesn't exist !");
+                                             "fireStation given in body request with numberStation:"
+                                                 + fireStationToMapWithAddress
+                                                     .getNumberStation()
+                                                 + " doesn't exist !");
 
     }
 
@@ -171,7 +184,8 @@ public class FireStationRestController {
     } else {
 
       throw new FireStationNotFoundException(
-          "FireStation with NumberStation:" + numberStation + " was not found");
+                                             "FireStation with NumberStation:" + numberStation
+                                                 + " was not found");
 
     }
 
@@ -199,7 +213,8 @@ public class FireStationRestController {
     } else {
 
       throw new FireStationNotFoundException(
-          "There is no FireStation mapped with this address:" + address);
+                                             "There is no FireStation mapped with this address:"
+                                                 + address);
 
     }
 

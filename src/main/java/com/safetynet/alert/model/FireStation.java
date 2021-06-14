@@ -33,7 +33,7 @@ import javax.validation.constraints.NotBlank;
  */
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "persons")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -57,7 +57,6 @@ public class FireStation implements Serializable {
   @ElementCollection
   @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation",
                                              referencedColumnName = "idFireStation"))
-
   private Set<@NotBlank String> addresses = new HashSet<String>();
 
 
@@ -67,8 +66,8 @@ public class FireStation implements Serializable {
                         CascadeType.MERGE,
                         CascadeType.PERSIST},
              mappedBy = "fireStation")
-
   @JsonIgnore
+  //  @OrderBy("idPerson")
   private Set<Person> persons = new HashSet<>();
 
   /**
@@ -92,6 +91,12 @@ public class FireStation implements Serializable {
   public void add(String address) {
 
     addresses.add(address);
+
+  }
+
+  public void remove(Person person) {
+
+    persons.remove(person);
 
   }
 }

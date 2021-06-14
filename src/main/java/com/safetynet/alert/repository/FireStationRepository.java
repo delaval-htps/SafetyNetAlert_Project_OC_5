@@ -16,6 +16,9 @@ public interface FireStationRepository
   @Query("SELECT f FROM FireStation AS f JOIN f.addresses AS a WHERE a = ?1")
   Optional<FireStation> getOneByAddress(String address);
 
+  @Query("SELECT f FROM FireStation as f JOIN FETCH f.addresses where f.idFireStation = ?1")
+  Optional<FireStation> getOneJoinAllById(long l);
+
 
 
 }
