@@ -16,7 +16,10 @@ import com.safetynet.alert.service.PersonService;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -227,8 +230,19 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         // update birthdate and medicalRecord for person
 
-        String birthDate;
-        birthDate = elementMedicalRecord.get("birthdate").asText();
+        String birthDateAsString;
+        birthDateAsString = elementMedicalRecord.get("birthdate").asText();
+
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        Date birthDate = null;
+
+        try {
+
+          birthDate = df.parse(birthDateAsString);
+        } catch (ParseException e) {
+
+          e.printStackTrace();
+        }
 
         currentPerson.get().setBirthDate(birthDate);
         currentPerson.get().setMedicalRecord(medicalRecord);
@@ -266,7 +280,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
             medication =
                 medicationService.getMedicationByDesignationAndPosology(composition[0],
-                    composition[1]);
+                    composition[1]).get();
 
           }
 
@@ -296,7 +310,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
           } else {
 
-            allergy = allergyService.getAllergyByDesignation(designation);
+            allergy = allergyService.getAllergyByDesignation(designation).get();
 
           }
 

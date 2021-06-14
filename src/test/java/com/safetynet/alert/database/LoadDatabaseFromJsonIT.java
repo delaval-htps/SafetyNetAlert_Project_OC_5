@@ -8,6 +8,8 @@ import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
 import java.io.IOException;
+import java.text.ParseException;
+import org.assertj.db.type.DateValue;
 import org.assertj.db.type.Source;
 import org.assertj.db.type.Table;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,14 +77,14 @@ class LoadDatabaseFromJsonIT {
     attributionAllergyJointTable = new Table(source, "attribution_allergy");
 
     classUnderTest = new LoadDatabaseProdFromJson(new ObjectMapper(),
-        resourceLoader,
-        filePath);
+                                                  resourceLoader,
+                                                  filePath);
 
   }
 
   @Test
   void loadDatabaseService_shouldPersistDataJson_whenBootingApplication()
-      throws IOException {
+      throws IOException, ParseException {
     // ARRANGE... booting application
 
 
@@ -100,7 +102,7 @@ class LoadDatabaseFromJsonIT {
     // verify data from first person
     assertThat(personTable).row(0).hasValues(1L,
         "1509 Culver St",
-        "03/06/1984",
+        DateValue.of(1984, 06, 03),
         "Culver",
         "jaboyd@email.com",
         "John",

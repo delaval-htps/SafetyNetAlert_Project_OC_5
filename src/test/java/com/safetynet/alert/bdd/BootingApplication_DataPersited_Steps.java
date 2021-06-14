@@ -2,7 +2,9 @@ package com.safetynet.alert.bdd;
 
 
 import static org.assertj.db.api.Assertions.assertThat;
+import java.text.ParseException;
 import java.util.Map;
+import org.assertj.db.type.DateValue;
 import org.assertj.db.type.Source;
 import org.assertj.db.type.Table;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,7 +79,7 @@ public class BootingApplication_DataPersited_Steps {
   }
 
   @Then("the datas from this file are correctly persited in database")
-  public void datas_from_file_persisted_in_database() {
+  public void datas_from_file_persisted_in_database() throws ParseException {
     // check that one entity instance is correctly persisted in database with
 
     // correct relationship
@@ -99,7 +101,7 @@ public class BootingApplication_DataPersited_Steps {
     // verify data from first person
     assertThat(personTable).row(0).hasValues(1L,
         personMap.get("address"),
-        "03/06/1984",
+        DateValue.of(1984, 06, 03),
         personMap.get("city"),
         personMap.get("email"),
         personMap.get("firstName"),
