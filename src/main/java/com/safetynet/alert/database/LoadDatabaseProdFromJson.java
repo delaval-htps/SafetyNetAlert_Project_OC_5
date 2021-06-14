@@ -30,6 +30,13 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Class that implements Service {@link LoadDataStrategy}.
+ * Allows to load data From a File in resources and especially for the production.
+ *
+ * @author delaval
+ *
+ */
 @Service
 @Log4j2
 public class LoadDatabaseProdFromJson implements LoadDataStrategy {
@@ -50,7 +57,19 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
   private ObjectMapper objectMapper;
   private ResourceLoader resourceLoader;
 
-
+  /**
+   * Constructor with fields.
+   *
+   * @param mapper
+   *          a {@Link ObjectMapper} to be able to serialize and deserialize json.
+   *
+   * @param resourceLoader
+   *          a {@link ResourceLoader} for loading resources
+   *
+   * @param filePath
+   *          the path of file for loading data
+   *          with a default value initialized to a file json only for production.
+   */
   @Autowired
   public LoadDatabaseProdFromJson(ObjectMapper mapper,
                                   ResourceLoader resourceLoader,
@@ -72,13 +91,6 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
   @Override
   @Transactional
   public boolean loadDatabaseFromSource() {
-
-    // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-
-    // false);
-    // definie dans application.properties for test
-    //
-
 
     File fileJson = null;
 

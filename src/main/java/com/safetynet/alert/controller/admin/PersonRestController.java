@@ -9,6 +9,7 @@ import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
 import java.net.URI;
 import java.util.Optional;
+import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import javax.validation.Valid;
 
+/**
+ * Rest Controller for entity {@link Person}.
+ *
+ * @author delaval
+ *
+ */
 @RestController
 @RequestMapping("/")
 @Log4j2
@@ -35,6 +41,11 @@ public class PersonRestController {
   @Autowired
   private FireStationService fireStationService;
 
+  /**
+   * Return all existed Persons.
+   *
+   * @return    a collection (Iterable) of all existed Persons.
+   */
   @GetMapping("/person")
   public Iterable<Person> getPersons() {
 
@@ -42,6 +53,16 @@ public class PersonRestController {
 
   }
 
+  /**
+   * Return the existed Person with as identification a Id of type Long.
+   *
+   * @param id
+   *          the identification of the Person in database.
+   *
+   * @return  a ResponseEntity with in body the existed Person.
+   *
+   * @throws  a {@link PersonNotFoundException} if there isn't Person with this Id.
+   */
   @GetMapping("/person/{id}")
   public ResponseEntity<Person> getPersonById(@PathVariable Long id) {
 
@@ -63,9 +84,19 @@ public class PersonRestController {
 
   }
 
+  /**
+   * Creation of new Person.
+   *
+   * @param personToAdd
+   *              representation in json of new Object of Person to save.
+   *
+   * @return  a ResponseEntity with in body the new Person and its location URI.
+   *
+   * @throws    a {@link PersonAlreadyExistedException}
+   *            if the person with LastName/FirstName given in personToAdd already exists.
+   */
   @PostMapping("/person")
-  public ResponseEntity<Person> postPerson(@Valid
-  @RequestBody Person personToAdd) {
+  public ResponseEntity<Person> postPerson(@Valid @RequestBody Person personToAdd) {
 
     Optional<Person> existedPerson =
         personService.getPersonByNames(personToAdd.getFirstName(), personToAdd.getLastName());
@@ -104,7 +135,24 @@ public class PersonRestController {
 
   }
 
-
+  /**
+   * Update a existed Person with identification Id given in parameter.
+   *
+   * @param id
+   *          the identification of existed Person.
+   *
+   * @param updatedPerson
+   *          the representation of Person once updated.
+   *
+   * @return  a ResponseEntity with in body the updated saved Person.
+   *
+   * @throws PersonNotFoundException
+   *          if Person to update with Id is not found.
+   *
+   * @throws PersonChangedNamesException
+   *          if updatedPerson has modify couple of LastName/FirstName.
+   *
+   */
   @PutMapping("/person/{id}")
   public ResponseEntity<Person> putPerson(@PathVariable Long id,
       @RequestBody
@@ -175,6 +223,19 @@ public class PersonRestController {
     }
 
   }
+
+  /**
+   * Delete a existed Person with as identification couple FirstName/LastName.
+   *
+   * @param lastName
+   *            lastName of existed Person to delete
+   * @param firstName
+   *            firstName of existed Person to delete.
+   * @return    a ResponseEntity with status Ok if person was deleted.
+   *
+   * @throws PersonNotFoundException
+   *          if Person to delete with Identification couple lastName/firstName is not found.
+   */
 
   @DeleteMapping("/person/{lastName}/{firstName}")
   public ResponseEntity<?> deletePerson(@PathVariable String lastName,

@@ -30,6 +30,12 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Class implements LoadDataStrategy that is used to load data from another file.json for testing.
+ *
+ * @author delaval
+ *
+ */
 @Service
 @Log4j2
 public class LoadDatabaseTestFromJson implements LoadDataStrategy {
@@ -50,6 +56,18 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
   private ResourceLoader resourceLoader;
   private String filePath;
 
+  /**
+   * Constructor with fields.
+   *
+   * @param mapper
+   *        a {@link ObjectMapper} to parse json Object.
+   *
+   * @param resourceLoader
+   *        a {@link ResourceLoader} to know the path of resources to used.
+   *
+   * @param filePath
+   *            the path of file.json to load with default value initialize for testing.
+   */
   @Autowired
   public LoadDatabaseTestFromJson(ObjectMapper mapper,
                                   ResourceLoader resourceLoader,
@@ -71,12 +89,6 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
   @Override
   @Transactional
   public boolean loadDatabaseFromSource() {
-
-    // objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-
-    // false);
-    // definie dans application.properties for test
-
 
     File fileJson = null;
 

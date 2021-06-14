@@ -7,7 +7,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Class allows us to run something implementing in its method run before launching application.
+ *
+ * @author delaval
+ *
+ */
 @Component
 @Profile("!test")
 public class CommandLineRunnerTaskExcecutor implements CommandLineRunner {
@@ -20,7 +25,8 @@ public class CommandLineRunnerTaskExcecutor implements CommandLineRunner {
   public void run(String... args) throws Exception {
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyProd)
-                           .loadDatabaseFromSource();
+        .loadDatabaseFromSource();
+
   }
 
 }

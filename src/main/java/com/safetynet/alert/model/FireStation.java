@@ -5,11 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -25,6 +20,11 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Entity FireStation.
@@ -83,6 +83,18 @@ public class FireStation implements Serializable {
   }
 
   /**
+   * method to remove a Person in Set Persons of this FireStation.
+   *
+   * @param person
+   *             a Person to remove from Set of Persons.
+   */
+  public void remove(Person person) {
+
+    persons.remove(person);
+
+  }
+
+  /**
    * method to add a address in Set addresses of this FireStation.
    *
    * @param address
@@ -94,9 +106,5 @@ public class FireStation implements Serializable {
 
   }
 
-  public void remove(Person person) {
 
-    persons.remove(person);
-
-  }
 }

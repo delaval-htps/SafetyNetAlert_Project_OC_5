@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,8 +25,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import javax.validation.Valid;
 
+/**
+ * Rest Controller for entity {@link FireStation}.
+ *
+ * @author delaval
+ *
+ */
 @RestController
 @RequestMapping("/")
 @Log4j2
@@ -34,6 +40,11 @@ public class FireStationRestController {
   @Autowired
   FireStationService fireStationService;
 
+  /**
+   * Return all existed FireStation.
+   *
+   * @return    a collection of all FireStations
+   */
   @GetMapping("/firestation")
   public Iterable<FireStation> getFireStations() {
 
@@ -41,6 +52,17 @@ public class FireStationRestController {
 
   }
 
+  /**
+   * Return FireStation with identification Id.
+   *
+   * @param id
+   *            the identification of the FireStation in database of type Long.
+   *
+   * @return    a ResponseEntity containing in body the FireStation with identification Id.
+   *
+   * @throws    a {@link FireStationNotFoundException}
+   *            if there isn't a FireStation mapped by this Id.
+   */
   @GetMapping("/firestation/{id}")
   public ResponseEntity<FireStation> getFireStationById(@PathVariable Long id) {
 
@@ -61,6 +83,18 @@ public class FireStationRestController {
 
   }
 
+  /**
+   * creation of a new FireStation.
+   *
+   * @param fireStation
+             a representation in Json of the new Object of FireStation.
+
+   * @return   a ResponseEntity containing in body the FireStation
+   *            with its new identification Id and its LocationUri.
+   *
+   * @throws    a {@link FireStationAlreadyExistedException}
+   *            if the FireStation already exists with the given numberStation.
+   */
   @PostMapping("/firestation")
   public ResponseEntity<FireStation>
       postMappingStationAddress(@Valid @RequestBody FireStation fireStation) {
@@ -90,6 +124,31 @@ public class FireStationRestController {
 
   }
 
+  /**
+   * Allows to change the mapping of a address with a existed FireStation.
+   * If the address is already mapped with another FireSation
+   * then the existing mapping is deleted,
+   * to create the new mapping with FireStation given in parameter.
+   *
+   * @param address
+   *                  the address mapped with the FireStation.
+   *
+   * @param fireStationToMapWithAddress
+   *                  the representation in Json of existed FireStation to be mapped
+   *                  with the address given in parameter.
+   *
+   * @return          a ResponseEntity of the FireStation now mapped with address
+   *
+   * @throws          a {@link FireStationAllreadyMappedByAddressException}
+   *                  if the existed FireStation given in body already mapped with address.
+   *
+   * @throws          a {@link FireStationNotFoundException} if FireStation given in body
+   *                    doesn't exist.
+   *
+   * @throws          a {@link FireStationNotValidException} if the FireStation given in body
+   *                    to map with address is not exactly the same that existed one.
+   *
+   */
   @PutMapping("/firestation/{address}")
   public ResponseEntity<Iterable<FireStation>> putMappingNumberStationAddress(
       @Valid @PathVariable String address,
@@ -117,9 +176,9 @@ public class FireStationRestController {
 
         if (existedFireStation.getAddresses().contains(address)) {
 
-          throw new FireStationAllreadyMappedByAddressException(
-                                                                "This FireStation already mapped with given address."
-                                                                    + "Please give a another fireStation to map !");
+          throw new FireStationAllreadyMappedByAddressException("This FireStation "
+              + "already mapped with given address."
+              + "Please give a another fireStation to map !");
         } else {
 
           //check for firestation mapped with the address
@@ -146,9 +205,9 @@ public class FireStationRestController {
 
       } else {
 
-        throw new FireStationNotValidException(
-                                               "fireStation in body request doesn't match with a existed fireStation !"
-                                                   + " Check fields are correctly entered");
+        throw new FireStationNotValidException("fireStation in body request"
+            + " doesn't match with a existed fireStation !"
+            + " Check fields are correctly entered");
       }
 
     } else {
@@ -163,6 +222,18 @@ public class FireStationRestController {
 
   }
 
+  /**
+   * Delete the mapping of a existed FireStation with its address(es).
+   *
+   * @param numberStation
+   *                      numberStation of FireStation to delete its mapping with its address(es).
+   *
+   * @return    ReponseEntity with in body the updated FireStation
+   *            (without its mapping with any address).
+   *
+   * @throws    a {@link FireStationNotFoundException}
+   *            if numberStation doesn't match with any fireStation
+   */
   @DeleteMapping("/firestation/station/{numberStation}")
   public ResponseEntity<FireStation>
 
@@ -191,6 +262,18 @@ public class FireStationRestController {
 
   }
 
+  /**
+   * Delete the mapping of a existed address with its FireStation.
+   *
+   * @param address
+                   address mapped with FireStation to delete its mapping with it.
+   *
+   * @return    ReponseEntity with in body the updated FireStation
+   *            (without its mapping with this address).
+   *
+   * @throws    a {@link FireStationNotFoundException}
+   *            if address isn't mapped with any fireStation
+   */
   @DeleteMapping("/firestation/address/{address}")
   public ResponseEntity<FireStation>
       deleteAddressFromFireStations(@PathVariable @Valid String address) {

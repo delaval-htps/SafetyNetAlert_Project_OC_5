@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
@@ -297,10 +298,10 @@ class PersonRestControllerIT {
   void putPerson_withValidInputButSameAddress_thenReturn200() throws Exception {
 
     // Given
-    ObjectMapper mapper = mapperBuilder.build();
     personTest.setLastName("Boyd");
     personTest.setFirstName("John");
     personTest.setAddress("1509 Culver St");
+    ObjectMapper mapper = mapperBuilder.build();
 
     // when & then
     mockMvc.perform(put("/person/{id}", 1)
@@ -326,11 +327,11 @@ class PersonRestControllerIT {
   void putPerson_WithChangedAddressMappedByFireStation_thenReturn200() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
+
     personTest.setAddress("29 15th St");
     personTest.setLastName("Boyd");
     personTest.setFirstName("John");
-
+    ObjectMapper mapper = mapperBuilder.build();
     //when & then
 
     mockMvc.perform(put("/person/{id}", 1)
@@ -362,10 +363,12 @@ class PersonRestControllerIT {
   void putPerson_WithChangedAddressNotMappedByFireStation_thenReturn200() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
+
     personTest.setLastName("Boyd");
     personTest.setFirstName("John");
     personTest.setAddress("addressNotMapped");
+    ObjectMapper mapper = mapperBuilder.build();
+
     //when & then
 
     mockMvc.perform(put("/person/{id}", 1)

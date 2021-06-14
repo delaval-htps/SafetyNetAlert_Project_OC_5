@@ -4,12 +4,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.validator.constraints.Range;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -27,7 +21,19 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.validator.constraints.Range;
 
+/**
+ * Entity Person.
+ *
+ * @author delaval
+ *
+ */
 @Getter
 @Setter
 @ToString(exclude = {"medicalRecord",
@@ -40,33 +46,6 @@ import javax.validation.constraints.Pattern;
                                                             "firstName"}))
 @Entity
 public class Person {
-
-
-  //  public Person(Long idPerson, String firstName, String lastName, String BirthDateAsString,
-  //                String address, String city, int zip, String phone, String email,
-  //                MedicalRecord medicalRecord, FireStation fireStation) {
-  //
-  //    this.idPerson = idPerson;
-  //    this.firstName = firstName;
-  //    this.lastName = lastName;
-  //
-  //    try {
-  //
-  //      this.birthDate = new SimpleDateFormat("dd/MM/yyyy").parse(BirthDateAsString);
-  //    } catch (ParseException e) {
-  //
-  //      this.birthDate = null;
-  //      e.printStackTrace();
-  //    }
-  //    this.address = address;
-  //    this.city = city;
-  //    this.zip = zip;
-  //    this.phone = phone;
-  //    this.email = email;
-  //    this.medicalRecord = medicalRecord;
-  //    this.fireStation = fireStation;
-  //
-  //  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

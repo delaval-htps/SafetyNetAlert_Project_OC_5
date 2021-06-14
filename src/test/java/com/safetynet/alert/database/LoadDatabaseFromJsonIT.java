@@ -1,6 +1,7 @@
 package com.safetynet.alert.database;
 
 import static org.assertj.db.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.service.AllergyService;
 import com.safetynet.alert.service.FireStationService;

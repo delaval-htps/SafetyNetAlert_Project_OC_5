@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,8 +31,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import javax.validation.Valid;
 
+/**
+ * Rest controller for entity {@link MedicalRecord}.
+ *
+ * @author delaval
+ *
+ */
 @RestController
 @RequestMapping("/")
 @Log4j2
@@ -48,6 +54,11 @@ public class MedicalRecordRestController {
   @Autowired
   FireStationService fireStationService;
 
+  /**
+   * Return the collection of all existed MedicalRecords.
+   *
+   *@return  a collection of MedicalRecord.
+   */
   @GetMapping("/medicalRecord")
   public Iterable<MedicalRecord> getMedicalRecords() {
 
@@ -55,6 +66,16 @@ public class MedicalRecordRestController {
 
   }
 
+  /**
+   * Return the MedicalRecord with as identification in database Id of type Long.
+   *
+   * @param id
+   *          the identification of MedicalRecord saved in database.
+   *
+   * @return  a ResponseEntity with in Body the MedicalRecord found.
+   *
+   * @throws    a {@link MedicalRecordNotFoundException} if MedicalRecord doesn't exist.
+   */
   @GetMapping("/medicalRecord/{id}")
   public ResponseEntity<MedicalRecord> getMedicalRecords(@Valid @PathVariable Long id) {
 
@@ -72,6 +93,19 @@ public class MedicalRecordRestController {
 
   }
 
+  /**
+   * Creation of new MedicalRecord given in parameter.
+   * All mapping and creation of other entities with a relationship are automatically realized.
+   *
+   * @param medicalRecord
+   *          the representation in Json of the new Object of MedicalRecord to create.
+   *
+   * @return  a ResponseEntity with in Body the new MedicalRecord and its location URI.
+   *
+   * @throws    a {@link MedicalRecordAlreadyExistedException} if MedicalRecord already exists
+   *            for a Person.
+   *
+   */
   @PostMapping("/medicalRecord")
   public ResponseEntity<MedicalRecord>
       postMedicalRecord(@Valid @RequestBody MedicalRecord medicalRecord) {
@@ -126,6 +160,25 @@ public class MedicalRecordRestController {
 
   }
 
+  /**
+   * Update a MedicalRecord with the Id given in parameter.
+   * All mapping and creation of other entities with a relationship are automatically realized.
+   *
+   * @param id
+   *          the identification of the MedicalRecord to update in database.
+   *
+   * @param medicalRecord
+   *          the representation of MedicalRecord to update with its new fields in the body in Json.
+   *
+   * @return  a ResponseEntity with in body the updated MedicalRecord.
+   *
+   * @throws  a {@link MedicalRecordChangedNamesException}
+   *          if in MedicalRecord given in parameter , the couple LastName/FirstName of
+   *          Person mapped with MedicalRecord doesn't match.
+   *
+   * @throws  a {@link MedicalRecordNotFoundException}
+   *          if there isn't a existed MedicalRecord with Id given in parameter.
+   */
   @PutMapping("/medicalRecord/{id}")
   public ResponseEntity<MedicalRecord> putMedicalRecord(@Valid @PathVariable Long id,
       @Valid @RequestBody MedicalRecord medicalRecord) {
@@ -190,7 +243,7 @@ public class MedicalRecordRestController {
         Set<Allergy> currentAllergies = currentMedicalRecord.getAllergies();
 
         Set<Allergy> allergiesToUpdate =
-            AllergiesToUpdateBetween(currentAllergies,
+            allergiesToUpdateBetween(currentAllergies,
                 medicalRecord.getAllergies(),
                 currentMedicalRecord);
         log.info("\n allergies to Update = {} \n", allergiesToUpdate);
@@ -228,6 +281,21 @@ public class MedicalRecordRestController {
 
   }
 
+  /**
+   * Delete the MedicalRecord with as identification unique couple
+   *  FirstName/LastName of Person mapped with this medicalRecord.
+   *
+   * @param lastName
+   *            the lastname of person mapped with the MedicalRecord.
+   *
+   * @param firstName
+   *            the Firstname of Person mapped with the MedicalRecord.
+   *
+   * @return    a ResponseEntity with the status OK if MedicalRecord was deleted.
+   *
+   * @Throws    a {@link MedicalRecordNotFoundException}
+   *            if couple firstname/lastName doesn't match with any Person.
+   */
   @DeleteMapping("/medicalRecord/{lastName}/{firstName}")
   public ResponseEntity<?> deleteMedicalRecord(
       @Valid @PathVariable String lastName,
@@ -259,6 +327,21 @@ public class MedicalRecordRestController {
 
   }
 
+  /**
+   * Method allows,from two Set of Medications of two MedicalRecord, to compare them (like a diff)
+   *  and create a new Set with common and new Medications between two sets without duplicates.
+   *  And in same time , when found a new non existed Medication( so without a Id),
+   *  before put it in the new Set,it saves it in database to retrieve its Id.
+   *
+   * @param currentMedications
+   *              the existed Set of Medication of one MedicalRecord.
+   *
+   * @param medicationsToUpdate
+   *                the new Set of Medication of the other MedicalRecord.
+   *
+   * @return    a new Set of Medications with common and new Medications
+   *             from two Set given in parameter(all Medications have a Id).
+   */
   public Set<Medication> medicationsToUpdateBetween(Set<Medication> currentMedications,
       Set<Medication> medicationsToUpdate) {
 
@@ -302,7 +385,22 @@ public class MedicalRecordRestController {
 
   }
 
-  public Set<Allergy> AllergiesToUpdateBetween(Set<Allergy> currentAllergies,
+  /**
+   * Method allows,from two Set of Allergies of two MedicalRecord, to compare them (like a diff)
+   *  and create a new Set with common and new Allergies between two sets without duplicates.
+   *  And in same time , when found a new non existed Allergy( so without a Id),
+   *  before put it in the new Set,it saves it in database to retrieve its Id.
+   *
+   * @param currentAllergies
+   *              the existed Set of Allergy of one MedicalRecord.
+   *
+   * @param allergiesToUpdate
+   *                the new Set of Allergy of the other MedicalRecord.
+   *
+   * @return    a new Set of Allergy with common and new allergies
+   *             from two Set given in parameter(all allergies have now a Id).
+   */
+  public Set<Allergy> allergiesToUpdateBetween(Set<Allergy> currentAllergies,
       Set<Allergy> allergiesToUpdate,
       MedicalRecord currentMedicalRecord) {
 

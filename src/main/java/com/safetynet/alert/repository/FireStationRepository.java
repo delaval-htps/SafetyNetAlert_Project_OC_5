@@ -6,6 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+/**
+ * repository For Entity FireStation.
+ *
+ * @author delaval
+ *
+ */
 @Repository
 public interface FireStationRepository
     extends JpaRepository<FireStation, Long> {
