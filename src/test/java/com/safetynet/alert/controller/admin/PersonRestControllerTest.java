@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
@@ -412,7 +413,7 @@ class PersonRestControllerTest {
   void putPerson_WithChangedAddressMappedByFireStation_thenReturn200() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
+
 
     mockPersonWithId.setFireStation(mockFireStation1);
 
@@ -423,6 +424,8 @@ class PersonRestControllerTest {
 
     when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
         .thenReturn(Optional.of(mockFireStation2));
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     //When &then
     mockMvc.perform(put("/person/{id}", 1)
@@ -454,7 +457,6 @@ class PersonRestControllerTest {
   void putPerson_WithChangedAddressNotMappedByFireStation_thenReturn200() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
 
     mockPersonWithId.setFireStation(mockFireStation1);
 
@@ -465,6 +467,8 @@ class PersonRestControllerTest {
 
     when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
         .thenReturn(Optional.empty());
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
 
@@ -486,9 +490,6 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
-    //check if Person with this address was correctly mapped with fireStation 2L
-    //    assertThat(personService.getPersonById(1L).get().getFireStation().getIdFireStation())
-    //        .isEqualTo(2L);
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
     verify(personService).savePerson(personCaptor.capture());
     assertThat(personCaptor.getValue().getFireStation()).isNull();

@@ -10,6 +10,7 @@ import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
 import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,13 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import javax.servlet.http.HttpServletRequest;
 
+/**
+ * A Controller Advice to manage all exceptions throws by controllers.
+ *
+ * @author delaval
+ *
+ */
 @ControllerAdvice
 @Log4j2
 public class GlobalExceptionHandler {

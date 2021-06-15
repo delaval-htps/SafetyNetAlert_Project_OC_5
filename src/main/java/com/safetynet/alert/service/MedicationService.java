@@ -8,30 +8,55 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for Entity {@link Medication}.
+ *
+ * @author delaval
+ *
+ */
 @Service
 public class MedicationService {
 
   @Autowired
   private MedicationRepository medicationRepository;
 
+  /**
+   * Retrieve a Medication with its given Id.
+   *
+   * @param id
+   *        the identification of Medication to retrieve.
+   *
+   * @return    the Medication with given id. Optional.empty() if it doesn't exist.
+   */
   public Optional<Medication> getMedicationById(Long id) {
 
     return medicationRepository.findById(id);
 
   }
 
+  /**
+   * Retrieve all existed Medications.
+   *
+   * @return    the collection of all Medications.Iterable.empty() if there is no one.
+   */
   public Iterable<Medication> getMedications() {
 
     return medicationRepository.findAll();
 
   }
 
-  public Medication saveMedication(Medication medication) {
-
-    return medicationRepository.save(medication);
-
-  }
-
+  /**
+   * Retrieve a Medication with its given designation and posology.
+   *
+   * @param designation
+   *          the designation of Medication.
+   *
+   * @param posology
+   *          the posology of Medication.
+   *
+   * @return  the existed Medication with its given designation and posology.
+   *            Optional.empty() if it doesn't exist.
+   */
   public Optional<Medication> getMedicationByDesignationAndPosology(String designation,
       String posology) {
 
@@ -39,15 +64,45 @@ public class MedicationService {
 
   }
 
+  /**
+   * retrieve all Medications not mapped with a MedicalRecord.
+   *
+   * @return a collection of existed Medications not mapped with any MedicalRecord.
+   *            Iterable.empty() if there is no one.
+   */
+  public Iterable<Medication> getMedicationNotMappedByMedicalRecord() {
+
+    return medicationRepository.getOneNotMappedByMedicalRecord();
+
+  }
+
+  /**
+   * Save the given Medication.
+   *
+   * @param medication
+   *          the medication to save in database.
+   *
+   * @return  the saved Medication.
+   */
+  public Medication saveMedication(Medication medication) {
+
+    return medicationRepository.save(medication);
+
+  }
+
+  /**
+   * Save all Medications.
+   *
+   * @param missingMedications
+   *            a Set of all Medications to save.
+   *
+   * @return    a List of saved Medications.
+   */
   public List<Medication> saveAll(Set<Medication> missingMedications) {
 
     return medicationRepository.saveAll(missingMedications);
 
   }
 
-  public Iterable<Medication> getMedicationNotMappedByMedicalRecord() {
 
-    return medicationRepository.getOneNotMappedByMedicalRecord();
-
-  }
 }

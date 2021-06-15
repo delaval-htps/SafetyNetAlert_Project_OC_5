@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
 import com.safetynet.alert.database.LoadDataStrategyFactory;
@@ -240,7 +241,7 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
+
 
     Optional<Person> personWithoutMedicalRecord = personService.getPersonById(2L);
     Person currentPerson = personWithoutMedicalRecord.get();
@@ -251,6 +252,7 @@ class MedicalRecordRestControllerIT {
     postMedicalRecord.setMedications(medicationsTest);
     postMedicalRecord.setAllergies(allergiesTest);
 
+    ObjectMapper mapper = mapperBuilder.build();
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
@@ -366,7 +368,7 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //given
-    MedicalRecord currentMedicalRecord = new MedicalRecord();
+
     // change of few fields in this MedicalRecord without lastName,firstName,address
     personTest.setFirstName("John");
     personTest.setLastName("Boyd");
@@ -376,6 +378,8 @@ class MedicalRecordRestControllerIT {
     medicationsTest.clear();
     medicationsTest.add(new Medication(null, "aznol", "350mg", null));
     medicationsTest.add(new Medication(null, "hydrapermazol", "100mg", null));
+
+    MedicalRecord currentMedicalRecord = new MedicalRecord();
     currentMedicalRecord.setMedications(medicationsTest);
 
     currentMedicalRecord.setPerson(personTest);
@@ -415,7 +419,7 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //given
-    MedicalRecord currentMedicalRecord = new MedicalRecord();
+
 
     // No change in this MedicalRecord for lastName,firstName
     //but we change the address to check if fireStation will be correctly update
@@ -427,6 +431,7 @@ class MedicalRecordRestControllerIT {
     medicationsTest.add(new Medication(null, "aznol", "350mg", null));
     medicationsTest.add(new Medication(null, "hydrapermazol", "100mg", null));
 
+    MedicalRecord currentMedicalRecord = new MedicalRecord();
     currentMedicalRecord.setPerson(personTest);
     currentMedicalRecord.setMedications(medicationsTest);
     currentMedicalRecord.setAllergies(allergiesTest);
@@ -469,7 +474,7 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //given
-    MedicalRecord currentMedicalRecord = new MedicalRecord();
+
     // No change in this MedicalRecord for lastName,firstName
     //but we change the address to check if fireStation will be correctly update
     personTest.setFirstName("John");
@@ -480,6 +485,7 @@ class MedicalRecordRestControllerIT {
     medicationsTest.add(new Medication(null, "aznol", "350mg", null));
     medicationsTest.add(new Medication(null, "hydrapermazol", "100mg", null));
 
+    MedicalRecord currentMedicalRecord = new MedicalRecord();
     currentMedicalRecord.setPerson(personTest);
     currentMedicalRecord.setMedications(medicationsTest);
     currentMedicalRecord.setAllergies(allergiesTest);
@@ -524,17 +530,16 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //Given
-
-    Medication saveNewMedication =
-        medicationService
-            .saveMedication(new Medication(null, "newExistedMedication", "100mg", null));
-
     // No change in this MedicalRecord for lastName,firstName
     personTest.setFirstName("John");
     personTest.setLastName("Boyd");
 
     MedicalRecord currentMedicalRecord = new MedicalRecord();
     currentMedicalRecord.setPerson(personTest);
+
+    Medication saveNewMedication =
+        medicationService
+            .saveMedication(new Medication(null, "newExistedMedication", "100mg", null));
 
     medicationsTest.clear();
     medicationsTest.add(saveNewMedication);
@@ -661,11 +666,6 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //Given
-
-    Allergy saveNewAllergy =
-        allergyService
-            .saveAllergy(new Allergy(null, "newExistedAllergy", null));
-
     MedicalRecord currentMedicalRecord = new MedicalRecord();
     personTest.setFirstName("John");
     personTest.setLastName("Boyd");
@@ -675,6 +675,10 @@ class MedicalRecordRestControllerIT {
     medicationsTest.add(new Medication(null, "aznol", "350mg", null));
     medicationsTest.add(new Medication(null, "hydrapermazol", "100mg", null));
     currentMedicalRecord.setMedications(medicationsTest);
+
+    Allergy saveNewAllergy =
+        allergyService
+            .saveAllergy(new Allergy(null, "newExistedAllergy", null));
 
     allergiesTest.clear();
     allergiesTest.add(saveNewAllergy);
@@ -730,15 +734,13 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //Given
-
-    Allergy newAllergy = new Allergy(null, "newAllergy", null);
-
     MedicalRecord currentMedicalRecord = new MedicalRecord();
 
     personTest.setFirstName("John");
     personTest.setLastName("Boyd");
     currentMedicalRecord.setPerson(personTest);
 
+    Allergy newAllergy = new Allergy(null, "newAllergy", null);
     allergiesTest.clear();
     allergiesTest.add(newAllergy);
     currentMedicalRecord.setAllergies(allergiesTest);

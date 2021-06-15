@@ -6,14 +6,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Rest Controller for entity {@link Medication}.
+ *
+ * @author delaval
+ *
+ */
 @RestController
 public class MedicationRestController {
   @Autowired
   MedicationService medicationService;
 
+  /**
+   * Return all existed Medications.
+   *
+   * @return    a collection (Iterable) of all existed Medications.
+   */
   @GetMapping("/medications")
   public Iterable<Medication> getMedications() {
+
     return medicationService.getMedications();
+
   }
 
 }

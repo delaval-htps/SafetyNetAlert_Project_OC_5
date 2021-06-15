@@ -3,11 +3,6 @@ package com.safetynet.alert.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,7 +15,18 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+/**
+ * Entity of Medication.
+ *
+ * @author delaval
+ *
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -56,6 +62,12 @@ public class Medication {
   @JsonIgnore
   private Set<MedicalRecord> medicalRecords = new HashSet<>();
 
+  /**
+   * Method to add a medicalRecord to the Set of a instance of Medication.
+   *
+   * @param medicalRecord
+   *            the MedicalRecord to add to Set medicalRecords.
+   */
   public void add(MedicalRecord medicalRecord) {
 
     if ((medicalRecord != null) && (!this.medicalRecords.contains(medicalRecord))) {
@@ -66,6 +78,12 @@ public class Medication {
 
   }
 
+  /**
+   * Method to remove a medicalRecord from the Set of a instance of Medication.
+   *
+   * @param medicalRecord
+   *            the MedicalRecord to remove from Set medicalRecords.
+   */
   public void remove(MedicalRecord medicalRecord) {
 
     if ((medicalRecord != null) && (this.medicalRecords.contains(medicalRecord))) {

@@ -3,9 +3,9 @@ package com.safetynet.alert.service;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.repository.FireStationRepository;
 import java.util.Optional;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import javax.validation.Valid;
 
 /**
  * Service for Entity FireStation.

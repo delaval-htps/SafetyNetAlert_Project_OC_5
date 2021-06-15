@@ -3,11 +3,6 @@ package com.safetynet.alert.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,7 +16,18 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+/**
+ * Entity MedicalRecord.
+ *
+ * @author delaval
+ *
+ */
 @Getter
 @Setter
 @ToString
@@ -75,6 +81,12 @@ public class MedicalRecord {
   @OrderBy("idAllergy") // to impose jsonPath to be ordered by id when response
   private Set<Allergy> allergies = new HashSet<>();
 
+  /**
+   * Method to clear any Set of MedicalRecord.
+   *
+   * @param hashSet
+   *            the Set to clear for MedicalRecord. Can be a Set of Allergy or Medication.
+   */
   public void clearSet(Set<?> hashSet) {
 
     hashSet.clear();

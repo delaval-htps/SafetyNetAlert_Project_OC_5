@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordAlreadyExistedException;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordChangedNamesException;
@@ -36,6 +37,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import javax.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -51,7 +53,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import javax.validation.constraints.NotBlank;
 
 @WebMvcTest(controllers = MedicalRecordRestController.class)
 class MedicalRecordRestControllerTest {
@@ -154,7 +155,7 @@ class MedicalRecordRestControllerTest {
 
     mockPerson2.setMedicalRecord(mockMedicalRecord2);
 
-    // *******  mockMedicalRecordWithoutId: same that mockMedicalRecord1 but without id *************
+    // ***  mockMedicalRecordWithoutId: same that mockMedicalRecord1 but without id ***
     mockPersonWithoutId = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
                                      "26 av maréchal Foch", "Cassis", 13260,
                                      "061-846-0160", "delaval.htps@gmail.com",
@@ -354,7 +355,6 @@ class MedicalRecordRestControllerTest {
       throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
 
     // we delete medicalRecord from Person1
     mockPerson1.setMedicalRecord(null);
@@ -369,6 +369,7 @@ class MedicalRecordRestControllerTest {
     when(personService.savePerson(Mockito.any(Person.class)))
         .thenReturn(mockPerson1WithMedicalRecord);
 
+    ObjectMapper mapper = mapperBuilder.build();
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)

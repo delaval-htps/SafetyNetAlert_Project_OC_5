@@ -1,14 +1,7 @@
 package com.safetynet.alert.bdd;
 
-
 import static org.assertj.db.api.Assertions.assertThat;
-import java.text.ParseException;
-import java.util.Map;
-import org.assertj.db.type.DateValue;
-import org.assertj.db.type.Source;
-import org.assertj.db.type.Table;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
@@ -16,10 +9,25 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.spring.CucumberContextConfiguration;
+import java.text.ParseException;
+import java.util.Map;
+import org.assertj.db.type.DateValue;
+import org.assertj.db.type.Source;
+import org.assertj.db.type.Table;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 
+
+/**
+ * Test of acceptance with cucumber.
+ *
+ * @see booting_application_data_persited.feature in test/resources/features
+ * @author delaval
+ *
+ */
 @SpringBootTest
 @CucumberContextConfiguration
-public class BootingApplication_DataPersited_Steps {
+public class BootingApplicationDataPersitedSteps {
 
   private static Source source;
   private static Table personTable;
@@ -40,6 +48,9 @@ public class BootingApplication_DataPersited_Steps {
 
   private static Map<String, String> personMap;
 
+  /**
+   * Set up before.
+   */
   @Before
   public void doSomething() {
 
@@ -56,6 +67,9 @@ public class BootingApplication_DataPersited_Steps {
 
   }
 
+  /**
+   * Given cucumber: nothing to do.
+   */
   @Given("application starts and creates databases")
   public void application_starts_and_creates_databases() {
 
@@ -63,6 +77,14 @@ public class BootingApplication_DataPersited_Steps {
     // with application.properties database is automatically created
   }
 
+  /**
+   * Given cucumber with a table in parameter.
+   *
+   * @see booting_application_data_persited.feature in test/resources/features.
+   *
+   * @param table
+   *
+   */
   @And("data file contains this first person:")
   public void file_data_json_contains_this_first_person(DataTable table) {
 
@@ -70,7 +92,9 @@ public class BootingApplication_DataPersited_Steps {
 
   }
 
-
+  /**
+   * When cucumber: nothing to do.
+   */
   @When("application reads the data.json")
   public void application_read_data() {
 
@@ -78,6 +102,12 @@ public class BootingApplication_DataPersited_Steps {
     // with method run of main class, file data.json is read automatically
   }
 
+  /**
+   * Then cucumber: check if database was correclty persisted with data from filedata.json .
+   *
+   * @throws ParseException
+   *            if there is a problem with parsing data json in Object.
+   */
   @Then("the datas from this file are correctly persited in database")
   public void datas_from_file_persisted_in_database() throws ParseException {
     // check that one entity instance is correctly persisted in database with
