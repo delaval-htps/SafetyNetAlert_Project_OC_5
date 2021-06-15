@@ -25,9 +25,8 @@ https://localhost:8080/
 Below you can find list of different endpoints :their description and use are explained in REST API documentation located at:`target/documentation`
 
 ##Run test
-We use `Cucumber` to create acceptance tests more easily readable for customers and above all to generate code's implementation using TDD...
-
-So,from these acceptance tests, we created integration and unit tests to implement and check the code.
+We use TDD to implement code in this project:
+So, from creation of integration and unit tests, we created the source's code and check it to be sure of its correct working.
 
 ##Site and Reports
 
@@ -48,3 +47,14 @@ and in `target/site` you will find a page index.html that you can open in your w
 * `Jacoco`
 * `Log4j`
 
+##Versions
+* **V0.0.1**	: 	First version of the project. implementation of Structure only.
+
+
+* **V0.1.0**	: 	Second version, implementation of code using TDD:
+
+
+		1. creation of Service to load Data from a source using a strategy pattern in CommandLineRunner.
+		2. creation of Rest Controller for administration that manages Entities Person,FireStation,MedicalRecord, Medication and Allergy.
+		3. creation of global handler Exceptions to manage exceptions from Controllers 
+		4. implementation of javadoc and update code to check checkStyle's rules.
