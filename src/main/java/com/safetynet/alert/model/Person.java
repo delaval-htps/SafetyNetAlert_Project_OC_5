@@ -38,6 +38,7 @@ import org.hibernate.validator.constraints.Range;
 @Setter
 @ToString(exclude = {"medicalRecord",
                      "fireStation"})
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "Person",
@@ -46,6 +47,29 @@ import org.hibernate.validator.constraints.Range;
                                                             "firstName"}))
 @Entity
 public class Person {
+
+  /**
+   * contructor with some fields used in hql query.
+   *
+   * @param firstName the firstname of person.
+   * @param lastName  the lastname of person.
+   * @param address   the address of person.
+   * @param phone     the phone of person.
+   * @param birthDate
+   *
+   */
+  public Person(String firstName, String lastName,
+                String address,
+                String phone,
+                @Past(message = "this birthdate must be past today") Date birthDate) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+    this.address = address;
+    this.phone = phone;
+
+  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,7 +116,8 @@ public class Person {
          min = 0,
          max = 99999,
          message = "this zip must not be beetween 0 and 99999")
-  private int zip;
+  @NotNull
+  private Integer zip;
 
   @Column
   @NotNull(message = "this number of phone must not be null")

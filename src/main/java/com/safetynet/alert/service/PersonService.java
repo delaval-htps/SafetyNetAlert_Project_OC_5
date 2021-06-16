@@ -2,6 +2,10 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
+import java.util.Calendar;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,7 +95,6 @@ public class PersonService {
 
   }
 
-
   /**
    * Save a instance of Person.
    *
@@ -106,8 +109,6 @@ public class PersonService {
 
   }
 
-
-
   /**
    * Delete a Person.
    *
@@ -120,4 +121,48 @@ public class PersonService {
 
   }
 
+  /**
+   * Retrieve the list of persons mapped with a FireStation with the given station_number.
+   * Retrieve also counts:<ul>
+   * <li> AdultCount for persons 18 years old or more </li>
+   * <li> ChildrenCount for persons 18 years old or less</li>
+   * </ul>
+   *
+   * @param numberStation
+   *                the number station of FireStation.
+   *
+   * @return a Map with result of counts and list of persons
+   */
+  public Map<String, Object> getPersonsMappedWithFireStation(int numberStation) {
+
+    int adultCount = 0;
+    int childrenCount = 0;
+
+    List<Person> persons = personRepository.getPersonsMappedByNumberstation(numberStation);
+
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.YEAR, -18);
+
+    for (Person person : persons) {
+
+      if (person.getBirthDate().before(cal.getTime())) {
+
+        adultCount++;
+      } else {
+
+        childrenCount++;
+      }
+
+      person.setBirthDate(null); // to not be displayed in responseBody
+    }
+
+    Map<String, Object> result = new LinkedHashMap<String, Object>();
+
+    result.put("AdultCount", adultCount);
+    result.put("ChildrenCount", childrenCount);
+    result.put("persons", persons);
+
+    return result;
+
+  }
 }
