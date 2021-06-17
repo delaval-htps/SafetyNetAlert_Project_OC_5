@@ -42,7 +42,7 @@ public class EmergencyRestController {
    *            <ul>
    *            <li> AdultCount/adultCount </li>
    *            <li> ChildrenCount/childrenCount</li><
-   *            <li> Persons/ List of persons mapped with Firestation</li>
+   *            <li> Persons/ List of persons mapped with FireStation</li>
    *            </ul>
    */
   @GetMapping("/firestation/getpersons")
