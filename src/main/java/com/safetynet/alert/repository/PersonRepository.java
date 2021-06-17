@@ -1,6 +1,7 @@
 package com.safetynet.alert.repository;
 
 import com.safetynet.alert.model.Person;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,5 +26,11 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " Join Fetch p.fireStation"
       + " where p.idPerson=?1")
   Optional<Person> getOneJoinFireStationById(long l);
+
+  @Query("SELECT new Person(p.firstName, p.lastName, p.address, p.phone, p.birthDate) "
+      + "from Person as p "
+      + "Join p.fireStation as f "
+      + "Where f.numberStation=?1 and p.birthDate <= current_date")
+  List<Person> getPersonsMappedByNumberstation(int numberStation);
 
 }
