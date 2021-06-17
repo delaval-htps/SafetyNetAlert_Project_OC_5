@@ -1,6 +1,7 @@
 package com.safetynet.alert.exceptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
@@ -28,6 +29,28 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 @Log4j2
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler
+  public ResponseEntity<GlobalErrorResponse>
+      handlerAddressNotFoundException(AddressNotFoundException exception,
+          final HttpServletRequest request) {
+
+    GlobalErrorResponse errorResponse = new GlobalErrorResponse();
+
+    errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+    errorResponse.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
+    errorResponse.setErrorMessage(exception.getMessage());
+    errorResponse.setTimeStamp(new Date(System.currentTimeMillis()));
+
+    log.error("Status:{} {} ; Request: {} {}; CauseBy:{} ",
+        errorResponse.getStatus(),
+        errorResponse.getError(),
+        request.getMethod(),
+        request.getRequestURI(),
+        errorResponse.getErrorMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+
+  }
 
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>

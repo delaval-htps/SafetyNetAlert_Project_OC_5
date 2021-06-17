@@ -2,6 +2,7 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -163,6 +164,56 @@ public class PersonService {
     result.put("persons", persons);
 
     return result;
+
+  }
+
+  /**
+   * Retrieve list of children mapped with a given address plus list of other members of home.
+   *
+   * @param address   the address given in parameter
+   *
+   * @return  a Map with two list: children's list and otherMember's list
+   */
+  public Map<String, Object> getChildrenByAddress(String address) {
+
+    Iterable<Person> persons = this.getPersonByAddress(address);
+
+    Map<String, Object> result = null;
+
+    List<Person> children = new ArrayList<>();
+    List<Person> otherPersons = new ArrayList<>();
+
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.YEAR, -18);
+
+    if (persons.iterator().hasNext()) {
+
+      result = new LinkedHashMap<String, Object>();
+
+      for (Person person : persons) {
+
+        Person resultPerson =
+            new Person(person.getFirstName(), person.getLastName(), person.getBirthDate());
+
+        if (person.getBirthDate().after(cal.getTime())) {
+
+          children.add(resultPerson);
+
+        } else {
+
+          otherPersons.add(resultPerson);
+        }
+      }
+
+      result.put("Children", children);
+      result.put("OtherMembers", otherPersons);
+
+      return result;
+
+    } else {
+
+      return result;
+    }
 
   }
 }

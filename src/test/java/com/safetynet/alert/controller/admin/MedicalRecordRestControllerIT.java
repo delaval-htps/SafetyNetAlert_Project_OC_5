@@ -97,11 +97,11 @@ class MedicalRecordRestControllerIT {
   @BeforeEach
   void setUp() throws Exception {
 
-    sdf = new SimpleDateFormat("dd/MM/yyyy");
+    sdf = new SimpleDateFormat("MM/dd/yyyy");
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyTest).loadDatabaseFromSource();
 
-    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                             "26 av maréchal Foch", "Cassis", 13260,
                             "061-846-0160", "delaval.htps@gmail.com",
                             null, null);
@@ -214,7 +214,7 @@ class MedicalRecordRestControllerIT {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))

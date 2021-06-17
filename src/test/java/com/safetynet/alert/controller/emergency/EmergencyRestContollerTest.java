@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
@@ -20,6 +21,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,28 +57,29 @@ class EmergencyRestContollerTest {
 
   private Map<String, Object> mapReponsebody;
   private Set<String> addresses;
-  Set<Person> persons;
+  private Set<Person> persons;
+  private Date birthDatePerson3;
 
   @BeforeEach
   void setUp() throws Exception {
 
     mockPerson1 =
         new Person(null, "Person1", "Test",
-                   new SimpleDateFormat("dd/MM/yyyy").parse("27/12/1976"), "address1",
+                   new SimpleDateFormat("MM/dd/yyyy").parse("12/27/1976"), "address1",
                    null, null, "061-846-0160", null, null, mockFireStation);
     mockPerson2 =
         new Person(null, "Person2", "Test",
-                   new SimpleDateFormat("dd/MM/yyyy").parse("22/02/1984"), "address1",
-                   null, null, "061-846-0160", null, null, mockFireStation);
+                   new SimpleDateFormat("MM/dd/yyyy").parse("02/22/1984"), "address1",
+                   null, null, "061-846-0161", null, null, mockFireStation);
 
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.YEAR, -18);
-    Date birthDatePerson3 = cal.getTime();
+    birthDatePerson3 = cal.getTime();
 
     mockPerson3 =
         new Person(null, "Person3", "Test",
-                   birthDatePerson3, "address2",
-                   null, null, "061-846-0160", null, null, mockFireStation);
+                   birthDatePerson3, "address1",
+                   null, null, "061-846-0162", null, null, mockFireStation);
 
     addresses = new HashSet<String>();
     addresses.add("address1");
@@ -90,7 +93,6 @@ class EmergencyRestContollerTest {
     mockFireStation = new FireStation(1L, 1, addresses, persons);
 
     mapReponsebody = new LinkedHashMap<>();
-    mapReponsebody.put("AdultCount", "");
 
   }
 
@@ -119,10 +121,10 @@ class EmergencyRestContollerTest {
         .andExpect(jsonPath("$.persons[0].phone", is("061-846-0160")))
         .andExpect(jsonPath("$.persons[1].firstName", is("Person2")))
         .andExpect(jsonPath("$.persons[1].lastName", is("Test")))
-        .andExpect(jsonPath("$.persons[1].phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.persons[1].phone", is("061-846-0161")))
         .andExpect(jsonPath("$.persons[2].firstName", is("Person3")))
         .andExpect(jsonPath("$.persons[2].lastName", is("Test")))
-        .andExpect(jsonPath("$.persons[2].phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.persons[2].phone", is("061-846-0162")))
         .andExpect(jsonPath("$.AdultCount", is(2)))
         .andExpect(jsonPath("$.ChildrenCount", is(1))).andDo(print());
 
@@ -168,6 +170,96 @@ class EmergencyRestContollerTest {
     assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
     assertThat(result.getResolvedException().getMessage()).isEqualTo(
         "FireStation with number_station: 5 was not found! please choose another existed one!");
+
+  }
+
+  @Test
+  @Order(4)
+  void getChildAlert_whenValidAddressAndExistedChildren_thenReturn200() throws Exception {
+
+    //Given
+    List<Person> children = new ArrayList<Person>();
+    children.add(mockPerson3);
+
+    List<Person> otherMembers = new ArrayList<Person>();
+    otherMembers.add(mockPerson1);
+    otherMembers.add(mockPerson2);
+
+    mapReponsebody.put("Children", children);
+    mapReponsebody.put("OtherMembers", otherMembers);
+
+    when(personService.getChildrenByAddress(Mockito.anyString())).thenReturn(mapReponsebody);
+
+    //when and then
+    mockMvc.perform(get("/childAlert").param("address", "1509 Culver St"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$.Children.length()", is(1)))
+        .andExpect(jsonPath("$.Children[0].firstName", is("Person3")))
+        .andExpect(jsonPath("$.Children[0].lastName", is("Test")))
+        .andExpect(jsonPath("$.Children[0].birthDate",
+            is(new SimpleDateFormat("MM/dd/yyyy").format(birthDatePerson3).toString())))
+        .andExpect(jsonPath("$.OtherMembers.length()", is(2)))
+        .andExpect(jsonPath("$.OtherMembers[0].firstName", is("Person1")))
+        .andExpect(jsonPath("$.OtherMembers[0].lastName", is("Test")))
+        .andExpect(jsonPath("$.OtherMembers[0].birthDate", is("12/27/1976")))
+        .andExpect(jsonPath("$.OtherMembers[1].firstName", is("Person2")))
+        .andExpect(jsonPath("$.OtherMembers[1].lastName", is("Test")))
+        .andExpect(jsonPath("$.OtherMembers[1].birthDate", is("02/22/1984")))
+        .andDo(print());
+
+
+  }
+
+  @Test
+  @Order(5)
+  void getChildAlert_whenNotExistedAddress_thenReturn404() throws Exception {
+
+    //Given
+    when(personService.getChildrenByAddress(Mockito.anyString())).thenReturn(null);
+
+    //when and then
+    MvcResult result = mockMvc.perform(get("/childAlert").param("address", "AddressNotFound"))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(AddressNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage()).isEqualTo(
+        "this address : AddressNotFound was not found. Please choose a existed address");
+
+  }
+
+  @Test
+  @Order(6)
+  void getPhoneAlert_whenExistedFireStation_thenReturn200() throws Exception {
+
+    //Given
+
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.of(mockFireStation));
+
+    //When and Then
+    mockMvc.perform(get("/phoneAlert").param("firestation", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.Phones.length()", is(3)))
+        .andExpect(jsonPath("$.Phones[0]", is("061-846-0160")))
+        .andExpect(jsonPath("$.Phones[1]", is("061-846-0161")))
+        .andExpect(jsonPath("$.Phones[2]", is("061-846-0162")))
+        .andDo(print());
+
+  }
+
+  @Test
+  @Order(7)
+  void getphoneAlert_whenNotExistedFireStation_thenReturn404() throws Exception {
+    //Given
+
+    //when and then
+    MvcResult result = mockMvc.perform(get("/phoneAlert").param("firestation", "6"))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage()).isEqualTo(
+        "FireStation with numberStation: 6 was not found. Please choose a existed fireStation!");
 
   }
 

@@ -245,7 +245,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
         String birthDateAsString;
         birthDateAsString = elementMedicalRecord.get("birthdate").asText();
 
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         Date birthDate = null;
 
         try {

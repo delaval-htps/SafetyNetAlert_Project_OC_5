@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
 import com.safetynet.alert.database.LoadDataStrategyFactory;
 import com.safetynet.alert.database.StrategyName;
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.service.PersonService;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,6 +118,86 @@ class EmergencyRestControllerIT {
     assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
     assertThat(result.getResolvedException().getMessage()).isEqualTo(
         "FireStation with number_station: 5 was not found! please choose another existed one!");
+
+  }
+
+  @Test
+  @Order(4)
+  void getChildAlert_whenValidAddressAndExistedChildren_thenReturn200() throws Exception {
+    //Given
+
+    //when and then
+    mockMvc.perform(get("/childAlert").param("address", "1509 Culver St"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$.Children.length()", is(2)))
+        .andExpect(jsonPath("$.Children[0].firstName", is("Tenley")))
+        .andExpect(jsonPath("$.Children[0].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.Children[0].birthDate", is("02/18/2012")))
+        .andExpect(jsonPath("$.Children[1].firstName", is("Roger")))
+        .andExpect(jsonPath("$.Children[1].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.Children[1].birthDate", is("09/06/2017")))
+        .andExpect(jsonPath("$.OtherMember.length()", is(3)))
+        .andExpect(jsonPath("$.OtherMember[0].firstName", is("John")))
+        .andExpect(jsonPath("$.OtherMember[0].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.OtherMember[0].birthDate", is("03/06/1984")))
+        .andExpect(jsonPath("$.OtherMember[1].firstName", is("Jacob")))
+        .andExpect(jsonPath("$.OtherMember[1].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.OtherMember[1].birthDate", is("03/06/1989")))
+        .andExpect(jsonPath("$.OtherMember[2].firstName", is("Felicia")))
+        .andExpect(jsonPath("$.OtherMember[2].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.OtherMember[2].birthDate", is("01/08/1986")))
+        .andDo(print());
+
+
+  }
+
+  @Test
+  @Order(5)
+  void getChildAlert_whenNotExistedAddress_thenReturn404() throws Exception {
+    //Given
+
+    //when and then
+    MvcResult result = mockMvc.perform(get("/childAlert").param("address", "AddressNotFound"))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(AddressNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage()).isEqualTo(
+        "this address : AddressNotFound was not found. Please choose a existed address");
+
+  }
+
+
+  @Test
+  @Order(6)
+  void getPhoneAlert_whenExistedFireStation_thenReturn200() throws Exception {
+    //Given
+
+    //When and Then
+    mockMvc.perform(get("/phoneAlert").param("firestation", "3"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.Phones.length()", is(4)))
+        .andExpect(jsonPath("$.Phones[0]", is("061-846-0160")))
+        .andExpect(jsonPath("$.Phones[1]", is("841-874-6512")))
+        .andExpect(jsonPath("$.Phones[2]", is("841-874-6513")))
+        .andExpect(jsonPath("$.Phones[3]", is("841-874-6544")))
+
+        .andDo(print());
+
+  }
+
+  @Test
+  @Order(7)
+  void getphoneAlert_whenNotExistedFireStation_thenReturn404() throws Exception {
+    //Given
+
+    //when and then
+    MvcResult result = mockMvc.perform(get("/phoneAlert").param("firestation", "6"))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage()).isEqualTo(
+        "FireStation with numberStation: 6 was not found. Please choose a existed fireStation!");
 
   }
 

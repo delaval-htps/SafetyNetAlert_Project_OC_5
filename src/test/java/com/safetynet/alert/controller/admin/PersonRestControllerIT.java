@@ -82,12 +82,12 @@ class PersonRestControllerIT {
   @BeforeEach
   void setup() throws ParseException {
 
-    sdf = new SimpleDateFormat("dd/MM/yyyy");
+    sdf = new SimpleDateFormat("MM/dd/yyyy");
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyTest)
         .loadDatabaseFromSource();
 
-    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                             "26 av maréchal foch", "Cassis", 13260,
                             "061-846-0160", "delaval.htps@gmail.com",
                             null, null);
@@ -180,7 +180,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(3)))
         .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
@@ -211,7 +211,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(3)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
@@ -254,21 +254,21 @@ class PersonRestControllerIT {
 
   @ParameterizedTest
   @Order(7)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void postPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
@@ -314,7 +314,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.lastName", is("Boyd")))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
         .andExpect(jsonPath("$.city", is("Cassis")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.zip", is(13260)))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
@@ -344,7 +344,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("John")))
@@ -381,7 +381,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("John")))
@@ -396,21 +396,21 @@ class PersonRestControllerIT {
 
   @ParameterizedTest
   @Order(11)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void putPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
