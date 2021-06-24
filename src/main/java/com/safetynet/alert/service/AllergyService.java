@@ -101,5 +101,11 @@ public class AllergyService {
 
   }
 
+  public Iterable<Allergy> getAllergiesByIdMedicalRecord(Long idMedicalRecord) {
+
+    return allergyRepository.getAllergiesByIdMedicalRecord(idMedicalRecord);
+
+  }
+
 
 }

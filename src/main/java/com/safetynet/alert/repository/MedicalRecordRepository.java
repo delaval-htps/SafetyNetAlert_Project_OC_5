@@ -28,4 +28,6 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
       + "where p.lastName=?1 and p.firstName=?2")
   Optional<MedicalRecord> getOneByNames(@Valid String lastName, @Valid String firstName);
 
+
+
 }

@@ -59,9 +59,7 @@ public class Person {
    *
    */
   public Person(String firstName, String lastName,
-                String address,
-                String phone,
-                Date birthDate) {
+                String address, String phone, Date birthDate) {
 
     this.firstName = firstName;
     this.lastName = lastName;
@@ -83,6 +81,41 @@ public class Person {
     this.firstName = firstName;
     this.lastName = lastName;
     this.birthDate = birthDate;
+
+  }
+
+  public Person(String lastName, String firstName, Date birthDate,
+                String phone, MedicalRecord medicalRecord) {
+
+    this.lastName = lastName;
+    this.firstName = firstName;
+    this.birthDate = birthDate;
+    this.phone = phone;
+    this.medicalRecord = medicalRecord;
+
+  }
+
+  public Person(String lastName, String firstName, String address,
+                Date birthDate, String phone, MedicalRecord medicalRecord) {
+
+    this.lastName = lastName;
+    this.firstName = firstName;
+    this.address = address;
+    this.birthDate = birthDate;
+    this.phone = phone;
+    this.medicalRecord = medicalRecord;
+
+  }
+
+  public Person(String firstName, String lastName, Date birthDate, String address,
+                String email, MedicalRecord medicalRecord) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+    this.address = address;
+    this.email = email;
+    this.medicalRecord = medicalRecord;
 
   }
 

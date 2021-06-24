@@ -2,8 +2,11 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +61,9 @@ public class PersonService {
    * @return    a collection of Persons with the given address.
    *
    */
-  public Iterable<Person> getPersonByAddress(String addressFireStation) {
+  public Iterable<Person> getPersonsByAddress(String addressFireStation) {
 
-    return personRepository.getOneByAddress(addressFireStation);
+    return personRepository.getPersonsByAddress(addressFireStation);
 
   }
 
@@ -138,6 +141,7 @@ public class PersonService {
 
     int adultCount = 0;
     int childrenCount = 0;
+    int withoutBirthDate = 0;
 
     List<Person> persons = personRepository.getPersonsMappedByNumberstation(numberStation);
 
@@ -146,21 +150,33 @@ public class PersonService {
 
     for (Person person : persons) {
 
-      if (person.getBirthDate().before(cal.getTime())) {
+      if (person.getBirthDate() != null) {
 
-        adultCount++;
+        if (person.getBirthDate().before(cal.getTime())) {
+
+          adultCount++;
+
+        } else {
+
+          childrenCount++;
+        }
+        person.setBirthDate(null); // to not be displayed in responseBody
       } else {
 
-        childrenCount++;
+        withoutBirthDate++;
       }
-
-      person.setBirthDate(null); // to not be displayed in responseBody
     }
 
     Map<String, Object> result = new LinkedHashMap<String, Object>();
 
     result.put("AdultCount", adultCount);
     result.put("ChildrenCount", childrenCount);
+
+    if (withoutBirthDate > 0) {
+
+      result.put("BirthDateNotSpecified", withoutBirthDate);
+    }
+
     result.put("persons", persons);
 
     return result;
@@ -176,7 +192,7 @@ public class PersonService {
    */
   public Map<String, Object> getChildrenByAddress(String address) {
 
-    Iterable<Person> persons = this.getPersonByAddress(address);
+    Iterable<Person> persons = this.getPersonsByAddress(address);
 
     Map<String, Object> result = null;
 
@@ -216,4 +232,164 @@ public class PersonService {
     }
 
   }
+
+  public List<Object> getPersonsWhenFireMappedByAddress(String address) {
+
+    List<Person> persons = personRepository.getPersonsWhenFire(address);
+
+    List<Object> result = new ArrayList<>();
+
+    Map<String, Object> personInfo = null;
+
+    for (Person person : persons) {
+
+      personInfo = new LinkedHashMap<>();
+
+      personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
+      personInfo.put("Phone", person.getPhone());
+
+      if (person.getBirthDate() != null) {
+
+        int agePerson = calculateAge(person.getBirthDate());
+        personInfo.put("Age", agePerson);
+
+      } else {
+
+        personInfo.put("Age", "not specified");
+      }
+
+      if (person.getMedicalRecord() != null) {
+
+        personInfo.put("Medications", person.getMedicalRecord().getMedications());
+        personInfo.put("Allergies", person.getMedicalRecord().getAllergies());
+
+      } else {
+
+        personInfo.put("MedicalRecord", "not yet created");
+      }
+
+      result.add(personInfo);
+    }
+    return result;
+
+  }
+
+  public Map<String, Object> getPersonsWhenFloodByStations(List<Integer> numberStations) {
+
+
+    Map<String, Object> result = new LinkedHashMap<>();
+    Map<String, Object> personInfo = null;
+    List<Object> persons = new ArrayList<>();
+
+    for (Integer station : numberStations) {
+
+      List<Person> personsMappedByStation = personRepository.getPersonsWhenFlood(station);
+
+      String addressTemp = personsMappedByStation.get(0).getAddress();
+      persons = new ArrayList<>();
+
+      for (Person person : personsMappedByStation) {
+
+        if (!(person.getAddress().equals(addressTemp))) {
+
+          result.put(addressTemp, persons);
+          persons = new ArrayList<>();
+          addressTemp = person.getAddress();
+        }
+
+        personInfo = new LinkedHashMap<>();
+
+        personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
+        personInfo.put("Phone", person.getPhone());
+
+        if (person.getBirthDate() != null) {
+
+          int agePerson = calculateAge(person.getBirthDate());
+          personInfo.put("Age", agePerson);
+        } else {
+
+          personInfo.put("Age", "not specified");
+        }
+
+        if (person.getMedicalRecord() != null) {
+
+          personInfo.put("Medications", person.getMedicalRecord().getMedications());
+          personInfo.put("Allergies", person.getMedicalRecord().getAllergies());
+        } else {
+
+          personInfo.put("MedicalRecord", "not yet created");
+        }
+
+        persons.add(personInfo);
+      }
+      result.put(addressTemp, persons);
+
+    }
+    return result;
+
+  }
+
+  public List<Object> getPersonInfoByNames(String firstName, String lastName) {
+
+    Iterable<Person> persons = personRepository.getPersonInfoByNames(firstName, lastName);
+
+
+    List<Object> result = new ArrayList<>();
+
+    for (Person person : persons) {
+
+      Map<String, Object> personsInfo = new LinkedHashMap<>();
+
+      personsInfo.put("Name", person.getLastName() + " " + person.getFirstName());
+      personsInfo.put("Phone", person.getPhone());
+      personsInfo.put("Address", person.getAddress());
+
+      if (person.getBirthDate() != null) {
+
+        int agePerson = calculateAge(person.getBirthDate());
+        personsInfo.put("Age", agePerson);
+      } else {
+
+        personsInfo.put("Age", "not specified");
+      }
+      personsInfo.put("Email", person.getEmail());
+
+      if (person.getMedicalRecord() != null) {
+
+        personsInfo.put("Medications", person.getMedicalRecord().getMedications());
+        personsInfo.put("Allergies", person.getMedicalRecord().getAllergies());
+      } else {
+
+        personsInfo.put("MedicalRecord", "not yet created");
+      }
+
+      result.add(personsInfo);
+    }
+    return result;
+
+  }
+
+  public List<String> getEmailsByCity(String city) {
+
+    return personRepository.getEmailsByCity(city);
+
+  }
+
+  /**
+   * Method to calculate age of Person with its given Date birhtDate.
+   *
+   * @param birthDate
+   *              the birthDate of a Person
+   *
+   * @return  age of person in years
+   */
+  public int calculateAge(Date birthDate) {
+
+    LocalDate birthDateLocalDate = new java.sql.Date(birthDate.getTime()).toLocalDate();
+    return Period.between(birthDateLocalDate, LocalDate.now()).getYears();
+
+  }
+
+
+
 }
