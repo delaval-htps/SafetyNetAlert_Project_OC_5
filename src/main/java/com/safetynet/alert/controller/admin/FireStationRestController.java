@@ -1,5 +1,6 @@
 package com.safetynet.alert.controller.admin;
 
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
@@ -88,7 +89,7 @@ public class FireStationRestController {
    *
    * @param fireStation
              a representation in Json of the new Object of FireStation.
-
+  
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
@@ -295,9 +296,8 @@ public class FireStationRestController {
 
     } else {
 
-      throw new FireStationNotFoundException(
-                                             "There is no FireStation mapped with this address:"
-                                                 + address);
+      throw new AddressNotFoundException("There is no FireStation mapped with this address:"
+          + address);
 
     }
 

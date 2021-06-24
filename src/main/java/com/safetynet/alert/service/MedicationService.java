@@ -104,5 +104,11 @@ public class MedicationService {
 
   }
 
+  public Iterable<Medication> getMedicationsByIdMedicalRecord(Long idMedicalRecord) {
+
+    return medicationRepository.getMedicationsByIdMedicalRecord(idMedicalRecord);
+
+  }
+
 
 }

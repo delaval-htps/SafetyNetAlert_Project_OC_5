@@ -202,7 +202,7 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
 
         fireStation.add(addressFireStation);
 
-        Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
+        Iterable<Person> persons = personService.getPersonsByAddress(addressFireStation);
 
         for (Person person : persons) {
 
@@ -245,7 +245,7 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
         String birthDateAsString;
         birthDateAsString = elementMedicalRecord.get("birthdate").asText();
 
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         Date birthDate = null;
 
         try {

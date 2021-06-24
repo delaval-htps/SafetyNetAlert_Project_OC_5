@@ -107,10 +107,10 @@ class MedicalRecordRestControllerTest {
   @BeforeEach
   void setUpBeforeTest() throws Exception {
 
-    sdf = new SimpleDateFormat("dd/MM/yyyy");
+    sdf = new SimpleDateFormat("MM/dd/yyyy");
 
     // **************** mockMedicalRecord1 with all fields *********************
-    mockPerson1 = new Person(1L, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPerson1 = new Person(1L, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                              "26 av maréchal Foch", "Cassis", 13260,
                              "061-846-0160", "delaval.htps@gmail.com",
                              null, null);
@@ -129,14 +129,14 @@ class MedicalRecordRestControllerTest {
     mockPerson1.setMedicalRecord(mockMedicalRecord1);
 
     //  mockPerson1WithMedicalRecord :same that mockPerson1 but mapped with MedicalRecord
-    mockPerson1WithMedicalRecord = new Person(1L, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPerson1WithMedicalRecord = new Person(1L, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                                               "26 av maréchal Foch", "Cassis", 13260,
                                               "061-846-0160", "delaval.htps@gmail.com",
                                               mockMedicalRecord1, null);
 
 
     // ******************  mockMedicalRecord2 with all fields *************
-    mockPerson2 = new Person(2L, "Emilie", "Delaval", sdf.parse("22/02/1984"),
+    mockPerson2 = new Person(2L, "Emilie", "Delaval", sdf.parse("02/22/1984"),
                              "150 rue de la  Prairie", "Mulbach sur Munster", 67000,
                              "061-846-0260", "delaval.emilie@gmail.com",
                              null, null);
@@ -156,7 +156,7 @@ class MedicalRecordRestControllerTest {
     mockPerson2.setMedicalRecord(mockMedicalRecord2);
 
     // ***  mockMedicalRecordWithoutId: same that mockMedicalRecord1 but without id ***
-    mockPersonWithoutId = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPersonWithoutId = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                                      "26 av maréchal Foch", "Cassis", 13260,
                                      "061-846-0160", "delaval.htps@gmail.com",
                                      null, null);
@@ -207,7 +207,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$[0].person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$[0].person.firstName", is("Dorian")))
         .andExpect(jsonPath("$[0].person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$[0].person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$[0].person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$[0].person.city", is("Cassis")))
         .andExpect(jsonPath("$[0].person.zip", is(13260)))
         .andExpect(jsonPath("$[0].person.phone", is("061-846-0160")))
@@ -224,7 +224,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$[1].person.address", is("150 rue de la  Prairie")))
         .andExpect(jsonPath("$[1].person.firstName", is("Emilie")))
         .andExpect(jsonPath("$[1].person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$[1].person.birthDate", is("22/02/1984")))
+        .andExpect(jsonPath("$[1].person.birthDate", is("02/22/1984")))
         .andExpect(jsonPath("$[1].person.city", is("Mulbach sur Munster")))
         .andExpect(jsonPath("$[1].person.zip", is(67000)))
         .andExpect(jsonPath("$[1].person.phone", is("061-846-0260")))
@@ -257,7 +257,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -315,7 +315,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -382,7 +382,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -508,7 +508,7 @@ class MedicalRecordRestControllerTest {
     // mockMedicalRecordWithId represents the return of medicalRecord.save()
     MedicalRecord mockMedicalRecordWithId = mockMedicalRecord1;
     mockMedicalRecordWithId.getPerson()
-        .setBirthDate(new SimpleDateFormat("dd/MM/yyyy").parse("25/12/1976"));
+        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("12/25/1976"));
     mockMedicalRecordWithId.getPerson().setPhone("061-846-0260");
 
     when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
@@ -516,7 +516,7 @@ class MedicalRecordRestControllerTest {
 
     // change of few fields in this MedicalRecord without lastName,firstName,address
     mockMedicalRecordWithoutId.getPerson()
-        .setBirthDate(new SimpleDateFormat("dd/MM/yyyy").parse("25/12/1976"));
+        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("12/25/1976"));
     mockMedicalRecordWithoutId.getPerson().setPhone("061-846-0260");
 
     ObjectMapper mapper = mapperBuilder.build();
@@ -533,7 +533,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("25/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/25/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0260")))
@@ -599,7 +599,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("addressNotMapped")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -664,7 +664,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("AddressMappedByFireStation")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -749,7 +749,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -842,7 +842,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -942,7 +942,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
@@ -1041,7 +1041,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))

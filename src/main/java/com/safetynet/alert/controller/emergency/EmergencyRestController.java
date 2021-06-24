@@ -1,11 +1,18 @@
 package com.safetynet.alert.controller.emergency;
 
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
+import com.safetynet.alert.exceptions.person.PersonNotFoundException;
 import com.safetynet.alert.model.FireStation;
+import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +34,7 @@ public class EmergencyRestController {
 
   @Autowired
   private FireStationService fireStationService;
+
 
   /**
    * Retrieve the list of persons mapped with a FireStation with the given station_number.
@@ -58,7 +66,7 @@ public class EmergencyRestController {
       Map<String, Object> personsMappedWithFireStation =
           personService.getPersonsMappedWithFireStation(stationNumber);
 
-      return new ResponseEntity<>(personsMappedWithFireStation, HttpStatus.OK);
+      return ResponseEntity.ok(personsMappedWithFireStation);
 
     } else {
 
@@ -67,4 +75,146 @@ public class EmergencyRestController {
     }
 
   }
+
+  /**
+   * Retrieve the list of children Mapped with given address ,
+   * and separated list of other members of home.
+   *
+   * @param address the address where children live
+   *
+   * @return        a ResponseEntity with list of children and a list of other members.
+   *                If there is no children for this address return a empty list for children.
+   *
+   * @throws        a {@link AddressNotFoundException} if address is not found.
+   */
+  @GetMapping("/childAlert")
+  public ResponseEntity<?> getChildAlert(@RequestParam(name = "address") String address) {
+
+    Map<String, Object> childrenByAddress = personService.getChildrenByAddress(address);
+
+    if (childrenByAddress != null) {
+
+      return new ResponseEntity<>(childrenByAddress, HttpStatus.OK);
+
+    } else {
+
+      throw new AddressNotFoundException("this address : " + address
+          + " was not found. Please choose a existed address");
+    }
+
+  }
+
+  /**
+   * Retrieve a list of phone of persons mapped with fireStation designed by given numberStation.
+   *
+   * @param fireStationNumber the number station of fireStation.
+   *
+   * @return  a ResponseEntity with a list of phones sorted and unique.
+   */
+  @GetMapping("/phoneAlert")
+  public ResponseEntity<?>
+      getPhoneAlert(@RequestParam(name = "firestation") int fireStationNumber) {
+
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationByNumberStation(fireStationNumber);
+
+    SortedSet<String> phones = new TreeSet<>();
+
+    if (existedFireStation.isPresent()) {
+
+      for (Person person : existedFireStation.get().getPersons()) {
+
+        phones.add(person.getPhone());
+
+      }
+
+      Map<String, Object> result = new LinkedHashMap<>();
+      result.put("Phones", phones);
+
+      return new ResponseEntity<>(result, HttpStatus.OK);
+    } else {
+
+      throw new FireStationNotFoundException("FireStation with numberStation: "
+          + fireStationNumber + " was not found. Please choose a existed fireStation!");
+    }
+
+  }
+
+
+  @GetMapping("/fire")
+  public ResponseEntity<?>
+      getPersonsWhenFire(@RequestParam(name = "address") String address) {
+
+    List<Object> personsInfoWhenFireMappedByAddress =
+        personService.getPersonsWhenFireMappedByAddress(address);
+
+    if (!personsInfoWhenFireMappedByAddress.isEmpty()) {
+
+      return ResponseEntity.ok(personsInfoWhenFireMappedByAddress);
+
+    } else {
+
+      throw new AddressNotFoundException("this address :" + address
+          + ", was not found or nobody lives at this address. Please choose a existed address!");
+    }
+
+  }
+
+  @GetMapping("/flood/stations")
+  public ResponseEntity<?>
+      getPersonsWhenFlood(@RequestParam(name = "stations") List<Integer> numberStations) {
+
+    //check list of existed numberStation
+    for (Integer station : numberStations) {
+
+      if (!fireStationService.getFireStationByNumberStation(station).isPresent()) {
+
+        throw new FireStationNotFoundException("the Firestation with numberStation: " + station
+            + " was not found.Please replace it by existed FireStation");
+      }
+    }
+
+    Map<String, Object> personsWhenFloodGroupByAddress =
+        personService.getPersonsWhenFloodByStations(numberStations);
+
+    return ResponseEntity.ok(personsWhenFloodGroupByAddress);
+
+  }
+
+  @GetMapping("/personInfo")
+  public ResponseEntity<?> getPersonInfo(@RequestParam Map<String, String> names) {
+
+    String firstName = names.get("firstName");
+    String lastName = names.get("lastName");
+
+    List<Object> personsInfo = personService.getPersonInfoByNames(firstName, lastName);
+
+    if (personsInfo.iterator().hasNext()) {
+
+      return ResponseEntity.ok(personsInfo);
+    } else {
+
+      throw new PersonNotFoundException("Person with firstName: " + firstName
+          + " and lastName: " + lastName + " was not found.Please choose another names!");
+    }
+
+  }
+
+  @GetMapping("/communityEmail")
+  public ResponseEntity<?> getEmailsFromCity(@RequestParam(name = "city") String city) {
+
+    List<String> emails = personService.getEmailsByCity(city);
+
+    if (emails.isEmpty()) {
+
+      return ResponseEntity
+          .ok("there is nobody in this city or the city is not indexed in database");
+    } else {
+
+      return ResponseEntity.ok(emails);
+    }
+
+  }
+
+
 }

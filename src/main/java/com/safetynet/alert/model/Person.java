@@ -49,7 +49,7 @@ import org.hibernate.validator.constraints.Range;
 public class Person {
 
   /**
-   * contructor with some fields used in hql query.
+   * Constructor with some fields used in hql query: "/fireStation?stationNumber= int".
    *
    * @param firstName the firstname of person.
    * @param lastName  the lastname of person.
@@ -59,15 +59,63 @@ public class Person {
    *
    */
   public Person(String firstName, String lastName,
-                String address,
-                String phone,
-                @Past(message = "this birthdate must be past today") Date birthDate) {
+                String address, String phone, Date birthDate) {
 
     this.firstName = firstName;
     this.lastName = lastName;
     this.birthDate = birthDate;
     this.address = address;
     this.phone = phone;
+
+  }
+
+  /**
+   * Constructor with some fields used in hql query: "/childAlert?address=String".
+   *
+   * @param firstName   the firstName of Person
+   * @param lastName    the lastName of Person
+   * @param birthDate   the bithDate of Person
+   */
+  public Person(String firstName, String lastName, Date birthDate) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+
+  }
+
+  public Person(String lastName, String firstName, Date birthDate,
+                String phone, MedicalRecord medicalRecord) {
+
+    this.lastName = lastName;
+    this.firstName = firstName;
+    this.birthDate = birthDate;
+    this.phone = phone;
+    this.medicalRecord = medicalRecord;
+
+  }
+
+  public Person(String lastName, String firstName, String address,
+                Date birthDate, String phone, MedicalRecord medicalRecord) {
+
+    this.lastName = lastName;
+    this.firstName = firstName;
+    this.address = address;
+    this.birthDate = birthDate;
+    this.phone = phone;
+    this.medicalRecord = medicalRecord;
+
+  }
+
+  public Person(String firstName, String lastName, Date birthDate, String address,
+                String email, MedicalRecord medicalRecord) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+    this.address = address;
+    this.email = email;
+    this.medicalRecord = medicalRecord;
 
   }
 
@@ -95,7 +143,7 @@ public class Person {
   @Column
   @Past(message = "this birthdate must be past today")
   @JsonFormat(shape = JsonFormat.Shape.STRING,
-              pattern = "dd/MM/yyyy")
+              pattern = "MM/dd/yyyy")
   private Date birthDate;
 
   @Column
