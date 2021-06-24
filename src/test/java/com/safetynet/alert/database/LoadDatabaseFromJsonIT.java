@@ -103,7 +103,7 @@ class LoadDatabaseFromJsonIT {
     // verify data from first person
     assertThat(personTable).row(0).hasValues(1L,
         "1509 Culver St",
-        DateValue.of(1984, 06, 03),
+        DateValue.of(1984, 03, 06),
         "Culver",
         "jaboyd@email.com",
         "John",

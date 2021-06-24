@@ -136,7 +136,7 @@ class MedicalRecordRestControllerTest {
 
 
     // ******************  mockMedicalRecord2 with all fields *************
-    mockPerson2 = new Person(2L, "Emilie", "Delaval", sdf.parse("22/02/1984"),
+    mockPerson2 = new Person(2L, "Emilie", "Delaval", sdf.parse("02/22/1984"),
                              "150 rue de la  Prairie", "Mulbach sur Munster", 67000,
                              "061-846-0260", "delaval.emilie@gmail.com",
                              null, null);
@@ -224,7 +224,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$[1].person.address", is("150 rue de la  Prairie")))
         .andExpect(jsonPath("$[1].person.firstName", is("Emilie")))
         .andExpect(jsonPath("$[1].person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$[1].person.birthDate", is("22/02/1984")))
+        .andExpect(jsonPath("$[1].person.birthDate", is("02/22/1984")))
         .andExpect(jsonPath("$[1].person.city", is("Mulbach sur Munster")))
         .andExpect(jsonPath("$[1].person.zip", is(67000)))
         .andExpect(jsonPath("$[1].person.phone", is("061-846-0260")))
@@ -508,7 +508,7 @@ class MedicalRecordRestControllerTest {
     // mockMedicalRecordWithId represents the return of medicalRecord.save()
     MedicalRecord mockMedicalRecordWithId = mockMedicalRecord1;
     mockMedicalRecordWithId.getPerson()
-        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("25/12/1976"));
+        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("12/25/1976"));
     mockMedicalRecordWithId.getPerson().setPhone("061-846-0260");
 
     when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
@@ -516,7 +516,7 @@ class MedicalRecordRestControllerTest {
 
     // change of few fields in this MedicalRecord without lastName,firstName,address
     mockMedicalRecordWithoutId.getPerson()
-        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("25/12/1976"));
+        .setBirthDate(new SimpleDateFormat("MM/dd/yyyy").parse("12/25/1976"));
     mockMedicalRecordWithoutId.getPerson().setPhone("061-846-0260");
 
     ObjectMapper mapper = mapperBuilder.build();
@@ -533,7 +533,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.person.birthDate", is("25/12/1976")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/25/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
         .andExpect(jsonPath("$.person.zip", is(13260)))
         .andExpect(jsonPath("$.person.phone", is("061-846-0260")))

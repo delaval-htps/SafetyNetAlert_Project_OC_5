@@ -101,7 +101,7 @@ class MedicalRecordRestControllerIT {
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyTest).loadDatabaseFromSource();
 
-    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
+    personTest = new Person(null, "Bernard", "Delaval", sdf.parse("12/27/1976"),
                             "26 av maréchal Foch", "Cassis", 13260,
                             "061-846-0160", "delaval.htps@gmail.com",
                             null, null);
@@ -125,7 +125,7 @@ class MedicalRecordRestControllerIT {
   void getMedicalRecords() throws Exception {
 
     mockMvc.perform(get("/medicalRecord")).andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
+        .andExpect(jsonPath("$.length()", is(6)))
         .andExpect(jsonPath("$[0].idMedicalRecord", is(1)))
         .andExpect(jsonPath("$[0].person.idPerson", is(1)))
         .andExpect(jsonPath("$[0].person.address", is("1509 Culver St")))
@@ -184,11 +184,11 @@ class MedicalRecordRestControllerIT {
   void getMedicalRecordById_whenNotFoundId_thenReturn404() throws Exception {
 
     //when &then
-    MvcResult result = mockMvc.perform(get("/medicalRecord/{id}", 5))
+    MvcResult result = mockMvc.perform(get("/medicalRecord/{id}", 7))
         .andExpect(status().isNotFound()).andReturn();
 
     assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("MedicalRecord with id:5 was not found!");
+        .isEqualTo("MedicalRecord with id:7 was not found!");
 
 
   }
@@ -207,12 +207,12 @@ class MedicalRecordRestControllerIT {
         .content(mapper.writeValueAsString(medicalRecordTest)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/medicalRecord/2"))
+        .andExpect(redirectedUrlPattern("http://*/medicalRecord/7"))
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(2)))
-        .andExpect(jsonPath("$.person.idPerson", is(3)))
+        .andExpect(jsonPath("$.idMedicalRecord", is(7)))
+        .andExpect(jsonPath("$.person.idPerson", is(9)))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
-        .andExpect(jsonPath("$.person.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.person.firstName", is("Bernard")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
         .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.person.city", is("Cassis")))
@@ -220,16 +220,16 @@ class MedicalRecordRestControllerIT {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(3)))
+        .andExpect(jsonPath("$.medications[0].idMedication", is(7)))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", is(4)))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     MedicalRecord savedMedicalRecord =
-        medicalRecordService.getMedicalRecordJoinAllById(2L).get();
+        medicalRecordService.getMedicalRecordJoinAllById(7L).get();
     assertThat(savedMedicalRecord.getPerson().getMedicalRecord().getIdMedicalRecord())
-        .isEqualTo(2L);
+        .isEqualTo(7L);
     assertThat(savedMedicalRecord.getPerson().getFireStation()).isNull();
 
 
@@ -241,9 +241,7 @@ class MedicalRecordRestControllerIT {
       throws Exception {
 
     //given
-
-
-    Optional<Person> personWithoutMedicalRecord = personService.getPersonById(2L);
+    Optional<Person> personWithoutMedicalRecord = personService.getPersonById(8L);
     Person currentPerson = personWithoutMedicalRecord.get();
 
     MedicalRecord postMedicalRecord = new MedicalRecord();
@@ -259,25 +257,25 @@ class MedicalRecordRestControllerIT {
         .content(mapper.writeValueAsString(postMedicalRecord)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(2)))
-        .andExpect(jsonPath("$.person.idPerson", is(2)))
-        .andExpect(jsonPath("$.person.address", is("29 15th St")))
-        .andExpect(jsonPath("$.person.firstName", is("Jonanathan")))
-        .andExpect(jsonPath("$.person.lastName", is("Marrack")))
+        .andExpect(jsonPath("$.idMedicalRecord", is(7)))
+        .andExpect(jsonPath("$.person.idPerson", is(8)))
+        .andExpect(jsonPath("$.person.address", is("1509 Av marechal foch")))
+        .andExpect(jsonPath("$.person.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.person.lastName", is("Delaval")))
         .andExpect(jsonPath("$.person.city", is("Culver")))
         .andExpect(jsonPath("$.person.zip", is(97451)))
-        .andExpect(jsonPath("$.person.phone", is("841-874-6513")))
-        .andExpect(jsonPath("$.person.email", is("drk@email.com")))
+        .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.person.email", is("dd@email.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(3)))
+        .andExpect(jsonPath("$.medications[0].idMedication", is(7)))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", is(4)))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     // check if person was correctly mapped to new medicalRecord
-    assertThat(personService.getPersonById(2L).get().getMedicalRecord().getIdMedicalRecord())
-        .isEqualTo(2L);
+    assertThat(personService.getPersonById(8L).get().getMedicalRecord().getIdMedicalRecord())
+        .isEqualTo(7L);
     //check if medicalRecord was correctly mapped to the existed person
     assertThat(postMedicalRecord.getPerson()).isEqualTo(currentPerson);
 
@@ -316,7 +314,7 @@ class MedicalRecordRestControllerIT {
     ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
-    MvcResult result = mockMvc.perform(put("/medicalRecord/{id}", 3)
+    MvcResult result = mockMvc.perform(put("/medicalRecord/{id}", 7)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(medicalRecordTest)))
@@ -327,14 +325,14 @@ class MedicalRecordRestControllerIT {
     assertThat(result.getResolvedException())
         .isInstanceOf(MedicalRecordNotFoundException.class);
     assertThat(result.getResolvedException().getMessage()).isEqualTo(
-        "MedicalRecord with id: 3 was not found ! please chose a existed medicalRecord.");
+        "MedicalRecord with id: 7 was not found ! please chose a existed medicalRecord.");
 
   }
 
   @ParameterizedTest
-  @CsvSource({"Dorian, Baudouin",
+  @CsvSource({"Bernard, Baudouin",
               "John, Delaval",
-              "Dorian,",
+              "Bernard,",
               ",Delaval"})
   @Order(8)
   void putMedicalRecord_whenMedicalRecordPersonChangedNames_thenReturn400(
@@ -408,7 +406,7 @@ class MedicalRecordRestControllerIT {
         .andExpect(
             jsonPath("$.medications[*].designation", hasItems("aznol", "hydrapermazol")))
         .andExpect(jsonPath("$.medications[*].posology", hasItems("350mg", "100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", is(4)))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
   }
@@ -459,7 +457,7 @@ class MedicalRecordRestControllerIT {
         .andExpect(
             jsonPath("$.medications[*].designation", hasItems("aznol", "hydrapermazol")))
         .andExpect(jsonPath("$.medications[*].posology", hasItems("350mg", "100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", is(4)))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     // use of join fetch query with fireStation cause of one to many in fetch Lazy
@@ -513,7 +511,7 @@ class MedicalRecordRestControllerIT {
         .andExpect(
             jsonPath("$.medications[*].designation", hasItems("aznol", "hydrapermazol")))
         .andExpect(jsonPath("$.medications[*].posology", hasItems("350mg", "100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", is(4)))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     // use of join fetch query with fireStation cause of one to many in fetch Lazy
@@ -585,7 +583,7 @@ class MedicalRecordRestControllerIT {
     });
 
     //check that not new Allergy was created
-    assertThat(allergyService.getAllergies()).hasSize(1);
+    assertThat(allergyService.getAllergies()).hasSize(3);
 
   }
 
@@ -644,7 +642,8 @@ class MedicalRecordRestControllerIT {
     assertThat(savedMedication.get().getIdMedication()).isPositive();
 
     //check that there is no new  allergy saved
-    assertThat(allergyService.getAllergies()).hasSize(1);
+    assertThat(allergyService.getAllergies()).hasSize(3);
+
     //check that old medications are not mapped with MedicalRecord and are not deleted
     Iterable<Medication> medicationNotMappedByMedicalRecord =
         medicationService.getMedicationNotMappedByMedicalRecord();
@@ -723,7 +722,7 @@ class MedicalRecordRestControllerIT {
     });
 
     //check that not new medication was created
-    assertThat(medicationService.getMedications()).hasSize(2);
+    assertThat(medicationService.getMedications()).hasSize(6);
 
 
   }
@@ -789,7 +788,7 @@ class MedicalRecordRestControllerIT {
     });
 
     //check that not new medication was created
-    assertThat(medicationService.getMedications()).hasSize(2);
+    assertThat(medicationService.getMedications()).hasSize(6);
 
 
   }

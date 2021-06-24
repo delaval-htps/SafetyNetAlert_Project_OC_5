@@ -202,7 +202,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         fireStation.add(addressFireStation);
 
-        Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
+        Iterable<Person> persons = personService.getPersonsByAddress(addressFireStation);
 
         for (Person person : persons) {
 
