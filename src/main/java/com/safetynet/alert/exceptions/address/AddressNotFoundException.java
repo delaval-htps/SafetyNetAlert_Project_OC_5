@@ -1,12 +1,14 @@
 package com.safetynet.alert.exceptions.address;
 
+import com.safetynet.alert.exceptions.NotFoundException;
+
 /**
  * exception thrown when a address is not found.
  *
  * @author delaval
  *
  */
-public class AddressNotFoundException extends RuntimeException {
+public class AddressNotFoundException extends NotFoundException {
 
   private static final long serialVersionUID = 2676479999672156689L;
 
