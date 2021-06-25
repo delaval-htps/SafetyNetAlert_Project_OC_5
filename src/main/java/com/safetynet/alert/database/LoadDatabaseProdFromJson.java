@@ -200,7 +200,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         }
 
-        fireStation.add(addressFireStation);
+        fireStation.addAddress(addressFireStation);
 
         Iterable<Person> persons = personService.getPersonsByAddress(addressFireStation);
 
@@ -208,7 +208,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
           if (person.getAddress().equals(addressFireStation)) {
 
-            fireStation.add(person);
+            fireStation.addPerson(person);
             person.setFireStation(fireStation);
 
           }

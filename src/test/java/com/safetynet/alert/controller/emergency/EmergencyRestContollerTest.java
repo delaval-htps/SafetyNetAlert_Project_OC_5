@@ -554,8 +554,6 @@ class EmergencyRestContollerTest {
     mockPerson3.setMedicalRecord(mockMedicalRecord);
     mockPerson3.setEmail("person3@email.com");
 
-    List<Object> mockInformations = new ArrayList<>();
-
     Map<String, Object> personsInfo = new LinkedHashMap<>();
     personsInfo.put("Name", mockPerson3.getLastName() + " " + mockPerson3.getFirstName());
     personsInfo.put("Phone", mockPerson3.getPhone());
@@ -565,6 +563,7 @@ class EmergencyRestContollerTest {
     personsInfo.put("Medications", mockPerson3.getMedicalRecord().getMedications());
     personsInfo.put("Allergies", mockPerson3.getMedicalRecord().getAllergies());
 
+    List<Object> mockInformations = new ArrayList<>();
     mockInformations.add(personsInfo);
 
     when(personService.getPersonInfoByNames(Mockito.anyString(), Mockito.anyString()))

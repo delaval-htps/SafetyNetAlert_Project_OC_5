@@ -233,6 +233,14 @@ public class PersonService {
 
   }
 
+  /**
+   * Retrieve List of Person living at the given address with their numberStation of FireStation.
+   * List contains the lastName, number of phone, age, medications and allergies for each Person.
+   *
+   * @param address the given address for research all persons living at.
+   *
+   * @return list of Person living at the address with their informations described before.
+   */
   public List<Object> getPersonsWhenFireMappedByAddress(String address) {
 
     List<Person> persons = personRepository.getPersonsWhenFire(address);
@@ -274,6 +282,16 @@ public class PersonService {
 
   }
 
+  /**
+   * Retrieve a list of homes(designed with their address), mapped by the given list of
+   * NumberStation's FireStations, with all Persons living in it.
+   *  For each person , list contains lastname, number of phone,age, medications and allergies.
+   *
+   * @param numberStations  the list of numberstation where research homes.
+   *
+   * @return a list of homes mapped with fireStation
+   *            and with informations (described before) of persons living in.
+   */
   public Map<String, Object> getPersonsWhenFloodByStations(List<Integer> numberStations) {
 
 
@@ -329,6 +347,16 @@ public class PersonService {
 
   }
 
+  /**
+   * Retrieve informations of a Person with given lastname and firstname.
+   * in this informations , we have lastName,address,age,email,medications and allergies.
+   *
+   * @param firstName   the firstName of person to search informations
+   *
+   * @param lastName    the lastName of person to search informations
+   *
+   * @return    list of informations of person with given lastname and firstname
+   */
   public List<Object> getPersonInfoByNames(String firstName, String lastName) {
 
     Iterable<Person> persons = personRepository.getPersonInfoByNames(firstName, lastName);
@@ -369,6 +397,13 @@ public class PersonService {
 
   }
 
+  /**
+   * retrieve all Email of persons living in a city without duplicates.
+   *
+   * @param city  the city where to search all email.
+   *
+   * @return list of all email of persons living in the given city
+   */
   public List<String> getEmailsByCity(String city) {
 
     return personRepository.getEmailsByCity(city);

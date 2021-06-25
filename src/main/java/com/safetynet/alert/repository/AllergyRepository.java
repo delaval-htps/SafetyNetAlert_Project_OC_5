@@ -22,7 +22,8 @@ public interface AllergyRepository extends JpaRepository<Allergy, Long> {
   @Query("select a from Allergy as a Left Join a.medicalRecords where a.idAllergy=null")
   Iterable<Allergy> findAllNotMappedByMedicalRecord();
 
-  @Query("select a from Allergy as a Left join a.medicalRecords as mrs where mrs.idMedicalRecord =?1")
+  @Query("select a from Allergy as a Left join a.medicalRecords as mrs "
+      + " where mrs.idMedicalRecord =?1")
   List<Allergy> getAllergiesByIdMedicalRecord(Long idMedicalRecord);
 
 }

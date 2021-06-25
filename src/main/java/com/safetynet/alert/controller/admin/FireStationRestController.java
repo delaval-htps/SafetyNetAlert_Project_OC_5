@@ -1,10 +1,8 @@
 package com.safetynet.alert.controller.admin;
 
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
-import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
-import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.service.FireStationService;
 import java.net.URI;
@@ -89,7 +87,7 @@ public class FireStationRestController {
    *
    * @param fireStation
              a representation in Json of the new Object of FireStation.
-  
+
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
@@ -140,14 +138,11 @@ public class FireStationRestController {
    *
    * @return          a ResponseEntity of the FireStation now mapped with address
    *
-   * @throws          a {@link FireStationAllreadyMappedByAddressException}
+   * @throws          a {@link FireStationAlreadyExistedException}
    *                  if the existed FireStation given in body already mapped with address.
    *
    * @throws          a {@link FireStationNotFoundException} if FireStation given in body
    *                    doesn't exist.
-   *
-   * @throws          a {@link FireStationNotValidException} if the FireStation given in body
-   *                    to map with address is not exactly the same that existed one.
    *
    */
   @PutMapping("/firestation/{address}")
@@ -177,7 +172,7 @@ public class FireStationRestController {
 
         if (existedFireStation.getAddresses().contains(address)) {
 
-          throw new FireStationAllreadyMappedByAddressException("This FireStation "
+          throw new FireStationAlreadyExistedException("This FireStation "
               + "already mapped with given address."
               + "Please give a another fireStation to map !");
         } else {
@@ -206,7 +201,7 @@ public class FireStationRestController {
 
       } else {
 
-        throw new FireStationNotValidException("fireStation in body request"
+        throw new FireStationNotFoundException("fireStation in body request"
             + " doesn't match with a existed fireStation !"
             + " Check fields are correctly entered");
       }

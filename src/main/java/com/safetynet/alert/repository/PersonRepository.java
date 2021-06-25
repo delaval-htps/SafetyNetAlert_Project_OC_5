@@ -27,13 +27,13 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " where p.idPerson=?1")
   Optional<Person> getOneJoinFireStationById(long l);
 
-  @Query("SELECT new Person(p.firstName, p.lastName, p.address, p.phone, p.birthDate) "
+  @Query("SELECT new Person(p.firstName, p.lastName, p.birthDate, p.address, p.phone) "
       + "from Person as p "
       + "Join p.fireStation as f "
       + "Where f.numberStation=?1 ")
   List<Person> getPersonsMappedByNumberstation(int numberStation);
 
-  @Query("select distinct new Person(p.lastName,p.firstName,p.birthDate,p.phone,p.medicalRecord) "
+  @Query("select distinct new Person(p.firstName,p.lastName,p.birthDate,p.phone,p.medicalRecord) "
       + "from Person as p "
       + " left join p.medicalRecord as pmr"
       + " left join pmr.medications as medications "
@@ -43,7 +43,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
   List<Person> getPersonsWhenFire(String address);
 
   @Query("select distinct new Person"
-      + "(p.lastName,p.firstName,p.address,p.birthDate,p.phone,p.medicalRecord) "
+      + "(p.firstName,p.lastName,p.address,p.birthDate,p.phone,p.medicalRecord) "
       + "from Person as p "
       + " left join p.medicalRecord as pmr"
       + " left join pmr.medications as medications "
@@ -65,35 +65,4 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
   @Query("select distinct p.email from Person as p where p.city=?1 order by p.email")
   List<String> getEmailsByCity(String city);
 
-  //****************************premieres queries en hql ou j'ai galéré ************************
-
-  //  @Query("select p.firstName,p.lastName,p.phone,p.birthDate,p.fireStation.numberStation,m "
-  //      + "from Person as p , Medication as m "
-  //      + "inner join MedicalRecord as mr "
-  //      + " on mr.idMedicalRecord = p.medicalRecord.idMedicalRecord "
-  //      + " where p.address=?1 ")
-  //    List<Object> getPersonsWithMedicationsFireStationNumberByAddress(String address);
-
-  //  @Query("select p From Person as p "
-  //      + "join MedicalRecord as mr on p.medicalRecord.idMedicalRecord = mr.idMedicalRecord "
-  //      + "join fetch mr.medications as ms  "
-  //      + "where p.address=?1")
-  //*******************************************************************************************
-
-  //***************** second queries en hql OK mais de la scinder en deux **********************************
-  //********* car retourne result par ligne de table et pas regrouper par Person ***************************
-  //  @Query("select p, medications,allergies "
-  //      + "from Person as p, MedicalRecord as mr "
-  //      + " left join  mr.medications as medications "
-  //      + " left join  mr.allergies as allergies "
-  //      + " where p.address=?1 and p.medicalRecord.idMedicalRecord = mr.idMedicalRecord ")
-  //  List<Object> getPersonsForFire(String address);
-
-  //********************** requet for flood
-
-
-  //  @Query("select  p.idPerson, p.firstName,p.lastName,p.phone,p.birthDate,p.medicalRecord"
-  //      + "from Person as p fetch all properties"
-  //      + " where p.address=?1  ")
-  //  List<Object> getPersonsWhenFireTest(String address);
 }
