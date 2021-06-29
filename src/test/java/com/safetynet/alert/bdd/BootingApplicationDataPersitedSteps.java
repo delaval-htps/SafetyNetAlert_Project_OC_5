@@ -131,7 +131,7 @@ public class BootingApplicationDataPersitedSteps {
     // verify data from first person
     assertThat(personTable).row(0).hasValues(1L,
         personMap.get("address"),
-        DateValue.of(1984, 06, 03),
+        DateValue.of(1984, 03, 06),
         personMap.get("city"),
         personMap.get("email"),
         personMap.get("firstName"),

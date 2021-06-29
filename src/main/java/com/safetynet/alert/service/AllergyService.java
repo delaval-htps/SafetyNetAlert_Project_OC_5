@@ -72,6 +72,19 @@ public class AllergyService {
 
   }
 
+  /**
+   * Retrieve the Allergies of given MedicalRecord with its ID.
+   *
+   * @param idMedicalRecord
+   *          the id of MedicalRecord .
+   *
+   * @return  List of allergies for the givenMedicalRecord.
+   */
+  public Iterable<Allergy> getAllergiesByIdMedicalRecord(Long idMedicalRecord) {
+
+    return allergyRepository.getAllergiesByIdMedicalRecord(idMedicalRecord);
+
+  }
 
   /**
    * Save a Allergy.
@@ -100,6 +113,7 @@ public class AllergyService {
     return allergyRepository.saveAll(missingAllergies);
 
   }
+
 
 
 }

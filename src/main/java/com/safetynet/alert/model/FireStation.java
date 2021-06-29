@@ -76,7 +76,7 @@ public class FireStation implements Serializable {
    * @param person
    *             a Person to map with FireStation
    */
-  public void add(Person person) {
+  public void addPerson(Person person) {
 
     persons.add(person);
 
@@ -88,7 +88,7 @@ public class FireStation implements Serializable {
    * @param person
    *             a Person to remove from Set of Persons.
    */
-  public void remove(Person person) {
+  public void removePerson(Person person) {
 
     persons.remove(person);
 
@@ -100,7 +100,7 @@ public class FireStation implements Serializable {
    * @param address
    *             a address to map with FireStation
    */
-  public void add(String address) {
+  public void addAddress(String address) {
 
     addresses.add(address);
 

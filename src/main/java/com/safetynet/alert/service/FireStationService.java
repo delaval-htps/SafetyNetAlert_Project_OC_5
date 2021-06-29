@@ -100,5 +100,20 @@ public class FireStationService {
 
   }
 
-
+  //  public Set<Person> getPersonsMappedWithFireStation(int numberStation) {
+  //
+  //    Optional<FireStation> fireStationByNumberStation =
+  //        fireStationRepository.getOneByNumberStation(numberStation);
+  //
+  //    if (fireStationByNumberStation.isPresent()) {
+  //
+  //      Set<Person> personsMapped = fireStationByNumberStation.get().getPersons();
+  //      return personsMapped;
+  //
+  //    } else {
+  //
+  //      throw new FireStationNotFoundException("FireStation with number_station: "
+  //          + numberStation + " was not found! please choose another existed one!");
+  //    }
+  //  }
 }

@@ -38,6 +38,7 @@ import org.hibernate.validator.constraints.Range;
 @Setter
 @ToString(exclude = {"medicalRecord",
                      "fireStation"})
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "Person",
@@ -46,6 +47,7 @@ import org.hibernate.validator.constraints.Range;
                                                             "firstName"}))
 @Entity
 public class Person {
+
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,7 +73,7 @@ public class Person {
   @Column
   @Past(message = "this birthdate must be past today")
   @JsonFormat(shape = JsonFormat.Shape.STRING,
-              pattern = "dd/MM/yyyy")
+              pattern = "MM/dd/yyyy")
   private Date birthDate;
 
   @Column
@@ -92,7 +94,8 @@ public class Person {
          min = 0,
          max = 99999,
          message = "this zip must not be beetween 0 and 99999")
-  private int zip;
+  @NotNull
+  private Integer zip;
 
   @Column
   @NotNull(message = "this number of phone must not be null")
@@ -128,6 +131,91 @@ public class Person {
   private FireStation fireStation;
 
 
+  /**
+   * Constructor with some fields used in hql query: "/childAlert?address=String".
+   *
+   * @param firstName   the firstName of Person
+   * @param lastName    the lastName of Person
+   * @param birthDate   the bithDate of Person
+   */
+  public Person(String firstName, String lastName, Date birthDate) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+
+  }
+
+  /**
+   * Constructor with some fields used in hql query: "/fireStation?stationNumber= int".
+   *
+   * @param firstName the firstName of person.
+   * @param lastName  the lastName of person.
+   * @param address   the address of person.
+   * @param phone     the phone of person.
+   * @param birthDate the birthDate of person.
+   *
+   */
+  public Person(String firstName, String lastName,
+                Date birthDate, String address, String phone) {
+
+    this(null, firstName, lastName, birthDate, address, null, null, phone, null, null, null);
+
+  }
+
+  /**
+   * Constructor with some fields used in hql query: "/fire?address= address".
+   *
+   * @param lastName    the firstName of person.
+   * @param firstName   the lastName of person.
+   * @param birthDate   the birthDate of person.
+   * @param phone       the phone of person.
+   * @param medicalRecord the medcialRecord of person.
+   */
+  public Person(String firstName, String lastName, Date birthDate,
+                String phone, MedicalRecord medicalRecord) {
+
+    this(null, firstName, lastName, birthDate, null, null, null, phone, null, medicalRecord,
+         null);
+
+  }
+
+  /**
+   * Constructor with some fields used in hql query: "/flood?stations= list of station number".
+   *
+   * @param lastName    the firstName of person.
+   * @param firstName   the lastName of person.
+   * @param address     the address of person.
+   * @param birthDate   the birthDate of person.
+   * @param phone       the phone of person.
+   * @param medicalRecord   the medcialRecord of person.
+   */
+  public Person(String firstName, String lastName, String address,
+                Date birthDate, String phone, MedicalRecord medicalRecord) {
+
+    this(null, firstName, lastName, birthDate, address, null, null, phone, null, medicalRecord,
+         null);
+
+
+  }
+
+  /**
+   * Constructor with some fields used in hql query: "/personInfo?firstName&lastName".
+   *
+   * @param firstName   the firstName of person.
+   * @param lastName    the lastName of person.
+   * @param birthDate   the birthDate of person.
+   * @param address     the address of person.
+   * @param email       the mail of person.
+   * @param medicalRecord   the medicalRecord of Person.
+   */
+  public Person(String firstName, String lastName, Date birthDate, String address,
+                String email, MedicalRecord medicalRecord) {
+
+    this(null, firstName, lastName, birthDate, address, null, null, null, email,
+         medicalRecord, null);
+
+  }
 
 }
 

@@ -80,24 +80,24 @@ class PersonRestControllerTest {
   @BeforeEach
   void setUpBeforeClass() throws Exception {
 
-    sdf = new SimpleDateFormat("dd/MM/yyyy");
+    sdf = new SimpleDateFormat("MM/dd/yyyy");
 
-    mockPerson1 = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPerson1 = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                              "26 av marechal foch", "Cassis", 13260,
                              "061-846-0160", "delaval.htps@gmail.com",
                              null, null);
 
-    mockPerson2 = new Person(null, "Bernard", "Delaval", sdf.parse("28/12/1976"),
+    mockPerson2 = new Person(null, "Bernard", "Delaval", sdf.parse("12/28/1976"),
                              "8 rue jean jaures", "Bruay Sur Escaut", 59860,
                              "061-846-0260", "delaval.b@email.com",
                              null, null);
 
-    mockPersonWithId = new Person(1L, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPersonWithId = new Person(1L, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                                   "26 av marechal foch", "Cassis", 13260,
                                   "061-846-0160", "delaval.htps@gmail.com",
                                   null, null);
 
-    mockPersonWithoutId = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    mockPersonWithoutId = new Person(null, "Dorian", "Delaval", sdf.parse("12/27/1976"),
                                      "26 av marechal foch", "Cassis", 13260,
                                      "061-846-0160", "delaval.htps@gmail.com",
                                      null, null);
@@ -137,7 +137,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.length()", is(2)))
         .andExpect(jsonPath("$[0].idPerson", is(1)))
         .andExpect(jsonPath("$[0].address", is("26 av marechal foch")))
-        .andExpect(jsonPath("$[0].birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$[0].birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$[0].city", is("Cassis")))
         .andExpect(jsonPath("$[0].email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$[0].firstName", is("Dorian")))
@@ -173,7 +173,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.zip", is(13260)))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andDo(print());
 
@@ -226,7 +226,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.address", is("26 av marechal foch")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.zip", is(13260)))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com"))).andDo(print());
 
@@ -277,7 +277,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.address", is("26 av marechal foch")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.zip", is(13260)))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com"))).andDo(print());
 
@@ -330,21 +330,21 @@ class PersonRestControllerTest {
 
   @ParameterizedTest
   @Order(7)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void postPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
@@ -438,7 +438,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
@@ -482,7 +482,7 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
@@ -500,21 +500,21 @@ class PersonRestControllerTest {
 
   @ParameterizedTest
   @Order(11)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void putPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
@@ -545,11 +545,11 @@ class PersonRestControllerTest {
 
   @ParameterizedTest
   @Order(12)
-  @CsvSource({"1, Emilie , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({"1, Emilie , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " 1, Dorian , Baudouin, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " 1, Dorian , Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " 1, Emilie, Baudouin, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " 1, Emilie, Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , "})
 
   void putPerson_whenChangeNames_thenReturn400(ArgumentsAccessor args)

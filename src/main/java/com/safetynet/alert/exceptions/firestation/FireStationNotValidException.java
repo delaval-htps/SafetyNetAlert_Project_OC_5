@@ -8,6 +8,8 @@ package com.safetynet.alert.exceptions.firestation;
  */
 public class FireStationNotValidException extends RuntimeException {
 
+  private static final long serialVersionUID = -4777181917060389629L;
+
   /**
    * Constructor with a error's message.
    *

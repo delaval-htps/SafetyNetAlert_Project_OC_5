@@ -15,12 +15,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.CommandLineRunnerTaskExcecutor;
 import com.safetynet.alert.database.LoadDataStrategyFactory;
 import com.safetynet.alert.database.StrategyName;
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
+import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.service.FireStationService;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -90,9 +91,9 @@ class FireStationRestControllerIT {
 
     mockMvc.perform(get("/firestation"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$.length()", is(4)))
         .andExpect(jsonPath("$[0].idFireStation", is(1)))
-        .andExpect(jsonPath("$[0].addresses[0]", is("1509 av marechal foch")))
+        .andExpect(jsonPath("$[0].addresses[0]", is("1509 Av marechal foch")))
         .andExpect(jsonPath("$[0].addresses[1]", is("1509 Culver St")))
         .andExpect(jsonPath("$[0].numberStation", is(3)))
         .andExpect(jsonPath("$[1].idFireStation", is(2)))
@@ -109,7 +110,7 @@ class FireStationRestControllerIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(3)))
         .andExpect(jsonPath("$.idFireStation", is(1)))
-        .andExpect(jsonPath("$.addresses[0]", is("1509 av marechal foch")))
+        .andExpect(jsonPath("$.addresses[0]", is("1509 Av marechal foch")))
         .andExpect(jsonPath("$.addresses[1]", is("1509 Culver St")))
         .andExpect(jsonPath("$.numberStation", is(3)));
 
@@ -119,8 +120,13 @@ class FireStationRestControllerIT {
   @Order(3)
   void testGetFireStationsById_withNotValidId_thenReturn404() throws Exception {
 
-    mockMvc.perform(get("/firestation/{id}", 3))
-        .andExpect(status().isNotFound());
+    MvcResult mvcResult = mockMvc.perform(get("/firestation/{id}", 5))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(mvcResult.getResolvedException())
+        .isInstanceOf(FireStationNotFoundException.class);
+    assertThat(mvcResult.getResolvedException().getMessage())
+        .isEqualTo("FireStation with Id:5 was not found");
 
   }
 
@@ -137,9 +143,9 @@ class FireStationRestControllerIT {
         .content(mapper.writeValueAsString(fireStationTest)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/firestation/3"))
+        .andExpect(redirectedUrlPattern("http://*/firestation/5"))
         .andExpect(jsonPath("$.length()", is(3)))
-        .andExpect(jsonPath("$.idFireStation", is(3)))
+        .andExpect(jsonPath("$.idFireStation", is(5)))
         .andExpect(jsonPath("$.numberStation", is(5)))
         .andExpect(jsonPath("$.addresses[0]", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.addresses[1]", is("310 av jean Jaures")));
@@ -212,24 +218,20 @@ class FireStationRestControllerIT {
 
     String addressToMap = "new address to map with FireStation";
 
-    Set<String> addressestest = new LinkedHashSet<String>();
-    addressestest.add("1509 av marechal foch");
-    addressestest.add("1509 Culver St");
-
-
-    FireStation existedFireStation = new FireStation(1L, 3, addressestest, null);
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationJoinAllById(1L);
 
     // when & then
     mockMvc.perform(put("/firestation/{address}", addressToMap)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(existedFireStation)))
+        .content(mapper.writeValueAsString(Optional.of(existedFireStation))))
 
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(1)))
         .andExpect(jsonPath("$[0].idFireStation", is(1)))
         .andExpect(jsonPath("$[0].addresses.length()", is(3)))
-        .andExpect(jsonPath("$[0].addresses[0]", is("1509 av marechal foch")))
+        .andExpect(jsonPath("$[0].addresses[0]", is("1509 Av marechal foch")))
         .andExpect(jsonPath("$[0].addresses[1]", is("1509 Culver St")))
         .andExpect(jsonPath("$[0].addresses[2]", is("new address to map with FireStation")))
         .andExpect(jsonPath("$[0].numberStation", is(3))).andDo(print());
@@ -247,18 +249,15 @@ class FireStationRestControllerIT {
     // address already mapped to fireStation N°2
     String addressToMap = "29 15th St";
 
-    //creation of exited fireStation N°3
-    Set<String> addressestest = new LinkedHashSet<String>();
-    addressestest.add("1509 av marechal foch");
-    addressestest.add("1509 Culver St");
-
-    FireStation existedFireStation = new FireStation(1L, 3, addressestest, null);
+    //existed fireStation N°3
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationJoinAllById(1L);
 
     // when & then
     mockMvc.perform(put("/firestation/{address}", addressToMap)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(existedFireStation)))
+        .content(mapper.writeValueAsString(Optional.of(existedFireStation))))
 
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
@@ -267,7 +266,7 @@ class FireStationRestControllerIT {
         .andExpect(jsonPath("$[0].numberStation", is(2)))
         .andExpect(jsonPath("$[1].idFireStation", is(1)))
         .andExpect(jsonPath("$[1].addresses.length()", is(3)))
-        .andExpect(jsonPath("$[1].addresses[0]", is("1509 av marechal foch")))
+        .andExpect(jsonPath("$[1].addresses[0]", is("1509 Av marechal foch")))
         .andExpect(jsonPath("$[1].addresses[1]", is("1509 Culver St")))
         .andExpect(jsonPath("$[1].addresses[2]", is("29 15th St")))
         .andExpect(jsonPath("$[1].numberStation", is(3))).andDo(print());
@@ -284,16 +283,14 @@ class FireStationRestControllerIT {
 
     String addressToMap = "1509 Culver St";
 
-    Set<String> addresses = new LinkedHashSet<String>();
-    addresses.add("1509 Culver St");
-    addresses.add("1509 av marechal foch");
-    FireStation existedFireStation = new FireStation(1L, 3, addresses, null);
+    Optional<FireStation> existedFireStation =
+        fireStationService.getFireStationJoinAllById(1L);
 
     // when & then
     MvcResult result = mockMvc.perform(put("/firestation/{address}", addressToMap)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(existedFireStation)))
+        .content(mapper.writeValueAsString(Optional.of(existedFireStation))))
 
         .andExpect(status().isBadRequest()).andReturn();
 
@@ -318,6 +315,7 @@ class FireStationRestControllerIT {
 
         .andExpect(status().isNotFound()).andReturn();
 
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
     assertThat(result.getResolvedException().getMessage())
         .isEqualTo("fireStation given in body request with numberStation:5 doesn't exist !");
 
@@ -402,8 +400,12 @@ class FireStationRestControllerIT {
   void deleteMappingFireStation_withNotFoundNumberStation_thenReturn404() throws Exception {
 
     // when & then
-    mockMvc.perform(delete("/firestation/station/{numberStation}", 1))
-        .andExpect(status().isNotFound()).andDo(print());
+    MvcResult result = mockMvc.perform(delete("/firestation/station/{numberStation}", 5))
+        .andExpect(status().isNotFound()).andDo(print()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("FireStation with NumberStation:5 was not found");
 
   }
 
@@ -439,8 +441,12 @@ class FireStationRestControllerIT {
   void deleteAddressfromFireStation_withNotFoundAddress_thenReturn404() throws Exception {
 
     // when & then
-    mockMvc.perform(delete("/firestation/address/{address}", "testAddress"))
-        .andExpect(status().isNotFound());
+    MvcResult result = mockMvc.perform(delete("/firestation/address/{address}", "testAddress"))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(AddressNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("There is no FireStation mapped with this address:testAddress");
 
   }
 

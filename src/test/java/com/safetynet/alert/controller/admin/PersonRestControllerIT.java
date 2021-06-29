@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,7 +47,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
 @SpringBootTest
@@ -82,12 +80,12 @@ class PersonRestControllerIT {
   @BeforeEach
   void setup() throws ParseException {
 
-    sdf = new SimpleDateFormat("dd/MM/yyyy");
+    sdf = new SimpleDateFormat("MM/dd/yyyy");
 
     loadDataStrategyFactory.findStrategy(StrategyName.StrategyTest)
         .loadDatabaseFromSource();
 
-    personTest = new Person(null, "Dorian", "Delaval", sdf.parse("27/12/1976"),
+    personTest = new Person(null, "Bernard", "Delaval", sdf.parse("12/27/1976"),
                             "26 av maréchal foch", "Cassis", 13260,
                             "061-846-0160", "delaval.htps@gmail.com",
                             null, null);
@@ -104,7 +102,7 @@ class PersonRestControllerIT {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$").exists())
-        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$.length()", is(8)))
         .andExpect(jsonPath("$[0].idPerson", is(1)))
         .andExpect(jsonPath("$[0].address", is("1509 Culver St")))
         .andExpect(jsonPath("$[0].birthDate", is("03/06/1984")))
@@ -114,14 +112,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$[0].lastName", is("Boyd")))
         .andExpect(jsonPath("$[0].phone", is("841-874-6512")))
         .andExpect(jsonPath("$[0].zip", is(97451)))
-        .andExpect(jsonPath("$[1].idPerson", is(2)))
-        .andExpect(jsonPath("$[1].address", is("29 15th St")))
-        .andExpect(jsonPath("$[1].city", is("Culver")))
-        .andExpect(jsonPath("$[1].email", is("drk@email.com")))
-        .andExpect(jsonPath("$[1].firstName", is("Jonanathan")))
-        .andExpect(jsonPath("$[1].lastName", is("Marrack")))
-        .andExpect(jsonPath("$[1].phone", is("841-874-6513")))
-        .andExpect(jsonPath("$[1].zip", is(97451))).andDo(print());
+        .andDo(print());
 
   }
 
@@ -151,12 +142,14 @@ class PersonRestControllerIT {
   void getPersonsById_whenPersonNotFound_thenReturn404() throws Exception {
     // given
 
-    MvcResult result = mockMvc.perform(get("/person/{id}", 3)).andExpect(status().isNotFound())
-        .andDo(print()).andReturn();
+    MvcResult result =
+        mockMvc.perform(get("/person/{id}", 10))
+            .andExpect(status().isNotFound())
+            .andDo(print()).andReturn();
 
     assertThat(result.getResolvedException()).isInstanceOf(PersonNotFoundException.class);
     assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("Unable to found a person with id:3");
+        .isEqualTo("Unable to found a person with id:10");
 
   }
 
@@ -174,19 +167,22 @@ class PersonRestControllerIT {
         .content(mapper.writeValueAsString(personTest)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrl(ServletUriComponentsBuilder.fromCurrentRequest()
-            .build().toString() + "/person/3"))
+        .andExpect(redirectedUrlPattern("http://*/person/9"))
         .andExpect(jsonPath("$").exists())
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(3)))
+        .andExpect(jsonPath("$.idPerson", is(9)))
         .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
-        .andExpect(jsonPath("$.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.firstName", is("Bernard")))
         .andExpect(jsonPath("$.lastName", is("Delaval")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
+
+    //check if Person with this address was correctly mapped with fireStation 2L
+    assertThat(personService.getPersonById(9L).get().getFireStation())
+        .isNull();
 
   }
 
@@ -206,21 +202,20 @@ class PersonRestControllerIT {
         .contentType(MediaType.APPLICATION_JSON))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/person/3"))
-        .andExpect(jsonPath("$.idPerson", is(3)))
+        .andExpect(redirectedUrlPattern("http://*/person/9"))
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(3)))
+        .andExpect(jsonPath("$.idPerson", is(9)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
-        .andExpect(jsonPath("$.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.firstName", is("Bernard")))
         .andExpect(jsonPath("$.lastName", is("Delaval")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(3L).get().getFireStation().getIdFireStation())
+    assertThat(personService.getPersonById(9L).get().getFireStation().getIdFireStation())
         .isEqualTo(2L);
 
   }
@@ -254,21 +249,21 @@ class PersonRestControllerIT {
 
   @ParameterizedTest
   @Order(7)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void postPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
@@ -314,7 +309,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.lastName", is("Boyd")))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
         .andExpect(jsonPath("$.city", is("Cassis")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.zip", is(13260)))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
@@ -344,7 +339,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("John")))
@@ -381,7 +376,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
-        .andExpect(jsonPath("$.birthDate", is("27/12/1976")))
+        .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.firstName", is("John")))
@@ -396,21 +391,21 @@ class PersonRestControllerIT {
 
   @ParameterizedTest
   @Order(11)
-  @CsvSource({" , , Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, , 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, , Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, , Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, , 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, , 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, -1,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, -1,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 100000,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 100000,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " , delaval.htps@gmail.com, , ",
-              " , Dorian, Delaval, 27/12/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Bernard, Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, , , "})
   void putPerson_WithNoValidInput_thenReturn400(ArgumentsAccessor args)
       throws Exception {
@@ -437,9 +432,9 @@ class PersonRestControllerIT {
   }
 
   @ParameterizedTest
-  @CsvSource({"Dorian,Boyd",
+  @CsvSource({"Bernard,Boyd",
               "John,Delaval",
-              "Dorian,Delaval"})
+              "Bernard,Delaval"})
   @Order(12)
   void putPerson_whenChangeNames_thenReturn400(ArgumentsAccessor args)
       throws JsonProcessingException, Exception {
@@ -471,7 +466,7 @@ class PersonRestControllerIT {
 
     ObjectMapper mapper = mapperBuilder.build();
 
-    MvcResult result = mockMvc.perform(put("/person/{id}", 3)
+    MvcResult result = mockMvc.perform(put("/person/{id}", 9)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(personTest)))
@@ -482,7 +477,7 @@ class PersonRestControllerIT {
         .isInstanceOf(PersonNotFoundException.class);
 
     assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("Person to update with id: 3 was not found");
+        .isEqualTo("Person to update with id: 9 was not found");
 
   }
 
@@ -504,14 +499,14 @@ class PersonRestControllerIT {
       throws Exception {
 
     MvcResult result =
-        mockMvc.perform(delete("/person/{lastName}/{firstName}", "Boyd", "Dorian"))
+        mockMvc.perform(delete("/person/{lastName}/{firstName}", "Boyd", "Bernard"))
             .andExpect(status().isNotFound()).andDo(print()).andReturn();
 
     assertThat(result.getResolvedException())
         .isInstanceOf(PersonNotFoundException.class);
 
     assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("Deleting Person with lastName: Boyd and FirstName: Dorian was not Found");
+        .isEqualTo("Deleting Person with lastName: Boyd and FirstName: Bernard was not Found");
 
   }
 

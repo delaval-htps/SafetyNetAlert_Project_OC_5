@@ -1,13 +1,26 @@
 {
     "persons": [
         { "firstName":"John", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6512", "email":"jaboyd@email.com" },
-        { "firstName":"Jonanathan", "lastName":"Marrack", "address":"29 15th St", "city":"Culver", "zip":"97451", "phone":"841-874-6513", "email":"drk@email.com" }
+        { "firstName":"Jacob", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6513", "email":"drk@email.com" },
+        { "firstName":"Tenley", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6512", "email":"tenz@email.com" },
+        { "firstName":"Roger", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6512", "email":"jaboyd@email.com" },
+        { "firstName":"Felicia", "lastName":"Boyd", "address":"1509 Culver St", "city":"Culver", "zip":"97451", "phone":"841-874-6544", "email":"jaboyd@email.com" },
+        { "firstName":"Jonanathan", "lastName":"Marrack", "address":"29 15th St", "city":"Culver", "zip":"97451", "phone":"841-874-6513", "email":"drk@email.com" },
+        { "firstName":"Jonathan", "lastName":"Marrack", "address":"29 15th St", "city":"Culver", "zip":"97451", "phone":"841-874-6513", "email":"drk@email.com" },
+        { "firstName":"Dorian", "lastName":"Delaval", "address":"1509 Av marechal foch", "city":"Culver", "zip":"97451", "phone":"061-846-0160", "email":"dd@email.com" }
        ],
     "firestations": [
     	{ "address":"1509 Culver St", "station":"3" },
     	{ "address":"29 15th St", "station":"2" },
-    	{ "address":"1509 av marechal foch", "station":"3" }
+    	{ "address":"1509 Av marechal foch", "station":"3" },
+    	{ "address":"addressNotMappedWithPerson", "station":"4" },
+    	{ "address":"", "station":"1" }
     	],
     "medicalrecords": [
-        { "firstName":"John", "lastName":"Boyd", "birthdate":"03/06/1984", "medications":["aznol:350mg", "hydrapermazol:100mg"], "allergies":["nillacilan"] }]
+        { "firstName":"John", "lastName":"Boyd", "birthdate":"03/06/1984", "medications":["aznol:350mg", "hydrapermazol:100mg"], "allergies":["nillacilan"] },
+        { "firstName":"Jacob", "lastName":"Boyd", "birthdate":"03/06/1989", "medications":["pharmacol:5000mg", "terazine:10mg", "noznazol:250mg"], "allergies":[] },
+        { "firstName":"Tenley", "lastName":"Boyd", "birthdate":"02/18/2012", "medications":[], "allergies":["peanut"] },
+        { "firstName":"Roger", "lastName":"Boyd", "birthdate":"09/06/2017", "medications":[], "allergies":[] },
+        { "firstName":"Felicia", "lastName":"Boyd","birthdate":"01/08/1986", "medications":["tetracyclaz:650mg"], "allergies":["xilliathal"] },
+        { "firstName":"Jonanathan", "lastName":"Marrack", "birthdate":"01/03/1989", "medications":[], "allergies":[] }]
  }

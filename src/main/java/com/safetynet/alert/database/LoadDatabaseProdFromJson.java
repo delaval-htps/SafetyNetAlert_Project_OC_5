@@ -200,15 +200,15 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         }
 
-        fireStation.add(addressFireStation);
+        fireStation.addAddress(addressFireStation);
 
-        Iterable<Person> persons = personService.getPersonByAddress(addressFireStation);
+        Iterable<Person> persons = personService.getPersonsByAddress(addressFireStation);
 
         for (Person person : persons) {
 
           if (person.getAddress().equals(addressFireStation)) {
 
-            fireStation.add(person);
+            fireStation.addPerson(person);
             person.setFireStation(fireStation);
 
           }
@@ -245,7 +245,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
         String birthDateAsString;
         birthDateAsString = elementMedicalRecord.get("birthdate").asText();
 
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         Date birthDate = null;
 
         try {

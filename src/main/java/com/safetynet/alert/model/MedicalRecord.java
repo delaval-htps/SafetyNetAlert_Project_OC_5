@@ -37,6 +37,7 @@ import lombok.ToString;
 @Entity
 public class MedicalRecord {
 
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
@@ -90,6 +91,28 @@ public class MedicalRecord {
   public void clearSet(Set<?> hashSet) {
 
     hashSet.clear();
+
+  }
+
+  /**
+   * method to add a medication in the list medications of this MedicalRecord.
+   *
+   * @param medication    the medication to add
+   */
+  public void add(Medication medication) {
+
+    this.medications.add(medication);
+
+  }
+
+  /**
+   * method to add an allergy in the list allergies of this MedicalRecord.
+   *
+   * @param allergy the allergy to add
+   */
+  public void add(Allergy allergy) {
+
+    this.allergies.add(allergy);
 
   }
 }
