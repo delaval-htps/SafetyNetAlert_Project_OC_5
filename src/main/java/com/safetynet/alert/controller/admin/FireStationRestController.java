@@ -1,7 +1,6 @@
 package com.safetynet.alert.controller.admin;
 
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
-import com.safetynet.alert.exceptions.firestation.FireStationAllreadyMappedByAddressException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
@@ -140,14 +139,11 @@ public class FireStationRestController {
    *
    * @return          a ResponseEntity of the FireStation now mapped with address
    *
-   * @throws          a {@link FireStationAllreadyMappedByAddressException}
+   * @throws          a {@link FireStationAlreadyExistedException}
    *                  if the existed FireStation given in body already mapped with address.
    *
    * @throws          a {@link FireStationNotFoundException} if FireStation given in body
    *                    doesn't exist.
-   *
-   * @throws          a {@link FireStationNotValidException} if the FireStation given in body
-   *                    to map with address is not exactly the same that existed one.
    *
    */
   @PutMapping("/firestation/{address}")
@@ -177,7 +173,7 @@ public class FireStationRestController {
 
         if (existedFireStation.getAddresses().contains(address)) {
 
-          throw new FireStationAllreadyMappedByAddressException("This FireStation "
+          throw new FireStationAlreadyExistedException("This FireStation "
               + "already mapped with given address."
               + "Please give a another fireStation to map !");
         } else {

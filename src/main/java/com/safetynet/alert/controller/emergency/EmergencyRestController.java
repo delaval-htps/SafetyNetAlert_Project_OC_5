@@ -140,7 +140,15 @@ public class EmergencyRestController {
 
   }
 
-
+  /**
+   * Retrieve List of Person living at the given address with their numberStation of FireStation.
+   * List contains the lastName, number of phone, age, medications and allergies for each Person.
+   *
+   * @param address
+   *          address where Persons are living
+   *
+   * @return a ResponseEntity with a List of Persons and their informations described before
+   */
   @GetMapping("/fire")
   public ResponseEntity<?>
       getPersonsWhenFire(@RequestParam(name = "address") String address) {
@@ -160,6 +168,17 @@ public class EmergencyRestController {
 
   }
 
+  /**
+   * Retrieve a list of homes(designed with an address), mapped by the given list of NumberStation
+   *  of FireStation, with all Persons living in it.
+   *  For each person , list contains lasname, number of phone,age, mediations and allergies.
+   *
+   * @param numberStations
+   *          the list of numberstation of FireStations
+   *
+   * @return  ResponseEntity with the list of homes mapped by list of numberStation
+   *             with information for each Person living in.
+   */
   @GetMapping("/flood/stations")
   public ResponseEntity<?>
       getPersonsWhenFlood(@RequestParam(name = "stations") List<Integer> numberStations) {
@@ -181,6 +200,15 @@ public class EmergencyRestController {
 
   }
 
+  /**
+   * Retrieve informations of a Person with given lastname and firstname.
+   * in this informations , we have lastName,address,age,email,medications and allergies.
+   *
+   * @param names
+   *          a Map with firstName and lastName of person
+   *
+   * @return a ResponseEntity with informations of person with given lastname, firstname
+   */
   @GetMapping("/personInfo")
   public ResponseEntity<?> getPersonInfo(@RequestParam Map<String, String> names) {
 
@@ -199,6 +227,15 @@ public class EmergencyRestController {
     }
 
   }
+
+  /**
+   * retrieve all Email of persons living in a city without duplicates.
+   *
+   * @param city
+   *        the city represented by a String
+   *
+   * @return a ResponseEntity with a list of all Email of persons in given city
+   */
 
   @GetMapping("/communityEmail")
   public ResponseEntity<?> getEmailsFromCity(@RequestParam(name = "city") String city) {

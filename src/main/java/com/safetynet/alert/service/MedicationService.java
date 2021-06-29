@@ -77,6 +77,20 @@ public class MedicationService {
   }
 
   /**
+   * retrieve all Medications of a given MedicalRecord by its Id.
+   *
+   *@param  idMedicalRecord
+   *            the id of MedicalRecord
+   *
+   * @return a collection of existed Medications of this MedicalRecord with its Id.
+   */
+  public Iterable<Medication> getMedicationsByIdMedicalRecord(Long idMedicalRecord) {
+
+    return medicationRepository.getMedicationsByIdMedicalRecord(idMedicalRecord);
+
+  }
+
+  /**
    * Save the given Medication.
    *
    * @param medication
@@ -104,11 +118,6 @@ public class MedicationService {
 
   }
 
-  public Iterable<Medication> getMedicationsByIdMedicalRecord(Long idMedicalRecord) {
-
-    return medicationRepository.getMedicationsByIdMedicalRecord(idMedicalRecord);
-
-  }
 
 
 }

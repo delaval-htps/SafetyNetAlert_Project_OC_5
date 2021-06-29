@@ -22,7 +22,8 @@ public interface MedicationRepository extends JpaRepository<Medication, Long> {
   @Query("select m from Medication as m Left Join m.medicalRecords as mr where m.idMedication=null")
   Iterable<Medication> getOneNotMappedByMedicalRecord();
 
-  @Query("select m from Medication as m  Left Join m.medicalRecords as mrs where mrs.idMedicalRecord=?1")
+  @Query("select m from Medication as m  Left Join m.medicalRecords as mrs"
+      + " where mrs.idMedicalRecord=?1")
   List<Medication> getMedicationsByIdMedicalRecord(Long idMedicalRecord);
 
 }

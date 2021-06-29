@@ -1,12 +1,14 @@
 package com.safetynet.alert.exceptions.firestation;
 
+import com.safetynet.alert.exceptions.AlReadyExistedException;
+
 /**
  * Exception when saving a FireStation that already exists.
  *
  * @author delaval
  *
  */
-public class FireStationAlreadyExistedException extends RuntimeException {
+public class FireStationAlreadyExistedException extends AlReadyExistedException {
 
   private static final long serialVersionUID = -5252437157960736934L;
 
