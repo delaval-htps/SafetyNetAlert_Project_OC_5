@@ -3,6 +3,7 @@ package com.safetynet.alert.controller.admin;
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
+import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.service.FireStationService;
 import java.net.URI;
@@ -87,7 +88,7 @@ public class FireStationRestController {
    *
    * @param fireStation
              a representation in Json of the new Object of FireStation.
-
+  
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
@@ -201,7 +202,7 @@ public class FireStationRestController {
 
       } else {
 
-        throw new FireStationNotFoundException("fireStation in body request"
+        throw new FireStationNotValidException("fireStation in body request"
             + " doesn't match with a existed fireStation !"
             + " Check fields are correctly entered");
       }
