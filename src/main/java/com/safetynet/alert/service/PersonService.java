@@ -1,5 +1,7 @@
 package com.safetynet.alert.service;
 
+import com.safetynet.alert.model.ModelResponse;
+import com.safetynet.alert.model.ModelResponseWithMedicalRecord;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
 import java.time.LocalDate;
@@ -160,6 +162,7 @@ public class PersonService {
 
           childrenCount++;
         }
+
         person.setBirthDate(null); // to not be displayed in responseBody
       } else {
 
@@ -185,6 +188,7 @@ public class PersonService {
 
   /**
    * Retrieve list of children mapped with a given address plus list of other members of home.
+   * The two list are ordered by age of Person.
    *
    * @param address   the address given in parameter
    *
@@ -192,15 +196,12 @@ public class PersonService {
    */
   public Map<String, Object> getChildrenByAddress(String address) {
 
-    Iterable<Person> persons = this.getPersonsByAddress(address);
+    Iterable<Person> persons = personRepository.getChildrenByAddress(address);
 
     Map<String, Object> result = null;
 
-    List<Person> children = new ArrayList<>();
-    List<Person> otherPersons = new ArrayList<>();
-
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.YEAR, -18);
+    List<Object> children = new ArrayList<>();
+    List<Object> otherPersons = new ArrayList<>();
 
     if (persons.iterator().hasNext()) {
 
@@ -208,16 +209,17 @@ public class PersonService {
 
       for (Person person : persons) {
 
-        Person resultPerson =
-            new Person(person.getFirstName(), person.getLastName(), person.getBirthDate());
+        ModelResponse modelPerson = new ModelResponse(person);
 
-        if (person.getBirthDate().after(cal.getTime())) {
+        int age = modelPerson.calculateAge(person.getBirthDate());
 
-          children.add(resultPerson);
+        if (age <= 18 && age > 0) {
+
+          children.add(modelPerson.getResponseMap());
 
         } else {
 
-          otherPersons.add(resultPerson);
+          otherPersons.add(modelPerson.getResponseMap());
         }
       }
 
@@ -247,36 +249,9 @@ public class PersonService {
 
     List<Object> result = new ArrayList<>();
 
-    Map<String, Object> personInfo = null;
-
     for (Person person : persons) {
 
-      personInfo = new LinkedHashMap<>();
-
-      personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-      personInfo.put("Phone", person.getPhone());
-
-      if (person.getBirthDate() != null) {
-
-        int agePerson = calculateAge(person.getBirthDate());
-        personInfo.put("Age", agePerson);
-
-      } else {
-
-        personInfo.put("Age", "not specified");
-      }
-
-      if (person.getMedicalRecord() != null) {
-
-        personInfo.put("Medications", person.getMedicalRecord().getMedications());
-        personInfo.put("Allergies", person.getMedicalRecord().getAllergies());
-
-      } else {
-
-        personInfo.put("MedicalRecord", "not yet created");
-      }
-
-      result.add(personInfo);
+      result.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
     }
     return result;
 
@@ -294,9 +269,8 @@ public class PersonService {
    */
   public Map<String, Object> getPersonsWhenFloodByStations(List<Integer> numberStations) {
 
-
     Map<String, Object> result = new LinkedHashMap<>();
-    Map<String, Object> personInfo = null;
+
     List<Object> persons = new ArrayList<>();
 
     for (Integer station : numberStations) {
@@ -304,6 +278,7 @@ public class PersonService {
       List<Person> personsMappedByStation = personRepository.getPersonsWhenFlood(station);
 
       String addressTemp = personsMappedByStation.get(0).getAddress();
+
       persons = new ArrayList<>();
 
       for (Person person : personsMappedByStation) {
@@ -315,31 +290,9 @@ public class PersonService {
           addressTemp = person.getAddress();
         }
 
-        personInfo = new LinkedHashMap<>();
-
-        personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-        personInfo.put("Phone", person.getPhone());
-
-        if (person.getBirthDate() != null) {
-
-          int agePerson = calculateAge(person.getBirthDate());
-          personInfo.put("Age", agePerson);
-        } else {
-
-          personInfo.put("Age", "not specified");
-        }
-
-        if (person.getMedicalRecord() != null) {
-
-          personInfo.put("Medications", person.getMedicalRecord().getMedications());
-          personInfo.put("Allergies", person.getMedicalRecord().getAllergies());
-        } else {
-
-          personInfo.put("MedicalRecord", "not yet created");
-        }
-
-        persons.add(personInfo);
+        persons.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
       }
+
       result.put(addressTemp, persons);
 
     }
@@ -366,32 +319,7 @@ public class PersonService {
 
     for (Person person : persons) {
 
-      Map<String, Object> personsInfo = new LinkedHashMap<>();
-
-      personsInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-      personsInfo.put("Phone", person.getPhone());
-      personsInfo.put("Address", person.getAddress());
-
-      if (person.getBirthDate() != null) {
-
-        int agePerson = calculateAge(person.getBirthDate());
-        personsInfo.put("Age", agePerson);
-      } else {
-
-        personsInfo.put("Age", "not specified");
-      }
-      personsInfo.put("Email", person.getEmail());
-
-      if (person.getMedicalRecord() != null) {
-
-        personsInfo.put("Medications", person.getMedicalRecord().getMedications());
-        personsInfo.put("Allergies", person.getMedicalRecord().getAllergies());
-      } else {
-
-        personsInfo.put("MedicalRecord", "not yet created");
-      }
-
-      result.add(personsInfo);
+      result.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
     }
     return result;
 
