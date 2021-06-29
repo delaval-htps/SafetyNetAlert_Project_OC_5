@@ -140,7 +140,9 @@ public class Person {
    */
   public Person(String firstName, String lastName, Date birthDate) {
 
-    this(null, firstName, lastName, birthDate, null, null);
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
 
   }
 

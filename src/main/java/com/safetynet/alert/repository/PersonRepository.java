@@ -27,11 +27,16 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " where p.idPerson=?1")
   Optional<Person> getOneJoinFireStationById(long l);
 
-  @Query("SELECT new Person(p.firstName, p.lastName, p.birthDate, p.address, p.phone) "
+  @Query("SELECT new Person(p.firstName, p.lastName, p.birthDate, p.address, p.phone)"
       + "from Person as p "
       + "Join p.fireStation as f "
       + "Where f.numberStation=?1 ")
   List<Person> getPersonsMappedByNumberstation(int numberStation);
+
+  @Query("select new Person(p.firstName, p.lastName, p.birthDate)"
+      + " from Person as p"
+      + " where p.address =?1 order by p.birthDate desc")
+  Iterable<Person> getChildrenByAddress(String address);
 
   @Query("select distinct new Person(p.firstName,p.lastName,p.birthDate,p.phone,p.medicalRecord) "
       + "from Person as p "
@@ -64,5 +69,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
   @Query("select distinct p.email from Person as p where p.city=?1 order by p.email")
   List<String> getEmailsByCity(String city);
+
+
 
 }
