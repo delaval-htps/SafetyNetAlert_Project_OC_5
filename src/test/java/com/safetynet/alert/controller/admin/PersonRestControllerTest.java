@@ -26,6 +26,7 @@ import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -165,7 +166,7 @@ class PersonRestControllerTest {
 
     mockMvc.perform(get("/person/{id}", 1)).andExpect(status().isOk())
         .andExpect(jsonPath("$").exists())
-        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.length()", is(10)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
         .andExpect(jsonPath("$.lastName", is("Delaval")))
@@ -206,8 +207,8 @@ class PersonRestControllerTest {
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
 
@@ -257,8 +258,10 @@ class PersonRestControllerTest {
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(mockFireStation1));
+    List<FireStation> fireStations = Arrays.asList(mockFireStation1);
+
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(fireStations);
 
     when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
 
@@ -286,7 +289,7 @@ class PersonRestControllerTest {
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
 
     verify(personService, times(1)).savePerson(personCaptor.capture());
-    verify(fireStationService, times(1)).getFireStationMappedToAddress(Mockito.anyString());
+    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
 
     assertThat(personCaptor.getValue().getIdPerson()).isNull();
     assertThat(personCaptor.getValue().getFirstName()).isEqualTo("Dorian");
@@ -297,7 +300,7 @@ class PersonRestControllerTest {
     assertThat(personCaptor.getValue().getZip()).isEqualTo(13260);
     assertThat(personCaptor.getValue().getBirthDate()).isEqualTo("1976-12-27");
     assertThat(personCaptor.getValue().getPhone()).isEqualTo("061-846-0160");
-    assertThat(personCaptor.getValue().getFireStation().getIdFireStation()).isEqualTo(1L);
+    //assertThat(personCaptor.getValue().getFireStation().getIdFireStation()).isEqualTo(1L);
 
   }
 
@@ -354,7 +357,7 @@ class PersonRestControllerTest {
                                     args.getString(5),
                                     args.getInteger(6), args.getString(7), args.getString(8),
                                     args.get(9, MedicalRecord.class),
-                                    args.get(10, FireStation.class));
+                                    args.get(10, Set.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -415,15 +418,15 @@ class PersonRestControllerTest {
     //given
 
 
-    mockPersonWithId.setFireStation(mockFireStation1);
+    mockPersonWithId.addFireStation(mockFireStation1);
 
     mockPersonWithoutId.setAddress("29 15th St");
 
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
-
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(mockFireStation2));
+    List<FireStation> fireStations = Arrays.asList(mockFireStation2);
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(fireStations);
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -448,7 +451,7 @@ class PersonRestControllerTest {
 
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
     verify(personService, times(1)).savePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getFireStation().getNumberStation()).isEqualTo(2);
+    // assertThat(personCaptor.getValue().getFireStation().getNumberStation()).isEqualTo(2);
 
   }
 
@@ -458,15 +461,15 @@ class PersonRestControllerTest {
 
     //given
 
-    mockPersonWithId.setFireStation(mockFireStation1);
+    mockPersonWithId.addFireStation(mockFireStation1);
 
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
 
     mockPersonWithoutId.setAddress("addressNotMapped");
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -492,7 +495,7 @@ class PersonRestControllerTest {
 
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
     verify(personService).savePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getFireStation()).isNull();
+    assertThat(personCaptor.getValue().getFireStations()).isNull();
 
   }
 
@@ -524,7 +527,7 @@ class PersonRestControllerTest {
                                     args.getString(5),
                                     args.getInteger(6), args.getString(7), args.getString(8),
                                     args.get(9, MedicalRecord.class),
-                                    args.get(10, FireStation.class));
+                                    args.get(10, Set.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -566,7 +569,7 @@ class PersonRestControllerTest {
                                                     args.getInteger(6), args.getString(7),
                                                     args.getString(8),
                                                     args.get(9, MedicalRecord.class),
-                                                    args.get(10, FireStation.class));
+                                                    args.get(10, Set.class));
 
     MvcResult result = mockMvc.perform(put("/person/{id}", 1)
         .accept(MediaType.APPLICATION_JSON)

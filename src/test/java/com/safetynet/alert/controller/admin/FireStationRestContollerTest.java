@@ -265,8 +265,8 @@ class FireStationRestContollerTest {
 
     String addressToMap = "new address to map with FireStation";
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
@@ -286,7 +286,7 @@ class FireStationRestContollerTest {
         .andExpect(jsonPath("$[0].addresses[2]", is("new address to map with FireStation")))
         .andExpect(jsonPath("$[0].numberStation", is(1))).andDo(print());
 
-    verify(fireStationService, times(1)).getFireStationMappedToAddress(Mockito.anyString());
+    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
     verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
     verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
 
@@ -314,8 +314,8 @@ class FireStationRestContollerTest {
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(fireStationTest2));
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(fireStationTest2));
 
     // when & then
     mockMvc.perform(put("/firestation/{address}", addressToMap)
@@ -325,7 +325,7 @@ class FireStationRestContollerTest {
 
         .andExpect(status().isOk()).andDo(print());
 
-    verify(fireStationService, times(1)).getFireStationMappedToAddress(Mockito.anyString());
+    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
     verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
     verify(fireStationService, times(2)).saveFireStation(fireStationCaptor.capture());
 
@@ -353,8 +353,8 @@ class FireStationRestContollerTest {
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(fireStationTest1));
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(fireStationTest1));
 
     // when & then
 
@@ -365,7 +365,7 @@ class FireStationRestContollerTest {
 
         .andExpect(status().isBadRequest()).andReturn();
 
-    verify(fireStationService, never()).getFireStationMappedToAddress(Mockito.anyString());
+    verify(fireStationService, never()).getFireStationsMappedToAddress(Mockito.anyString());
     verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
     verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
 
@@ -518,8 +518,8 @@ class FireStationRestContollerTest {
     //Given
     ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(fireStationTest1));
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(fireStationTest1));
 
     // when & then
     mockMvc.perform(delete("/firestation/address/{address}", "26 av maréchal Foch"))
@@ -538,8 +538,8 @@ class FireStationRestContollerTest {
   void deleteAddressfromFireStation_withNotFoundAddress_thenReturn404() throws Exception {
 
     //given
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     // when & then
     MvcResult result = mockMvc.perform(delete("/firestation/address/{address}", "testAddress"))

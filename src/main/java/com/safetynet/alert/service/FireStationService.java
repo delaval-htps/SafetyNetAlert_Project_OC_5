@@ -2,6 +2,7 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.repository.FireStationRepository;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class FireStationService {
    */
   public Iterable<FireStation> getFireStations() {
 
-    return fireStationRepository.findAll();
+    return fireStationRepository.findAllFetchAddress();
 
   }
 
@@ -63,13 +64,12 @@ public class FireStationService {
    *
    * @param  address
    *            address mapped with FireStation to retrieve
-   * @return    Optional&lsaquo;FireStation&rsaquo;
-   *                FireStation mapped by address given in parameter
+   * @return    List of FireStation mapped by address given in parameter
    */
-  public Optional<FireStation> getFireStationMappedToAddress(
+  public List<FireStation> getFireStationsMappedToAddress(
       @Valid String address) {
 
-    return fireStationRepository.getOneByAddress(address);
+    return fireStationRepository.findFireStationsByAddress(address);
 
   }
 

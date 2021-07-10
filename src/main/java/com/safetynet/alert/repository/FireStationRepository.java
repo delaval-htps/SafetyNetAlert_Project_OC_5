@@ -1,7 +1,9 @@
 package com.safetynet.alert.repository;
 
 import com.safetynet.alert.model.FireStation;
+import java.util.List;
 import java.util.Optional;
+import javax.validation.Valid;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,12 +21,17 @@ public interface FireStationRepository
   @Query("SELECT f FROM FireStation AS f WHERE f.numberStation= ?1")
   Optional<FireStation> getOneByNumberStation(int numberStation);
 
-  @Query("SELECT f FROM FireStation AS f JOIN f.addresses AS a WHERE a = ?1")
-  Optional<FireStation> getOneByAddress(String address);
+  //  @Query("SELECT f FROM FireStation AS f JOIN f.addresses AS a WHERE a = ?1")
+  //  Iterable<FireStation> getOneByAddress(String address);
 
   @Query("SELECT f FROM FireStation as f JOIN FETCH f.addresses where f.idFireStation = ?1")
   Optional<FireStation> getOneJoinAllById(long l);
 
+  @Query("SELECT distinct f FROM FireStation as f JOIN FETCH f.addresses ")
+  Iterable<FireStation> findAllFetchAddress();
+
+  @Query("SELECT f FROM FireStation AS f JOIN f.addresses AS a WHERE a = ?1")
+  List<FireStation> findFireStationsByAddress(@Valid String address);
 
 
 }

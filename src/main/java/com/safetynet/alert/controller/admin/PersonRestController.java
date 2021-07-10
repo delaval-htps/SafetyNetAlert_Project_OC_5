@@ -8,6 +8,7 @@ import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
@@ -84,6 +85,14 @@ public class PersonRestController {
 
   }
 
+  @GetMapping("/personjoinfire/{id}")
+  public ResponseEntity<?> getPersonJoinFireStation(@PathVariable Long id) {
+
+    Optional<Person> person = personService.getPersonJoinFireStationById(id);
+    return new ResponseEntity<Person>(person.get(), HttpStatus.OK);
+
+  }
+
   /**
    * Creation of new Person.
    *
@@ -105,12 +114,14 @@ public class PersonRestController {
 
       //check if address of personToAdd have a address already mapped with a fireStation
 
-      Optional<FireStation> fireStationMappedToAddress =
-          fireStationService.getFireStationMappedToAddress(personToAdd.getAddress());
+      personToAdd.clearFireStations();
 
-      if (fireStationMappedToAddress.isPresent()) {
+      List<FireStation> fireStationMappedToAddress =
+          fireStationService.getFireStationsMappedToAddress(personToAdd.getAddress());
 
-        personToAdd.setFireStation(fireStationMappedToAddress.get());
+      if (!fireStationMappedToAddress.isEmpty()) {
+
+        personToAdd.addFireStations(fireStationMappedToAddress);
       }
 
       Person savedPerson = personService.savePerson(personToAdd);
@@ -177,18 +188,16 @@ public class PersonRestController {
         if (!currentPerson.getAddress().equals(updatedPerson.getAddress())) {
 
           //check if address of updatedPerson have a address already mapped with a fireStation
+          currentPerson.clearFireStations();
 
-          Optional<FireStation> fireStationMappedToAddress =
-              fireStationService.getFireStationMappedToAddress(updatedPerson.getAddress());
+          List<FireStation> fireStationMappedToAddress =
+              fireStationService.getFireStationsMappedToAddress(updatedPerson.getAddress());
 
-          if (fireStationMappedToAddress.isPresent()) {
+          if (!fireStationMappedToAddress.isEmpty()) {
 
             //update fireStation for currentPerson
-            currentPerson.setFireStation(fireStationMappedToAddress.get());
+            currentPerson.addFireStations(fireStationMappedToAddress);
 
-          } else {
-
-            currentPerson.setFireStation(null);
           }
 
           currentPerson.setAddress(updatedPerson.getAddress());

@@ -15,7 +15,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Min;
@@ -33,7 +34,8 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString(exclude = "persons")
+@ToString(exclude = {"persons",
+                     "addresses"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -52,22 +54,24 @@ public class FireStation implements Serializable {
   @Column(name = "station")
   @Min(value = 1)
   @JsonAlias("station")
-  private int numberStation;
+  private Integer numberStation;
 
   @ElementCollection
-  @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation",
-                                             referencedColumnName = "idFireStation"))
+  @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation"))
+  @Column(name = "adresses")
   private Set<@NotBlank String> addresses = new HashSet<String>();
 
 
-  @OneToMany(fetch = FetchType.LAZY,
-             cascade = {CascadeType.REFRESH,
-                        CascadeType.DETACH,
-                        CascadeType.MERGE,
-                        CascadeType.PERSIST},
-             mappedBy = "fireStation")
+  @ManyToMany(fetch = FetchType.LAZY,
+              cascade = {CascadeType.REFRESH,
+                         CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST})
+  @JoinTable(
+             name = "person_firestation",
+             joinColumns = @JoinColumn(name = "idFireStation"),
+             inverseJoinColumns = @JoinColumn(name = "idPerson"))
   @JsonIgnore
-  //  @OrderBy("idPerson")
   private Set<Person> persons = new HashSet<>();
 
   /**

@@ -2,8 +2,10 @@ package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,7 +14,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -37,7 +40,7 @@ import org.hibernate.validator.constraints.Range;
 @Getter
 @Setter
 @ToString(exclude = {"medicalRecord",
-                     "fireStation"})
+                     "fireStations"})
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -120,16 +123,56 @@ public class Person {
   @JsonBackReference
   private MedicalRecord medicalRecord;
 
-  @ManyToOne(
-             fetch = FetchType.LAZY,
-             cascade = {CascadeType.DETACH,
-                        CascadeType.MERGE,
-                        CascadeType.REFRESH,
-                        CascadeType.PERSIST})
-  @JoinColumn(name = "idFireStation")
-  @JsonIgnore
-  private FireStation fireStation;
 
+  @ManyToMany(fetch = FetchType.LAZY,
+              cascade = {CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH})
+  @JoinTable(
+             name = "person_firestation",
+             joinColumns = {@JoinColumn(name = "idPerson")},
+             inverseJoinColumns = {@JoinColumn(name = "idFireStation")})
+  //  @OrderBy("idFireStation") // to impose jsonPath to be ordered by id when response
+
+  private Set<FireStation> fireStations = new HashSet<>();
+
+
+  public void addFireStation(FireStation fireStation) {
+
+    if (fireStation != null) {
+
+      this.fireStations.add(fireStation);
+    }
+
+  }
+
+  public void addFireStations(List<FireStation> fireStations) {
+
+    if (!fireStations.isEmpty() && fireStations != null) {
+
+      this.fireStations.addAll(fireStations);
+    }
+
+  }
+
+  public void removeFireStation(FireStation fireStation) {
+
+    if (fireStation != null) {
+
+      this.fireStations.remove(fireStation);
+    }
+
+  }
+
+  /**
+   * Method to clear  Set FireStations of Person.
+   */
+  public void clearFireStations() {
+
+    this.fireStations.clear();
+
+  }
 
   /**
    * Constructor with some fields used in hql query: "/childAlert?address=String".
@@ -140,9 +183,7 @@ public class Person {
    */
   public Person(String firstName, String lastName, Date birthDate) {
 
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.birthDate = birthDate;
+    this(firstName, lastName, birthDate, null, null);
 
   }
 
@@ -159,61 +200,11 @@ public class Person {
   public Person(String firstName, String lastName,
                 Date birthDate, String address, String phone) {
 
-    this(null, firstName, lastName, birthDate, address, null, null, phone, null, null, null);
-
-  }
-
-  /**
-   * Constructor with some fields used in hql query: "/fire?address= address".
-   *
-   * @param lastName    the firstName of person.
-   * @param firstName   the lastName of person.
-   * @param birthDate   the birthDate of person.
-   * @param phone       the phone of person.
-   * @param medicalRecord the medcialRecord of person.
-   */
-  public Person(String firstName, String lastName, Date birthDate,
-                String phone, MedicalRecord medicalRecord) {
-
-    this(null, firstName, lastName, birthDate, null, null, null, phone, null, medicalRecord,
-         null);
-
-  }
-
-  /**
-   * Constructor with some fields used in hql query: "/flood?stations= list of station number".
-   *
-   * @param lastName    the firstName of person.
-   * @param firstName   the lastName of person.
-   * @param address     the address of person.
-   * @param birthDate   the birthDate of person.
-   * @param phone       the phone of person.
-   * @param medicalRecord   the medcialRecord of person.
-   */
-  public Person(String firstName, String lastName, String address,
-                Date birthDate, String phone, MedicalRecord medicalRecord) {
-
-    this(null, firstName, lastName, birthDate, address, null, null, phone, null, medicalRecord,
-         null);
-
-
-  }
-
-  /**
-   * Constructor with some fields used in hql query: "/personInfo?firstName&lastName".
-   *
-   * @param firstName   the firstName of person.
-   * @param lastName    the lastName of person.
-   * @param birthDate   the birthDate of person.
-   * @param address     the address of person.
-   * @param email       the mail of person.
-   * @param medicalRecord   the medicalRecord of Person.
-   */
-  public Person(String firstName, String lastName, Date birthDate, String address,
-                String email, MedicalRecord medicalRecord) {
-
-    this(null, firstName, lastName, birthDate, address, null, null, null, email,
-         medicalRecord, null);
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.birthDate = birthDate;
+    this.address = address;
+    this.phone = phone;
 
   }
 

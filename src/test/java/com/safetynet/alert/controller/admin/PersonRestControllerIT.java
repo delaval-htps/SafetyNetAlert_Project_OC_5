@@ -2,6 +2,7 @@ package com.safetynet.alert.controller.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -20,7 +21,6 @@ import com.safetynet.alert.database.StrategyName;
 import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
-import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
@@ -28,6 +28,7 @@ import com.safetynet.alert.service.PersonService;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -124,7 +125,7 @@ class PersonRestControllerIT {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$").exists())
-        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.length()", is(10)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
         .andExpect(jsonPath("$.birthDate", is("03/06/1984")))
@@ -181,7 +182,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(9L).get().getFireStation())
+    assertThat(personService.getPersonById(9L).get().getFireStations())
         .isNull();
 
   }
@@ -215,8 +216,8 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(9L).get().getFireStation().getIdFireStation())
-        .isEqualTo(2L);
+    //assertThat(personService.getPersonById(9L).get().getFireStations().contains())
+    //  .isEqualTo(2L);
 
   }
 
@@ -227,7 +228,7 @@ class PersonRestControllerIT {
     // given
     ObjectMapper mapper = mapperBuilder.build();
 
-    Optional<Person> existedPerson = personService.getPersonById(1L);
+    Optional<Person> existedPerson = personService.getPersonJoinFireStationById(1L);
 
     //when & then
     MvcResult result = mockMvc.perform(post("/person")
@@ -272,7 +273,7 @@ class PersonRestControllerIT {
         new Person(args.getLong(0), args.getString(1), args.getString(2),
                    sdf.parse(args.getString(3)), args.getString(4), args.getString(5),
                    args.getInteger(6), args.getString(7), args.getString(8),
-                   args.get(9, MedicalRecord.class), args.get(10, FireStation.class));
+                   args.get(9, MedicalRecord.class), args.get(10, Set.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -304,7 +305,7 @@ class PersonRestControllerIT {
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(personTest)))
 
-        .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(10)))
         .andExpect(jsonPath("$.firstName", is("John")))
         .andExpect(jsonPath("$.lastName", is("Boyd")))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
@@ -336,7 +337,7 @@ class PersonRestControllerIT {
 
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.idPerson", is(1)))
-        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.length()", is(10)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
@@ -348,8 +349,8 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(1L).get().getFireStation().getIdFireStation())
-        .isEqualTo(2L);
+    //    assertThat(personService.getPersonById(1L).get().getFireStation().getIdFireStation())
+    //        .isEqualTo(2L);
 
   }
 
@@ -372,9 +373,9 @@ class PersonRestControllerIT {
         .content(mapper.writeValueAsString(personTest)))
 
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.idPerson", is(1)))
-        .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
+        .andExpect(jsonPath("$.length()", is(10)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
@@ -385,7 +386,7 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(1L).get().getFireStation()).isNull();
+    assertThat(personService.getPersonById(1L).get().getFireStations()).isNull();
 
   }
 
@@ -415,7 +416,7 @@ class PersonRestControllerIT {
                                     args.getString(4), args.getString(5),
                                     args.getInteger(6), args.getString(7),
                                     args.getString(8), args.get(9, MedicalRecord.class),
-                                    args.get(10, FireStation.class));
+                                    args.get(10, Set.class));
 
     ObjectMapper mapper = mapperBuilder.build();
 

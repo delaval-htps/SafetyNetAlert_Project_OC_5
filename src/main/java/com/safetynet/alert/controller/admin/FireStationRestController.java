@@ -178,27 +178,13 @@ public class FireStationRestController {
               + "Please give a another fireStation to map !");
         } else {
 
-          //check for firestation mapped with the address
-          Optional<FireStation> fireStationMappedWithAddress =
-              fireStationService.getFireStationMappedToAddress(address);
-
-          if (fireStationMappedWithAddress.isPresent()) {
-
-            //delete address from FireStationMAppedWithAddress
-            FireStation fireStationToDeleteAddress = fireStationMappedWithAddress.get();
-            fireStationToDeleteAddress.getAddresses().remove(address);
-            fireStationService.saveFireStation(fireStationToDeleteAddress);
-            bodyResponse.add(fireStationToDeleteAddress);
-          }
-
           // add address to fireStationToMapWithAddress and save it .
-          existedFireStation.getAddresses().add(address);
+          existedFireStation.addAddress(address);
           fireStationService.saveFireStation(existedFireStation);
 
           bodyResponse.add(existedFireStation);
           return new ResponseEntity<Iterable<FireStation>>(bodyResponse, HttpStatus.OK);
         }
-
 
       } else {
 
@@ -214,7 +200,6 @@ public class FireStationRestController {
                                                  + fireStationToMapWithAddress
                                                      .getNumberStation()
                                                  + " doesn't exist !");
-
     }
 
   }
@@ -272,23 +257,22 @@ public class FireStationRestController {
    *            if address isn't mapped with any fireStation
    */
   @DeleteMapping("/firestation/address/{address}")
-  public ResponseEntity<FireStation>
+  public ResponseEntity<List<FireStation>>
       deleteAddressFromFireStations(@PathVariable @Valid String address) {
 
-    Optional<FireStation> fireStationWithAddress =
-        fireStationService.getFireStationMappedToAddress(address);
+    List<FireStation> fireStationWithAddress =
+        fireStationService.getFireStationsMappedToAddress(address);
 
-    if (fireStationWithAddress.isPresent()) {
+    if (!fireStationWithAddress.isEmpty()) {
 
-      FireStation currentFireStation = fireStationWithAddress.get();
+      for (FireStation currentFireStation : fireStationWithAddress) {
 
-      currentFireStation.getAddresses().remove(address);
+        currentFireStation.getAddresses().remove(address);
+        fireStationService.saveFireStation(currentFireStation);
 
+      }
 
-      fireStationService.saveFireStation(currentFireStation);
-
-
-      return new ResponseEntity<FireStation>(currentFireStation, HttpStatus.OK);
+      return new ResponseEntity<List<FireStation>>(fireStationWithAddress, HttpStatus.OK);
 
     } else {
 
