@@ -38,9 +38,10 @@
         { "address":"947 E. Rose Dr", "station":"1" },
         { "address":"748 Townings Dr", "station":"3" },
         { "address":"951 LoneTree Rd", "station":"2" }
+       
 	],
     "medicalrecords": [
-        { "firstName":"John", "lastName":"Boyd", "birthdate":"03/06/1984", "medications":["aznol:350mg", "hydrapermazol:100mg"], "allergies":["nillacilan"] },
+        { "firstName": "John","lastName": "Boyd","birthdate": "03/06/1984","medications": ["aznol:350mg","hydrapermazol:100mg"],"allergies": ["nillacilan"] },
         { "firstName":"Jacob", "lastName":"Boyd", "birthdate":"03/06/1989", "medications":["pharmacol:5000mg", "terazine:10mg", "noznazol:250mg"], "allergies":[] },
         { "firstName":"Tenley", "lastName":"Boyd", "birthdate":"02/18/2012", "medications":[], "allergies":["peanut"] },
         { "firstName":"Roger", "lastName":"Boyd", "birthdate":"09/06/2017", "medications":[], "allergies":[] },

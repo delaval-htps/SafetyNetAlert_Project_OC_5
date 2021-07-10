@@ -151,7 +151,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
       // save persons
 
-      log.info("********** sauvegarde des Persons ***********");
+      log.info("\n********** sauvegarde des Persons ***********\n");
 
       while (personNode.hasNext()) {
 
@@ -161,6 +161,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
           Person person = objectMapper.readValue(element, Person.class);
           personService.savePerson(person);
+          log.info("\n Person saved = {}\n", person);
 
         } catch (JsonProcessingException e) {
 
@@ -177,7 +178,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
       // to avoid duplicate FireStations
       List<Integer> numberStations = new ArrayList<Integer>();
 
-      log.info("********** save FireStation **********");
+      log.info("\n********** save FireStation **********\n");
 
       while (fireStationNode.hasNext()) {
 
@@ -193,6 +194,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
           fireStation.setNumberStation(numberStation);
           fireStationService.saveFireStation(fireStation);
           numberStations.add(numberStation);
+          log.info("\n FireStation saved = {}\n", fireStation);
 
         } else {
 
@@ -209,7 +211,6 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
           if (person.getAddress().equals(addressFireStation)) {
 
             fireStation.addPerson(person);
-            person.setFireStation(fireStation);
 
           }
 
@@ -225,7 +226,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
       // save medications
 
-      log.info("********** save MedicalRecord **********");
+      log.info("\n********** save MedicalRecord **********\n");
 
       while (medicalRecordNode.hasNext()) {
 
@@ -262,7 +263,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         // save medication instance
 
-        log.info("********** save Medication **********");
+        log.info("\n********** save Medication **********\n");
 
         JsonNode medicationArray = elementMedicalRecord.get("medications");
         JsonNode allergyArray = elementMedicalRecord.get("allergies");
@@ -287,6 +288,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
             designationPosologies.add(designationPosology);
 
             medicationService.saveMedication(medication);
+            log.info("\n Medication saved = {}\n", medication);
 
           } else {
 
@@ -302,7 +304,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
 
         // save allergies
 
-        log.info("********** save Allergy **********");
+        log.info("\n********** save Allergy **********\n");
 
         while (allergyElement.hasNext()) {
 
@@ -319,6 +321,7 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
             designationAllergy.add(designation);
 
             allergyService.saveAllergy(allergy);
+            log.info("\n Allergy saved = {}\n", allergy);
 
           } else {
 
@@ -331,11 +334,10 @@ public class LoadDatabaseProdFromJson implements LoadDataStrategy {
         }
 
         // save medicalRecord
-        log.info("********** save MedicalRecord **********");
         medicalRecordService.saveMedicalRecord(medicalRecord);
+        log.info("\n MedicalRecord saved = {}\n", medicalRecord);
 
       }
-
       return true;
 
     }
