@@ -1,18 +1,15 @@
 package com.safetynet.alert.service;
 
-import com.safetynet.alert.model.ModelResponse;
-import com.safetynet.alert.model.ModelResponseWithMedicalRecord;
+import com.safetynet.alert.controller.emergency.EmergencyRestController;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
  *
  */
 @Service
+@Log4j2
 public class PersonService {
 
   @Autowired
@@ -61,6 +59,7 @@ public class PersonService {
    *            address that is mapped with a Firestation.
    *
    * @return    a collection of Persons with the given address.
+   *            a empty collection if there is no instances
    *
    */
   public Iterable<Person> getPersonsByAddress(String addressFireStation) {
@@ -97,7 +96,7 @@ public class PersonService {
    */
   public Optional<Person> getPersonJoinFireStationById(long l) {
 
-    return personRepository.getOneJoinFireStationById(l);
+    return personRepository.getOneJoinFireStationsById(l);
 
   }
 
@@ -108,10 +107,19 @@ public class PersonService {
    *          a instance of Person to save in database.
    *
    * @return  a saved Person with new Id.
+   *
+   * @throws a InvalidDataAccesApiUsageException if person is null.
    */
   public Person savePerson(Person person) {
 
-    return personRepository.save(person);
+    if (person != null) {
+
+      return personRepository.save(person);
+    } else {
+
+      log.error("In PersonService.savePerson(person) : person is null!");
+      throw new NullPointerException("In PersonService.save(person) : person is null!");
+    }
 
   }
 
@@ -123,7 +131,14 @@ public class PersonService {
    */
   public void deletePerson(Person person) {
 
-    personRepository.delete(person);
+    if (person != null) {
+
+      personRepository.delete(person);
+    } else {
+
+      log.error("In PersonService.deletePerson(person) : person is null!");
+      throw new NullPointerException("In PersonService.delete(person) : person is null!");
+    }
 
   }
 
@@ -145,7 +160,7 @@ public class PersonService {
     int childrenCount = 0;
     int withoutBirthDate = 0;
 
-    List<Person> persons = personRepository.getPersonsMappedByNumberstation(numberStation);
+    List<Person> persons = personRepository.getPersonsMappedByNumberStation(numberStation);
 
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.YEAR, -18);
@@ -192,39 +207,44 @@ public class PersonService {
    *
    * @param address   the address given in parameter
    *
-   * @return  a Map with two list: children's list and otherMember's list
+   * @return  a Map with two list: children's list and otherMember's list.
+   *          Return null if address is not existed.
    */
-  public Map<String, Object> getChildrenByAddress(String address) {
+  public Map<String, List<Person>> getChildrenByAddress(String address) {
 
     Iterable<Person> persons = personRepository.getChildrenByAddress(address);
 
-    Map<String, Object> result = null;
+    Map<String, List<Person>> result = null;
 
-    List<Object> children = new ArrayList<>();
-    List<Object> otherPersons = new ArrayList<>();
+    List<Person> children = new ArrayList<>();
+    List<Person> otherPersons = new ArrayList<>();
+
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.YEAR, -18);
 
     if (persons.iterator().hasNext()) {
 
-      result = new LinkedHashMap<String, Object>();
+      result = new LinkedHashMap<String, List<Person>>();
 
       for (Person person : persons) {
 
-        ModelResponse modelPerson = new ModelResponse(person);
+        if (person.getBirthDate() == null) {
 
-        int age = modelPerson.calculateAge(person.getBirthDate());
-
-        if (age <= 18 && age > 0) {
-
-          children.add(modelPerson.getResponseMap());
-
+          otherPersons.add(person);
         } else {
 
-          otherPersons.add(modelPerson.getResponseMap());
+          if (person.getBirthDate().after(cal.getTime())) {
+
+            children.add(person);
+
+          } else {
+
+            otherPersons.add(person);
+          }
         }
       }
-
-      result.put("Children", children);
-      result.put("OtherMembers", otherPersons);
+      result.put("children", children);
+      result.put("otherMembers", otherPersons);
 
       return result;
 
@@ -232,6 +252,57 @@ public class PersonService {
 
       return result;
     }
+
+  }
+  //  public Map<String, List<Person>> getChildrenByAddress(String address) {
+  //
+  //    Map<String, List<Person>> result = null;
+  //
+  //    Calendar cal = Calendar.getInstance();
+  //    cal.add(Calendar.YEAR, -18);
+  //
+  //    java.sql.Date actualMinus18Years = new java.sql.Date(cal.getTimeInMillis());
+  //
+  //    List<Tuple> personsOrderByAge =
+  //        personRepository.getPersonsCountAgeByAddress2(address, actualMinus18Years);
+  //
+  //    List<Person> children = new ArrayList();
+  //    List<Person> otherPersons = new ArrayList();
+  //
+  //    long countChildren = (long) personsOrderByAge.get(0).get("childrenCount");
+  //
+  //    int sizeList = personsOrderByAge.size();
+  //
+  //    for (int i = 0; i < countChildren; i++) {
+  //
+  //      children.add(personsOrderByAge.get(i).get("person", Person.class));
+  //    }
+  //
+  //    for (int j = (int) countChildren; j < sizeList; j++) {
+  //
+  //      otherPersons.add(personsOrderByAge.get(j).get("person", Person.class));
+  //    }
+  //
+  //    result.put("children", children);
+  //    result.put("otherPersons", otherPersons);
+  //
+  //    return result;
+  //
+  //  }
+
+  /**
+   * Retrieve the list of person's phones mapped  with the given FireStation's numberStation
+   *
+   * @param fireStationNumber   the numberStation of FireStation
+   *
+   * @return a list of person's phones mapped with the fireStation.
+   */
+  public List<String> getPhonesByNumberStation(int fireStationNumber) {
+
+    List<String> phones =
+        personRepository.getPhonesByNumberStation(fireStationNumber);
+
+    return phones;
 
   }
 
@@ -243,62 +314,121 @@ public class PersonService {
    *
    * @return list of Person living at the address with their informations described before.
    */
-  public List<Object> getPersonsWhenFireMappedByAddress(String address) {
+  public List<Person>
+      getPersonsWhenFireMappedByAddress(String address) {
 
-    List<Person> persons = personRepository.getPersonsWhenFire(address);
+    return personRepository.getPersonsWhenFire(address);
 
-    List<Object> result = new ArrayList<>();
 
-    for (Person person : persons) {
-
-      result.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
-    }
-    return result;
 
   }
 
   /**
    * Retrieve a list of homes(designed with their address), mapped by the given list of
    * NumberStation's FireStations, with all Persons living in it.
-   *  For each person , list contains lastname, number of phone,age, medications and allergies.
+   * All numberStations are existed because check by {@link EmergencyRestController}.
+   * For each person , list contains lastname, number of phone,age, medications and allergies.
    *
    * @param numberStations  the list of numberstation where research homes.
    *
    * @return a list of homes mapped with fireStation
    *            and with informations (described before) of persons living in.
    */
-  public Map<String, Object> getPersonsWhenFloodByStations(List<Integer> numberStations) {
 
-    Map<String, Object> result = new LinkedHashMap<>();
+  public Map<String, List<Person>>
+      getPersonsWhenFloodByStations(List<Integer> numberStations) {
 
-    List<Object> persons = new ArrayList<>();
+    Map<String, List<Person>> result = new LinkedHashMap<>();
+
+    String addressTemp = null;
 
     for (Integer station : numberStations) {
 
-      List<Person> personsMappedByStation = personRepository.getPersonsWhenFlood(station);
+      List<Person> persons = personRepository.getPersonsWhenFlood(station);
 
-      String addressTemp = personsMappedByStation.get(0).getAddress();
+      if (!persons.isEmpty()) {
 
-      persons = new ArrayList<>();
+        addressTemp = persons.get(0).getAddress();
+        result.put(addressTemp, new ArrayList<Person>());
 
-      for (Person person : personsMappedByStation) {
+        for (Person person : persons) {
 
-        if (!(person.getAddress().equals(addressTemp))) {
+          System.out.println("\n persons dans Service\n" + person + "\n");
 
-          result.put(addressTemp, persons);
-          persons = new ArrayList<>();
-          addressTemp = person.getAddress();
+          if (person.getAddress().equals(addressTemp)) {
+
+            result.get(addressTemp).add(person);
+          } else {
+
+            addressTemp = person.getAddress();
+            result.put(addressTemp, new ArrayList<Person>());
+            result.get(addressTemp).add(person);
+          }
         }
 
-        persons.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
       }
-
-      result.put(addressTemp, persons);
-
     }
     return result;
 
   }
+
+  //    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
+  //
+  //    String addressTemp = null;
+  //
+  //    for (Integer station : numberStations) {
+  //
+  //      // retrieve the list of "persons (medicalRecord)" with existed medicalRecords
+  //      //    mapped with numberStation
+  //
+  //      List<MedicalRecord> personsWithMedicalRecord =
+  //          personRepository.getPersonsWithMedicalRecordWhenFlood(station);
+  //
+  //      // retrieve the list of persons without MedicalRecord mapped with numberStation
+  //
+  //      List<PersonDto> personsWithoutMedicalRecord =
+  //          personRepository.getPersonsWithoutMedicalRecordWhenFlood(station);
+  //
+  //      // add lists together casting all in PersonDTO
+  //
+  //      List<PersonDto> personsMappedByStation = new ArrayList<>();
+  //
+  //      for (MedicalRecord m : personsWithMedicalRecord) {
+  //
+  //        personsMappedByStation.add(new PersonDto(m));
+  //      }
+  //
+  //      for (PersonDto p : personsWithoutMedicalRecord) {
+  //
+  //        personsMappedByStation.add(p);
+  //      }
+  //
+  //      // check if list of PersonDto is not empty and fill result with PersonDto sorting by address
+  //
+  //      if (!personsMappedByStation.isEmpty()) {
+  //
+  //        addressTemp = personsMappedByStation.get(0).getAddress();
+  //
+  //        result.put(addressTemp, new ArrayList<PersonDto>());
+  //
+  //        for (PersonDto person : personsMappedByStation) {
+  //
+  //          if (result.containsKey(person.getAddress())) {
+  //
+  //            result.get(person.getAddress()).add(person);
+  //
+  //          } else {
+  //
+  //            addressTemp = person.getAddress();
+  //            result.put(addressTemp, new ArrayList<PersonDto>());
+  //            result.get(addressTemp).add(person);
+  //          }
+  //        }
+  //      }
+  //    }
+  //    return result;
+
+
 
   /**
    * Retrieve informations of a Person with given lastname and firstname.
@@ -310,18 +440,11 @@ public class PersonService {
    *
    * @return    list of informations of person with given lastname and firstname
    */
-  public List<Object> getPersonInfoByNames(String firstName, String lastName) {
+  public List<Person> getPersonInfoByNames(String firstName,
+      String lastName) {
 
-    Iterable<Person> persons = personRepository.getPersonInfoByNames(firstName, lastName);
+    return personRepository.getPersonInfoByNames(firstName, lastName);
 
-
-    List<Object> result = new ArrayList<>();
-
-    for (Person person : persons) {
-
-      result.add(new ModelResponseWithMedicalRecord(person).getResponseMap());
-    }
-    return result;
 
   }
 
@@ -335,21 +458,6 @@ public class PersonService {
   public List<String> getEmailsByCity(String city) {
 
     return personRepository.getEmailsByCity(city);
-
-  }
-
-  /**
-   * Method to calculate age of Person with its given Date birhtDate.
-   *
-   * @param birthDate
-   *              the birthDate of a Person
-   *
-   * @return  age of person in years
-   */
-  public int calculateAge(Date birthDate) {
-
-    LocalDate birthDateLocalDate = new java.sql.Date(birthDate.getTime()).toLocalDate();
-    return Period.between(birthDateLocalDate, LocalDate.now()).getYears();
 
   }
 

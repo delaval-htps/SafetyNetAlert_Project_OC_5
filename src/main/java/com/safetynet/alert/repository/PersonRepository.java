@@ -23,50 +23,97 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
   Optional<Person> getOneByNames(String firstName, String lastName);
 
   @Query("SELECT p from Person as p "
-      + " Join Fetch p.fireStation"
+      + " join fetch p.fireStations f"
+      + " join fetch f.addresses"
       + " where p.idPerson=?1")
-  Optional<Person> getOneJoinFireStationById(long l);
+  Optional<Person> getOneJoinFireStationsById(long l);
 
+  // ******************** /fireStation?stationNumber = ******************
   @Query("SELECT new Person(p.firstName, p.lastName, p.birthDate, p.address, p.phone)"
-      + "from Person as p "
-      + "Join p.fireStation as f "
-      + "Where f.numberStation=?1 ")
-  List<Person> getPersonsMappedByNumberstation(int numberStation);
+      + " from Person as p "
+      + " Join p.fireStations as f "
+      + " Where f.numberStation=?1 ")
+  List<Person> getPersonsMappedByNumberStation(int numberStation);
 
+  // ******************** childrenAlert ******************
   @Query("select new Person(p.firstName, p.lastName, p.birthDate)"
       + " from Person as p"
       + " where p.address =?1 order by p.birthDate desc")
   Iterable<Person> getChildrenByAddress(String address);
 
-  @Query("select distinct new Person(p.firstName,p.lastName,p.birthDate,p.phone,p.medicalRecord) "
-      + "from Person as p "
-      + " left join p.medicalRecord as pmr"
-      + " left join pmr.medications as medications "
-      + " left join  pmr.allergies as allergies "
+  //  @Query("select p as person, "
+  //      + " (select  count(*) as children from Person as p"
+  //      + " where (p.birthDate >=:actualDate) and p.address =:address) as childrenCount"
+  //      + " from Person p"
+  //      + " where p.address =:address")
+  //  List<Tuple> getPersonsCountAgeByAddress2(String address, Date actualDate);
+
+  // ************************* phone Alert ***************************
+  @Query("select distinct p.phone"
+      + " from Person p "
+      + " join  p.fireStations f"
+      + " where f.numberStation = ?1"
+      + " order by p.phone")
+  List<String> getPhonesByNumberStation(int fireStationNumber);
+
+  //**************** getPersonsWhenFire********************
+  @Query("select distinct p"
+      + " from Person as p"
+      + " left join fetch p.fireStations as f"
+      + " left join fetch p.medicalRecord pmr"
+      + " left join fetch pmr.medications"
+      + " left join fetch pmr.allergies"
       + " where p.address=?1 "
-      + " order by p.lastName,p.phone,p.birthDate")
+      + "order by p.lastName,p.phone,p.birthDate")
   List<Person> getPersonsWhenFire(String address);
 
-  @Query("select distinct new Person"
-      + "(p.firstName,p.lastName,p.address,p.birthDate,p.phone,p.medicalRecord) "
-      + "from Person as p "
-      + " left join p.medicalRecord as pmr"
-      + " left join pmr.medications as medications "
-      + " left join  pmr.allergies as allergies "
-      + " where p.fireStation.numberStation=?1 "
-      + " order by p.address,p.lastName,p.phone,p.birthDate")
+  //********************************* persons FLOOD ****************************
+
+  @Query("select distinct p"
+      + " from Person p"
+      + " left join fetch p.fireStations f"
+      + " left join fetch p.medicalRecord pmr"
+      + " left join fetch pmr.medications m"
+      + " left join fetch pmr.allergies a"
+      + " where f.numberStation =?1"
+      + " order by p.address")
   List<Person> getPersonsWhenFlood(int station);
 
-  @Query("select distinct new Person"
-      + "(p.firstName,p.lastName,p.birthDate,p.address,p.email,p.medicalRecord) "
-      + " from Person as p "
-      + " left join p.medicalRecord as pmr"
-      + " left join pmr.medications as medications "
-      + " left join  pmr.allergies as allergies "
-      + " where p.firstName=?1 and p.lastName=?2 "
-      + " order by p.address,p.birthDate")
-  Iterable<Person> getPersonInfoByNames(String firstName, String lastName);
+  //  @Query("select distinct mr"
+  //      + " from MedicalRecord as mr "
+  //      + " left join mr.person as p"
+  //      + " left join p.fireStations as f"
+  //      + " left join fetch mr.medications as m"
+  //      + " left join fetch mr.allergies as a "
+  //      + " where f.numberStation=?1 "
+  //      + " order by p.address")
+  //  @QueryHints(value = @QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH,
+  //                                 value = "false"))
+  //  List<MedicalRecord> getPersonsWithMedicalRecordWhenFlood(int station);
+  //
+  //  @Query("select distinct new com.safetynet.alert.DTO.PersonDto"
+  //      + "(p.firstName,p.lastName,p.birthDate,p.address,p.phone)"
+  //      + " from Person as p "
+  //      + " left join p.fireStations as f "
+  //      + " left join p.medicalRecord as mr"
+  //      + " where f.numberStation = :station and mr is null")
+  //  @QueryHints(value = @QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH,
+  //                                 value = "false"))
+  //  List<PersonDto> getPersonsWithoutMedicalRecordWhenFlood(int station);
 
+  //****************************** person Info *************************
+  @Query("select distinct p"
+      + " from Person  p"
+      + " left join fetch p.medicalRecord mr "
+      + " left join fetch mr.medications "
+      + " left join fetch mr.allergies "
+      + " where p.lastName=?2"
+      + " order by case when p.firstName =?1 then 1 else 2 end, p.firstName desc")
+
+  List<Person> getPersonInfoByNames(String firstName, String lastName);
+
+
+  //****************************** emails  *************************
   @Query("select distinct p.email from Person as p where p.city=?1 order by p.email")
   List<String> getEmailsByCity(String city);
 
