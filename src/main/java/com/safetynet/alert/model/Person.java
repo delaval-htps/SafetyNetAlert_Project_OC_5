@@ -133,7 +133,6 @@ public class Person {
              name = "person_firestation",
              joinColumns = {@JoinColumn(name = "idPerson")},
              inverseJoinColumns = {@JoinColumn(name = "idFireStation")})
-  //  @OrderBy("idFireStation") // to impose jsonPath to be ordered by id when response
 
   private Set<FireStation> fireStations = new HashSet<>();
 

@@ -33,9 +33,9 @@ public class PersonDto {
   private String phone;
   private String email;
 
-  private Set<Integer> numberStation = new HashSet<>();
-  private Set<Medication> medications = new HashSet<>();
-  private Set<Allergy> allergies = new HashSet<>();
+  private Set<Integer> numberStation;
+  private Set<Medication> medications;
+  private Set<Allergy> allergies;
 
   /**
    * constructor for endpoint /childAlert.
@@ -47,33 +47,7 @@ public class PersonDto {
   public PersonDto(String firstName, String lastName, Date birthDate) {
 
     this(lastName, birthDate, null, null);
-
-    //    this.lastName = lastName;
     this.firstName = firstName;
-    this.medications = null;
-    this.allergies = null;
-
-    //    int calculatedAge = this.calculateAge(birthDate);
-    //
-    //    if (calculatedAge > 0 && calculatedAge <= 18) {
-    //
-    //      this.age = String.valueOf(calculatedAge);
-    //    } else {
-    //
-    //      if (calculatedAge == -1) {
-    //
-    //        this.age = "not specified";
-    //      } else {
-    //
-    //        this.age = null;
-    //      }
-    //    }
-    //    this.address = null;
-    //    this.email = null;
-    //    this.numberStation = null;
-    //    this.phone = null;
-    //    this.medications = null;
-    //    this.allergies = null;
 
   }
 
@@ -88,30 +62,7 @@ public class PersonDto {
   public PersonDto(String lastName, Date birthDate, String phone,
                    MedicalRecord medicalRecord) {
 
-    this(lastName, birthDate, null, null, medicalRecord);
-    this.phone = phone;
-    //    this.address = null;
-    //    this.email = null;
-    //    this.numberStation = null;
-    //    this.firstName = null;
-    //    this.lastName = lastName;
-    //    this.phone = phone;
-    //    int calculatedAge = this.calculateAge(birthDate);
-    //
-    //    if (calculatedAge > 0) {
-    //
-    //      this.age = String.valueOf(calculatedAge);
-    //    } else {
-    //
-    //      this.age = "not specified";
-    //    }
-    //
-    //    if (medicalRecord != null) {
-    //
-    //      this.medications = medicalRecord.getMedications();
-    //      this.allergies = medicalRecord.getAllergies();
-    //    }
-    //
+    this(null, lastName, birthDate, phone, medicalRecord);
 
   }
 
@@ -129,9 +80,9 @@ public class PersonDto {
 
     this(lastName, birthDate, null, null, medicalRecord);
 
-    this.numberStation = new HashSet<>();
-
     if (fireStations != null) {
+
+      this.numberStation = new HashSet<>();
 
       fireStations.forEach(fireStation -> {
 
@@ -139,26 +90,6 @@ public class PersonDto {
       });
     }
     this.phone = phone;
-    //  this.address = null;
-    //  this.email = null;
-    //    this.firstName = null;
-    //    this.lastName = lastName;
-
-    //    int calculatedAge = this.calculateAge(birthDate);
-    //
-    //    if (calculatedAge > 0) {
-    //
-    //      this.age = String.valueOf(calculatedAge);
-    //    } else {
-    //
-    //      this.age = "not specified";
-    //    }
-    //
-    //    if (medicalRecord != null) {
-    //
-    //      this.medications = medicalRecord.getMedications();
-    //      this.allergies = medicalRecord.getAllergies();
-    //    }
 
   }
 
@@ -177,7 +108,7 @@ public class PersonDto {
 
     this.lastName = lastName;
     this.firstName = null;
-    this.address = address;
+
     int calculatedAge = this.calculateAge(birthDate);
 
     if (calculatedAge > 0) {
@@ -187,6 +118,7 @@ public class PersonDto {
 
       this.age = "not specified";
     }
+    this.address = address;
     this.email = email;
 
     if (medicalRecord != null) {
@@ -194,6 +126,7 @@ public class PersonDto {
       this.medications = medicalRecord.getMedications();
       this.allergies = medicalRecord.getAllergies();
     }
+
     this.phone = null;
     this.numberStation = null;
 

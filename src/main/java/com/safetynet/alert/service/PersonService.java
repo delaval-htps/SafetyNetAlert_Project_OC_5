@@ -178,11 +178,13 @@ public class PersonService {
           childrenCount++;
         }
 
-        person.setBirthDate(null); // to not be displayed in responseBody
       } else {
 
         withoutBirthDate++;
       }
+      // to not display in json
+      person.setBirthDate(null);
+      person.setFireStations(null);
     }
 
     Map<String, Object> result = new LinkedHashMap<String, Object>();
@@ -254,41 +256,6 @@ public class PersonService {
     }
 
   }
-  //  public Map<String, List<Person>> getChildrenByAddress(String address) {
-  //
-  //    Map<String, List<Person>> result = null;
-  //
-  //    Calendar cal = Calendar.getInstance();
-  //    cal.add(Calendar.YEAR, -18);
-  //
-  //    java.sql.Date actualMinus18Years = new java.sql.Date(cal.getTimeInMillis());
-  //
-  //    List<Tuple> personsOrderByAge =
-  //        personRepository.getPersonsCountAgeByAddress2(address, actualMinus18Years);
-  //
-  //    List<Person> children = new ArrayList();
-  //    List<Person> otherPersons = new ArrayList();
-  //
-  //    long countChildren = (long) personsOrderByAge.get(0).get("childrenCount");
-  //
-  //    int sizeList = personsOrderByAge.size();
-  //
-  //    for (int i = 0; i < countChildren; i++) {
-  //
-  //      children.add(personsOrderByAge.get(i).get("person", Person.class));
-  //    }
-  //
-  //    for (int j = (int) countChildren; j < sizeList; j++) {
-  //
-  //      otherPersons.add(personsOrderByAge.get(j).get("person", Person.class));
-  //    }
-  //
-  //    result.put("children", children);
-  //    result.put("otherPersons", otherPersons);
-  //
-  //    return result;
-  //
-  //  }
 
   /**
    * Retrieve the list of person's phones mapped  with the given FireStation's numberStation
@@ -353,8 +320,6 @@ public class PersonService {
 
         for (Person person : persons) {
 
-          System.out.println("\n persons dans Service\n" + person + "\n");
-
           if (person.getAddress().equals(addressTemp)) {
 
             result.get(addressTemp).add(person);
@@ -365,69 +330,11 @@ public class PersonService {
             result.get(addressTemp).add(person);
           }
         }
-
       }
     }
     return result;
 
   }
-
-  //    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
-  //
-  //    String addressTemp = null;
-  //
-  //    for (Integer station : numberStations) {
-  //
-  //      // retrieve the list of "persons (medicalRecord)" with existed medicalRecords
-  //      //    mapped with numberStation
-  //
-  //      List<MedicalRecord> personsWithMedicalRecord =
-  //          personRepository.getPersonsWithMedicalRecordWhenFlood(station);
-  //
-  //      // retrieve the list of persons without MedicalRecord mapped with numberStation
-  //
-  //      List<PersonDto> personsWithoutMedicalRecord =
-  //          personRepository.getPersonsWithoutMedicalRecordWhenFlood(station);
-  //
-  //      // add lists together casting all in PersonDTO
-  //
-  //      List<PersonDto> personsMappedByStation = new ArrayList<>();
-  //
-  //      for (MedicalRecord m : personsWithMedicalRecord) {
-  //
-  //        personsMappedByStation.add(new PersonDto(m));
-  //      }
-  //
-  //      for (PersonDto p : personsWithoutMedicalRecord) {
-  //
-  //        personsMappedByStation.add(p);
-  //      }
-  //
-  //      // check if list of PersonDto is not empty and fill result with PersonDto sorting by address
-  //
-  //      if (!personsMappedByStation.isEmpty()) {
-  //
-  //        addressTemp = personsMappedByStation.get(0).getAddress();
-  //
-  //        result.put(addressTemp, new ArrayList<PersonDto>());
-  //
-  //        for (PersonDto person : personsMappedByStation) {
-  //
-  //          if (result.containsKey(person.getAddress())) {
-  //
-  //            result.get(person.getAddress()).add(person);
-  //
-  //          } else {
-  //
-  //            addressTemp = person.getAddress();
-  //            result.put(addressTemp, new ArrayList<PersonDto>());
-  //            result.get(addressTemp).add(person);
-  //          }
-  //        }
-  //      }
-  //    }
-  //    return result;
-
 
 
   /**
