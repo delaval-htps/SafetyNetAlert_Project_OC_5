@@ -2,6 +2,7 @@ package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -120,7 +121,7 @@ public class Person {
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "idMedicalRecord",
               referencedColumnName = "idMedicalRecord")
-  @JsonBackReference
+  @JsonBackReference(value = "person_medicalRecord")
   private MedicalRecord medicalRecord;
 
 
@@ -133,7 +134,7 @@ public class Person {
              name = "person_firestation",
              joinColumns = {@JoinColumn(name = "idPerson")},
              inverseJoinColumns = {@JoinColumn(name = "idFireStation")})
-
+  @JsonIgnore
   private Set<FireStation> fireStations = new HashSet<>();
 
 

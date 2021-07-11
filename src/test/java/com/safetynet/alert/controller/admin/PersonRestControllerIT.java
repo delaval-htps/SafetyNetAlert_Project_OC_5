@@ -21,6 +21,7 @@ import com.safetynet.alert.database.StrategyName;
 import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
+import com.safetynet.alert.exceptions.person.PersonWithIdException;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
@@ -104,7 +105,7 @@ class PersonRestControllerIT {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$").exists())
         .andExpect(jsonPath("$.length()", is(8)))
-        .andExpect(jsonPath("$[0].idPerson", is(1)))
+        .andExpect(jsonPath("$[0].idPerson", notNullValue()))
         .andExpect(jsonPath("$[0].address", is("1509 Culver St")))
         .andExpect(jsonPath("$[0].birthDate", is("03/06/1984")))
         .andExpect(jsonPath("$[0].city", is("Culver")))
@@ -125,8 +126,8 @@ class PersonRestControllerIT {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$").exists())
-        .andExpect(jsonPath("$.length()", is(10)))
-        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
         .andExpect(jsonPath("$.birthDate", is("03/06/1984")))
         .andExpect(jsonPath("$.city", is("Culver")))
@@ -171,19 +172,15 @@ class PersonRestControllerIT {
         .andExpect(redirectedUrlPattern("http://*/person/9"))
         .andExpect(jsonPath("$").exists())
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(9)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
+        .andExpect(jsonPath("$.firstName", is("Bernard")))
+        .andExpect(jsonPath("$.lastName", is("Delaval")))
         .andExpect(jsonPath("$.address", is("26 av maréchal foch")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.email", is("delaval.htps@gmail.com")))
-        .andExpect(jsonPath("$.firstName", is("Bernard")))
-        .andExpect(jsonPath("$.lastName", is("Delaval")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
-
-    //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(9L).get().getFireStations())
-        .isNull();
 
   }
 
@@ -205,7 +202,7 @@ class PersonRestControllerIT {
         .andExpect(status().isCreated())
         .andExpect(redirectedUrlPattern("http://*/person/9"))
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(9)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.address", is("29 15th St")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
@@ -214,10 +211,6 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.lastName", is("Delaval")))
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
-
-    //check if Person with this address was correctly mapped with fireStation 2L
-    //assertThat(personService.getPersonById(9L).get().getFireStations().contains())
-    //  .isEqualTo(2L);
 
   }
 
@@ -229,6 +222,7 @@ class PersonRestControllerIT {
     ObjectMapper mapper = mapperBuilder.build();
 
     Optional<Person> existedPerson = personService.getPersonJoinFireStationById(1L);
+    existedPerson.get().setIdPerson(null);
 
     //when & then
     MvcResult result = mockMvc.perform(post("/person")
@@ -291,6 +285,26 @@ class PersonRestControllerIT {
 
   @Test
   @Order(8)
+  void postPerson_whenIdPersonInBody_thenReturn400()
+      throws JsonProcessingException, Exception {
+
+    //given
+    personTest.setIdPerson(1L);
+    ObjectMapper mapper = mapperBuilder.build();
+    //then
+    MvcResult result = mockMvc.perform(post("/person").accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(personTest))).andExpect(status().isBadRequest())
+        .andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(PersonWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't need an id for Person to save it!");
+
+  }
+
+  @Test
+  @Order(9)
   void putPerson_withValidInputButSameAddress_thenReturn200() throws Exception {
 
     // Given
@@ -305,7 +319,7 @@ class PersonRestControllerIT {
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(personTest)))
 
-        .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(10)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.firstName", is("John")))
         .andExpect(jsonPath("$.lastName", is("Boyd")))
         .andExpect(jsonPath("$.address", is("1509 Culver St")))
@@ -319,7 +333,7 @@ class PersonRestControllerIT {
   }
 
   @Test
-  @Order(9)
+  @Order(10)
   void putPerson_WithChangedAddressMappedByFireStation_thenReturn200() throws Exception {
 
     //given
@@ -336,8 +350,8 @@ class PersonRestControllerIT {
         .content(mapper.writeValueAsString(personTest)))
 
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.idPerson", is(1)))
-        .andExpect(jsonPath("$.length()", is(10)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
+        .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
@@ -355,7 +369,7 @@ class PersonRestControllerIT {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void putPerson_WithChangedAddressNotMappedByFireStation_thenReturn200() throws Exception {
 
     //given
@@ -373,8 +387,7 @@ class PersonRestControllerIT {
         .content(mapper.writeValueAsString(personTest)))
 
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.idPerson", notNullValue()))
-        .andExpect(jsonPath("$.length()", is(10)))
+        .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
@@ -385,13 +398,11 @@ class PersonRestControllerIT {
         .andExpect(jsonPath("$.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
-    //check if Person with this address was correctly mapped with fireStation 2L
-    assertThat(personService.getPersonById(1L).get().getFireStations()).isNull();
 
   }
 
   @ParameterizedTest
-  @Order(11)
+  @Order(12)
   @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
               " , Bernard, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
@@ -436,7 +447,7 @@ class PersonRestControllerIT {
   @CsvSource({"Bernard,Boyd",
               "John,Delaval",
               "Bernard,Delaval"})
-  @Order(12)
+  @Order(13)
   void putPerson_whenChangeNames_thenReturn400(ArgumentsAccessor args)
       throws JsonProcessingException, Exception {
 
@@ -462,7 +473,7 @@ class PersonRestControllerIT {
   }
 
   @Test
-  @Order(13)
+  @Order(14)
   void putPerson_withNotFoundPerson_thenReturn404() throws Exception {
 
     ObjectMapper mapper = mapperBuilder.build();
@@ -482,10 +493,30 @@ class PersonRestControllerIT {
 
   }
 
+  @Test
+  @Order(15)
+  void putPerson_whenIdPersonInBody_thenReturn400()
+      throws JsonProcessingException, Exception {
 
+    //given
+    personTest.setIdPerson(1L);
+    ObjectMapper mapper = mapperBuilder.build();
+    //then
+    MvcResult result = mockMvc.perform(put("/person/{id}", 1)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(personTest)))
+        .andExpect(status().isBadRequest())
+        .andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(PersonWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't need an id for Person to save it!");
+
+  }
 
   @Test
-  @Order(14)
+  @Order(16)
   void deletePerson_withValidInputCoupleNames_thenReturn200()
       throws Exception {
 
@@ -495,7 +526,7 @@ class PersonRestControllerIT {
   }
 
   @Test
-  @Order(15)
+  @Order(17)
   void deletePerson_withNoValidInputCoupleNames_thenReturn404()
       throws Exception {
 

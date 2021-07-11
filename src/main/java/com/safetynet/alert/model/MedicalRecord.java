@@ -50,7 +50,7 @@ public class MedicalRecord {
                        CascadeType.MERGE,
                        CascadeType.REFRESH,
                        CascadeType.PERSIST})
-  @JsonManagedReference
+  @JsonManagedReference(value = "person_medicalRecord")
   private Person person;
 
   @ManyToMany(

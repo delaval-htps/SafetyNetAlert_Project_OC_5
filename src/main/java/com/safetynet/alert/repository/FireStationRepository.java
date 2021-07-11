@@ -30,7 +30,9 @@ public interface FireStationRepository
   @Query("SELECT distinct f FROM FireStation as f JOIN FETCH f.addresses ")
   Iterable<FireStation> findAllFetchAddress();
 
-  @Query("SELECT f FROM FireStation AS f JOIN f.addresses AS a WHERE a = ?1")
+  @Query("SELECT distinct f FROM FireStation AS f"
+      + " JOIN fetch f.addresses a"
+      + " WHERE a = ?1")
   List<FireStation> findFireStationsByAddress(@Valid String address);
 
 
