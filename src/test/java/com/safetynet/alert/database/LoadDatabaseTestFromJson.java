@@ -209,7 +209,6 @@ public class LoadDatabaseTestFromJson implements LoadDataStrategy {
           if (person.getAddress().equals(addressFireStation)) {
 
             fireStation.addPerson(person);
-            person.setFireStation(fireStation);
 
           }
 

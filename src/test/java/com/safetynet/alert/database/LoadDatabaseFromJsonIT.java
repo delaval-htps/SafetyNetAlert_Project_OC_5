@@ -110,7 +110,6 @@ class LoadDatabaseFromJsonIT {
         "Boyd",
         "841-874-6512",
         97451,
-        1L,
         1L);
 
     // verify relationship between first person and medical record

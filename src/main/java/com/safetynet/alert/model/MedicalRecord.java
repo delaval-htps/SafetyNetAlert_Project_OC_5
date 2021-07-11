@@ -14,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,7 +29,7 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "person")
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "MedicalRecord")
@@ -54,7 +53,6 @@ public class MedicalRecord {
   @JsonManagedReference
   private Person person;
 
-
   @ManyToMany(
               fetch = FetchType.LAZY,
               cascade = {CascadeType.DETACH,
@@ -63,9 +61,10 @@ public class MedicalRecord {
                          CascadeType.REFRESH})
   @JoinTable(
              name = "attribution_medication",
-             joinColumns = @JoinColumn(name = "idMedicalRecord"),
-             inverseJoinColumns = @JoinColumn(name = "idMedication"))
-  @OrderBy("idMedication") // to impose jsonPath to be ordered by id when response
+             joinColumns = {@JoinColumn(name = "idMedicalRecord")},
+             inverseJoinColumns = {@JoinColumn(name = "idMedication")})
+  //@OrderBy("idMedication") // to impose jsonPath to be ordered by id when response
+
   private Set<Medication> medications = new HashSet<>();
 
 
@@ -77,9 +76,9 @@ public class MedicalRecord {
                          CascadeType.REFRESH})
   @JoinTable(
              name = "attribution_allergy",
-             joinColumns = @JoinColumn(name = "idMedicalRecord"),
-             inverseJoinColumns = @JoinColumn(name = "idAllergy"))
-  @OrderBy("idAllergy") // to impose jsonPath to be ordered by id when response
+             joinColumns = {@JoinColumn(name = "idMedicalRecord")},
+             inverseJoinColumns = {@JoinColumn(name = "idAllergy")})
+  //@OrderBy("idAllergy") // to impose jsonPath to be ordered by id when response
   private Set<Allergy> allergies = new HashSet<>();
 
   /**
@@ -113,6 +112,13 @@ public class MedicalRecord {
   public void add(Allergy allergy) {
 
     this.allergies.add(allergy);
+
+  }
+
+  public MedicalRecord(Medication medications, Allergy allergies) {
+
+    this.allergies.add(allergies);
+    this.medications.add(medications);
 
   }
 }

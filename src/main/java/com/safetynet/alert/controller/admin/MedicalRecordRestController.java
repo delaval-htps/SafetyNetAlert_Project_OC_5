@@ -15,6 +15,7 @@ import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.validation.Valid;
@@ -207,15 +208,15 @@ public class MedicalRecordRestController {
 
           currentPerson.setAddress(medicalRecord.getPerson().getAddress());
 
-          Optional<FireStation> fireStationMappedToAddress =
-              fireStationService.getFireStationMappedToAddress(currentPerson.getAddress());
+          List<FireStation> fireStationMappedToAddress =
+              fireStationService
+                  .getFireStationsMappedToAddress(medicalRecord.getPerson().getAddress());
 
-          if (fireStationMappedToAddress.isPresent()) {
+          currentPerson.clearFireStations();
 
-            currentPerson.setFireStation(fireStationMappedToAddress.get());
-          } else {
+          if (!fireStationMappedToAddress.isEmpty()) {
 
-            currentPerson.setFireStation(null);
+            currentPerson.addFireStations(fireStationMappedToAddress);
           }
         }
         currentPerson.setBirthDate(medicalRecord.getPerson().getBirthDate());

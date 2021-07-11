@@ -33,6 +33,8 @@ import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -502,8 +504,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     // mockMedicalRecordWithId represents the return of medicalRecord.save()
     MedicalRecord mockMedicalRecordWithId = mockMedicalRecord1;
@@ -567,8 +569,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(medicationService.saveMedication(Mockito.any(Medication.class)))
         .thenReturn(mockMedication1);
@@ -616,7 +618,7 @@ class MedicalRecordRestControllerTest {
     ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
         ArgumentCaptor.forClass(MedicalRecord.class);
     verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
-    assertThat(medicalRecordCaptor.getValue().getPerson().getFireStation()).isNull();
+    assertThat(medicalRecordCaptor.getValue().getPerson().getFireStations()).isNull();
     //check that there is no new medication nor allergy saved
     verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
     verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
@@ -632,8 +634,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.of(mockFireStation));
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(mockFireStation));
 
     when(medicationService.saveMedication(Mockito.any(Medication.class)))
         .thenReturn(mockMedication1);
@@ -681,8 +683,10 @@ class MedicalRecordRestControllerTest {
     ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
         ArgumentCaptor.forClass(MedicalRecord.class);
     verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
-    assertThat(medicalRecordCaptor.getValue().getPerson().getFireStation().getIdFireStation())
-        .isPositive();
+    medicalRecordCaptor.getValue().getPerson().getFireStations().forEach(fireStation -> {
+
+      assertThat(fireStation.getIdFireStation()).isNotNull();
+    });
     //check that there is no new medication nor allergy saved
     verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
     verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
@@ -698,8 +702,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(medicationService.getMedicationByDesignationAndPosology(Mockito.anyString(),
         Mockito.anyString())).thenReturn(Optional.of(mockMedication2));
@@ -791,8 +795,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(medicationService.getMedicationByDesignationAndPosology(Mockito.anyString(),
         Mockito.anyString())).thenReturn(Optional.empty());
@@ -891,8 +895,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     // medication don't change from existed MedicalRecord
 
@@ -991,8 +995,8 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
-    when(fireStationService.getFireStationMappedToAddress(Mockito.anyString()))
-        .thenReturn(Optional.empty());
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
 
     when(medicationService.getMedicationByDesignationAndPosology(Mockito.anyString(),
         Mockito.anyString())).thenReturn(Optional.of(mockMedication1));

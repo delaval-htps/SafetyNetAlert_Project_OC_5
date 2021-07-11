@@ -1,5 +1,6 @@
 package com.safetynet.alert.controller.emergency;
 
+import com.safetynet.alert.DTO.PersonDto;
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
@@ -7,12 +8,12 @@ import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
+@Log4j2
 public class EmergencyRestController {
 
   @Autowired
@@ -90,11 +92,36 @@ public class EmergencyRestController {
   @GetMapping("/childAlert")
   public ResponseEntity<?> getChildAlert(@RequestParam(name = "address") String address) {
 
-    Map<String, Object> childrenByAddress = personService.getChildrenByAddress(address);
+    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
+
+    Map<String, List<Person>> childrenByAddress =
+        personService.getChildrenByAddress(address);
 
     if (childrenByAddress != null) {
 
-      return new ResponseEntity<>(childrenByAddress, HttpStatus.OK);
+      if (childrenByAddress.get("children").isEmpty()) {
+
+        return new ResponseEntity<>("there is no children at the address !", HttpStatus.OK);
+      } else {
+
+        result.put("children", new ArrayList<PersonDto>());
+        result.put("otherMembers", new ArrayList<PersonDto>());
+
+        for (Person person : childrenByAddress.get("children")) {
+
+          result.get("children").add(new PersonDto(person.getFirstName(),
+                                                   person.getLastName(),
+                                                   person.getBirthDate()));
+        }
+
+        for (Person person : childrenByAddress.get("otherMembers")) {
+
+          result.get("otherMembers").add(new PersonDto(person.getFirstName(),
+                                                       person.getLastName(),
+                                                       person.getBirthDate()));
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+      }
 
     } else {
 
@@ -118,18 +145,12 @@ public class EmergencyRestController {
     Optional<FireStation> existedFireStation =
         fireStationService.getFireStationByNumberStation(fireStationNumber);
 
-    SortedSet<String> phones = new TreeSet<>();
-
     if (existedFireStation.isPresent()) {
 
-      for (Person person : existedFireStation.get().getPersons()) {
-
-        phones.add(person.getPhone());
-
-      }
+      List<String> phones = personService.getPhonesByNumberStation(fireStationNumber);
 
       Map<String, Object> result = new LinkedHashMap<>();
-      result.put("Phones", phones);
+      result.put("phones", phones);
 
       return new ResponseEntity<>(result, HttpStatus.OK);
     } else {
@@ -153,12 +174,22 @@ public class EmergencyRestController {
   public ResponseEntity<?>
       getPersonsWhenFire(@RequestParam(name = "address") String address) {
 
-    List<Object> personsInfoWhenFireMappedByAddress =
+    List<Person> personsInfoWhenFireMappedByAddress =
         personService.getPersonsWhenFireMappedByAddress(address);
+
+    List<PersonDto> personsInfoFireDto = new ArrayList<>();
 
     if (!personsInfoWhenFireMappedByAddress.isEmpty()) {
 
-      return ResponseEntity.ok(personsInfoWhenFireMappedByAddress);
+      for (Person person : personsInfoWhenFireMappedByAddress) {
+
+        personsInfoFireDto.add(
+            new PersonDto(person.getFireStations(), person.getLastName(),
+                          person.getBirthDate(), person.getPhone(),
+                          person.getMedicalRecord()));
+
+      }
+      return ResponseEntity.ok(personsInfoFireDto);
 
     } else {
 
@@ -183,6 +214,10 @@ public class EmergencyRestController {
   public ResponseEntity<?>
       getPersonsWhenFlood(@RequestParam(name = "stations") List<Integer> numberStations) {
 
+    log.info("\n*********** GetPersonsWhenFlood ***********\n");
+
+    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
+
     //check list of existed numberStation
     for (Integer station : numberStations) {
 
@@ -193,10 +228,23 @@ public class EmergencyRestController {
       }
     }
 
-    Map<String, Object> personsWhenFloodGroupByAddress =
+    Map<String, List<Person>> personsWhenFloodGroupByAddress =
         personService.getPersonsWhenFloodByStations(numberStations);
 
-    return ResponseEntity.ok(personsWhenFloodGroupByAddress);
+    log.info("\n*********** GetPersonsWhenFlood finished ***********\n");
+
+    for (String key : personsWhenFloodGroupByAddress.keySet()) {
+
+      result.put(key, new ArrayList<PersonDto>());
+
+      for (Person person : personsWhenFloodGroupByAddress.get(key)) {
+
+        result.get(key)
+            .add(new PersonDto(person.getLastName(), person.getBirthDate(),
+                               person.getPhone(), person.getMedicalRecord()));
+      }
+    }
+    return ResponseEntity.ok(result);
 
   }
 
@@ -215,11 +263,20 @@ public class EmergencyRestController {
     String firstName = names.get("firstName");
     String lastName = names.get("lastName");
 
-    List<Object> personsInfo = personService.getPersonInfoByNames(firstName, lastName);
+    List<PersonDto> personsInfoDto = new ArrayList<>();
+
+    List<Person> personsInfo =
+        personService.getPersonInfoByNames(firstName, lastName);
 
     if (personsInfo.iterator().hasNext()) {
 
-      return ResponseEntity.ok(personsInfo);
+      for (Person person : personsInfo) {
+
+        personsInfoDto.add(
+            new PersonDto(person.getLastName(), person.getBirthDate(),
+                          person.getAddress(), person.getEmail(), person.getMedicalRecord()));
+      }
+      return ResponseEntity.ok(personsInfoDto);
     } else {
 
       throw new PersonNotFoundException("Person with firstName: " + firstName
