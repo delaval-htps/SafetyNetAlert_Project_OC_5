@@ -2,6 +2,7 @@ package com.safetynet.alert.controller.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
+import com.safetynet.alert.exceptions.person.PersonWithIdException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Person;
@@ -72,11 +74,15 @@ class PersonRestControllerTest {
   private static Person mockPerson2;
   private static Person mockPersonWithId;
   private static Person mockPersonWithoutId;
+  private static Person mockPersonWithIdAndChanges;
   private static FireStation mockFireStation1;
   private static FireStation mockFireStation2;
   private static Set<String> addresses1;
   private static Set<String> addresses2;
+  private static Set<FireStation> mockSetFireStation;
+  private static Set<FireStation> mockSetFireStation2;
   private SimpleDateFormat sdf;
+
 
   @BeforeEach
   void setUpBeforeClass() throws Exception {
@@ -102,6 +108,10 @@ class PersonRestControllerTest {
                                      "26 av marechal foch", "Cassis", 13260,
                                      "061-846-0160", "delaval.htps@gmail.com",
                                      null, null);
+    mockPersonWithIdAndChanges = new Person(1L, "Dorian", "Delaval", sdf.parse("12/27/1976"),
+                                            "26 av marechal foch", "Cassis", 13260,
+                                            "061-846-0160", "delaval.htps@gmail.com",
+                                            null, null);
     addresses1 = new HashSet<String>();
     addresses1.add("26 av marechal Foch");
 
@@ -117,6 +127,9 @@ class PersonRestControllerTest {
     mockFireStation2.setIdFireStation(2L);
     mockFireStation2.setNumberStation(2);
     mockFireStation2.setAddresses(addresses2);
+
+    mockSetFireStation = new HashSet<>();
+    mockSetFireStation2 = new HashSet<>();
 
   }
 
@@ -166,7 +179,7 @@ class PersonRestControllerTest {
 
     mockMvc.perform(get("/person/{id}", 1)).andExpect(status().isOk())
         .andExpect(jsonPath("$").exists())
-        .andExpect(jsonPath("$.length()", is(10)))
+        .andExpect(jsonPath("$.length()", is(9)))
         .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
         .andExpect(jsonPath("$.lastName", is("Delaval")))
@@ -199,7 +212,7 @@ class PersonRestControllerTest {
 
   @Test
   @Order(4)
-  void postPerson_WithValidInputAndAddressnotMapped_thenReturn201() throws Exception {
+  void postPerson_WithValidInputAndAddressNotMapped_thenReturn201() throws Exception {
 
     // Given
     ObjectMapper mapper = mapperBuilder.build();
@@ -207,10 +220,13 @@ class PersonRestControllerTest {
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
+    // address of mockPersonWhitId  and mockPersonithoutId is "26 avenue marechal foch"
+    //not mapped in dataTest.json by fireStation
+    when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
+
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
         .thenReturn(new ArrayList());
 
-    when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
 
     //When & then
     mockMvc.perform(post("/person")
@@ -233,6 +249,7 @@ class PersonRestControllerTest {
 
 
     // verification du bon passage d'argument a personService.savePerson
+    // only once to save person and not to update fireStations of Person
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
 
     verify(personService, times(1)).savePerson(personCaptor.capture());
@@ -245,6 +262,8 @@ class PersonRestControllerTest {
     assertThat(personCaptor.getValue().getZip()).isEqualTo(13260);
     assertThat(personCaptor.getValue().getBirthDate()).isEqualTo("1976-12-27");
     assertThat(personCaptor.getValue().getPhone()).isEqualTo("061-846-0160");
+
+
 
   }
 
@@ -258,12 +277,24 @@ class PersonRestControllerTest {
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
+    // address of mockPersonWhitId  and mockPersonithoutId is "1509 Culver St"
+    // mapped in dataTest.json by fireStation numberstation 3
+
+    mockPersonWithoutId.setAddress("1509 Culver St");
+    mockPersonWithoutId.setFireStations(mockSetFireStation);
+
+    mockPersonWithId.setAddress("1509 Culver St");
+    mockPersonWithId.setFireStations(mockSetFireStation);
+
+    addresses1.add("1509 Culver St");
+    mockFireStation1.setAddresses(addresses1);
+
     List<FireStation> fireStations = Arrays.asList(mockFireStation1);
+
+    when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
         .thenReturn(fireStations);
-
-    when(personService.savePerson(Mockito.any(Person.class))).thenReturn(mockPersonWithId);
 
     //when & then
     mockMvc.perform(post("/person")
@@ -273,11 +304,11 @@ class PersonRestControllerTest {
 
         .andExpect(status().isCreated())
         .andExpect(redirectedUrlPattern("http://*/person/1"))
-        .andExpect(jsonPath("$.idPerson", is(1))).andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.length()", is(9)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.firstName", is("Dorian")))
         .andExpect(jsonPath("$.lastName", is("Delaval")))
-        .andExpect(jsonPath("$.address", is("26 av marechal foch")))
+        .andExpect(jsonPath("$.address", is("1509 Culver St")))
         .andExpect(jsonPath("$.city", is("Cassis")))
         .andExpect(jsonPath("$.zip", is(13260)))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
@@ -288,19 +319,23 @@ class PersonRestControllerTest {
     // verification du bon passage d'argument a personService.savePerson
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
 
-    verify(personService, times(1)).savePerson(personCaptor.capture());
+    verify(personService, times(2)).savePerson(personCaptor.capture());
     verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
+    List<Person> personsCaptured = personCaptor.getAllValues();
+    assertThat(personsCaptured.get(0).getIdPerson()).isNull();
+    assertThat(personsCaptured.get(0).getFirstName()).isEqualTo("Dorian");
+    assertThat(personsCaptured.get(0).getLastName()).isEqualTo("Delaval");
+    assertThat(personsCaptured.get(0).getAddress()).isEqualTo("1509 Culver St");
+    assertThat(personsCaptured.get(0).getEmail()).isEqualTo("delaval.htps@gmail.com");
+    assertThat(personsCaptured.get(0).getCity()).isEqualTo("Cassis");
+    assertThat(personsCaptured.get(0).getZip()).isEqualTo(13260);
+    assertThat(personsCaptured.get(0).getBirthDate()).isEqualTo("1976-12-27");
+    assertThat(personsCaptured.get(0).getPhone()).isEqualTo("061-846-0160");
 
-    assertThat(personCaptor.getValue().getIdPerson()).isNull();
-    assertThat(personCaptor.getValue().getFirstName()).isEqualTo("Dorian");
-    assertThat(personCaptor.getValue().getLastName()).isEqualTo("Delaval");
-    assertThat(personCaptor.getValue().getAddress()).isEqualTo("26 av marechal foch");
-    assertThat(personCaptor.getValue().getEmail()).isEqualTo("delaval.htps@gmail.com");
-    assertThat(personCaptor.getValue().getCity()).isEqualTo("Cassis");
-    assertThat(personCaptor.getValue().getZip()).isEqualTo(13260);
-    assertThat(personCaptor.getValue().getBirthDate()).isEqualTo("1976-12-27");
-    assertThat(personCaptor.getValue().getPhone()).isEqualTo("061-846-0160");
-    //assertThat(personCaptor.getValue().getFireStation().getIdFireStation()).isEqualTo(1L);
+    assertThat(personsCaptured.get(1).getIdPerson()).isNotNull();
+    assertThat(personsCaptured.get(1).getFireStations().size()).isEqualTo(1);
+    Set<FireStation> fireStationsMapped = personsCaptured.get(1).getFireStations();
+    assertThat(fireStationsMapped.contains(mockFireStation1));
 
   }
 
@@ -378,6 +413,28 @@ class PersonRestControllerTest {
 
   @Test
   @Order(8)
+  void postPerson_whenIdPersonInBody_thenReturn400()
+      throws JsonProcessingException, Exception {
+
+    //given
+    ObjectMapper mapper = mapperBuilder.build();
+    //then
+    MvcResult result = mockMvc.perform(post("/person")
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockPersonWithId)))
+        .andExpect(status().isBadRequest())
+        .andDo(print())
+        .andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(PersonWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't need an id for Person to save it!");
+
+  }
+
+  @Test
+  @Order(9)
   void putPerson_WithValidInputButSameAddress_thenReturn200() throws Exception {
 
     ObjectMapper mapper = mapperBuilder.build();
@@ -385,8 +442,12 @@ class PersonRestControllerTest {
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
 
-    //Just change the phone number for example. Address is the same
+    //just change the phone number for example. address is the same
     mockPersonWithoutId.setPhone("061-846-0260");
+    mockPersonWithIdAndChanges.setPhone("601-846-0260");
+
+    when(personService.savePerson(Mockito.any(Person.class)))
+        .thenReturn(mockPersonWithIdAndChanges);
 
     mockMvc.perform(put("/person/{id}", 1)
         .accept(MediaType.APPLICATION_JSON)
@@ -399,7 +460,7 @@ class PersonRestControllerTest {
 
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
     verify(personService, times(1)).savePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getIdPerson()).isEqualTo(1L);
+    assertThat(personCaptor.getValue().getIdPerson()).isNotNull();
     assertThat(personCaptor.getValue().getFirstName()).isEqualTo("Dorian");
     assertThat(personCaptor.getValue().getLastName()).isEqualTo("Delaval");
     assertThat(personCaptor.getValue().getAddress()).isEqualTo("26 av marechal foch");
@@ -412,19 +473,30 @@ class PersonRestControllerTest {
   }
 
   @Test
-  @Order(9)
+  @Order(10)
   void putPerson_WithChangedAddressMappedByFireStation_thenReturn200() throws Exception {
 
     //given
+    //mockPersonWithId has adresss "26 av MarechalFoch" and mockFireStation1 mapped with it
+    mockSetFireStation.add(mockFireStation1);
+    mockPersonWithId.setFireStations(mockSetFireStation);
 
-
-    mockPersonWithId.addFireStation(mockFireStation1);
-
+    //mockPersoWithouId has another address "29 15th St" mapped by mockFireStation2
+    // but without SetFireStations updated (new hashSet)
     mockPersonWithoutId.setAddress("29 15th St");
+    mockPersonWithoutId.setFireStations(new HashSet<>());
+
+    mockPersonWithIdAndChanges.setAddress("29 15th St");
+    mockPersonWithIdAndChanges.setFireStations(new HashSet());
 
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
+
+    when(personService.savePerson(Mockito.any(Person.class)))
+        .thenReturn(mockPersonWithIdAndChanges);
+
     List<FireStation> fireStations = Arrays.asList(mockFireStation2);
+
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
         .thenReturn(fireStations);
 
@@ -437,9 +509,8 @@ class PersonRestControllerTest {
         .content(mapper.writeValueAsString(mockPersonWithoutId)))
 
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.address", is("29 15th St")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
@@ -450,23 +521,43 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-    verify(personService, times(1)).savePerson(personCaptor.capture());
-    // assertThat(personCaptor.getValue().getFireStation().getNumberStation()).isEqualTo(2);
+    verify(personService, times(2)).savePerson(personCaptor.capture());
+    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
+
+    List<Person> personsCaptured = personCaptor.getAllValues();
+    assertThat(personsCaptured.get(0).getIdPerson()).isNotNull();
+    assertThat(personsCaptured.get(0).getFirstName()).isEqualTo("Dorian");
+    assertThat(personsCaptured.get(0).getLastName()).isEqualTo("Delaval");
+    assertThat(personsCaptured.get(0).getAddress()).isEqualTo("29 15th St");
+    assertThat(personsCaptured.get(0).getEmail()).isEqualTo("delaval.htps@gmail.com");
+    assertThat(personsCaptured.get(0).getCity()).isEqualTo("Cassis");
+    assertThat(personsCaptured.get(0).getZip()).isEqualTo(13260);
+    assertThat(personsCaptured.get(0).getBirthDate()).isEqualTo("1976-12-27");
+    assertThat(personsCaptured.get(0).getPhone()).isEqualTo("061-846-0160");
+
+    assertThat(personsCaptured.get(1).getIdPerson()).isNotNull();
+    assertThat(personsCaptured.get(1).getFireStations().size()).isEqualTo(1);
+    Set<FireStation> fireStationsMapped = personsCaptured.get(1).getFireStations();
+    assertThat(fireStationsMapped.contains(mockFireStation2));
 
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void putPerson_WithChangedAddressNotMappedByFireStation_thenReturn200() throws Exception {
 
     //given
 
-    mockPersonWithId.addFireStation(mockFireStation1);
+    mockPersonWithId.setFireStations(mockSetFireStation);
 
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
 
     mockPersonWithoutId.setAddress("addressNotMapped");
+    mockPersonWithIdAndChanges.setAddress("addressNotMapped");
+
+    when(personService.savePerson(Mockito.any(Person.class)))
+        .thenReturn(mockPersonWithIdAndChanges);
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
         .thenReturn(new ArrayList());
@@ -481,9 +572,8 @@ class PersonRestControllerTest {
         .content(mapper.writeValueAsString(mockPersonWithoutId)))
 
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.idPerson", is(1)))
         .andExpect(jsonPath("$.length()", is(9)))
-        .andExpect(jsonPath("$.idPerson", is(1)))
+        .andExpect(jsonPath("$.idPerson", notNullValue()))
         .andExpect(jsonPath("$.address", is("addressNotMapped")))
         .andExpect(jsonPath("$.birthDate", is("12/27/1976")))
         .andExpect(jsonPath("$.city", is("Cassis")))
@@ -494,15 +584,15 @@ class PersonRestControllerTest {
         .andExpect(jsonPath("$.zip", is(13260))).andDo(print());
 
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-    verify(personService).savePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getFireStations()).isNull();
+    verify(personService, times(1)).savePerson(personCaptor.capture());
+    assertThat(personCaptor.getValue().getFireStations()).isNullOrEmpty();
 
   }
 
 
 
   @ParameterizedTest
-  @Order(11)
+  @Order(12)
   @CsvSource({" , , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
               " , Dorian, , 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
@@ -547,12 +637,12 @@ class PersonRestControllerTest {
   }
 
   @ParameterizedTest
-  @Order(12)
-  @CsvSource({"1, Emilie , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
+  @Order(13)
+  @CsvSource({", Emilie , Delaval, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
       + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " 1, Dorian , Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Dorian , Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , ",
-              " 1, Emilie, Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
+              " , Emilie, Baudouin, 12/27/1976, 26 av maréchal Foch, Cassis, 13260,"
                   + " 061-846-0160, delaval.htps@gmail.com, , "})
 
   void putPerson_whenChangeNames_thenReturn400(ArgumentsAccessor args)
@@ -591,7 +681,7 @@ class PersonRestControllerTest {
 
 
   @Test
-  @Order(13)
+  @Order(14)
   void putPerson_withNotFoundPerson_thenReturn404() throws Exception {
 
     ObjectMapper mapper = mapperBuilder.build();
@@ -617,10 +707,30 @@ class PersonRestControllerTest {
 
   }
 
+  @Test
+  @Order(15)
+  void putPerson_whenIdPersonInBody_thenReturn400()
+      throws JsonProcessingException, Exception {
 
+    //given
+    ObjectMapper mapper = mapperBuilder.build();
+    //then
+    MvcResult result = mockMvc.perform(put("/person/{id}", 1)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockPersonWithId)))
+        .andExpect(status().isBadRequest())
+        .andDo(print())
+        .andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(PersonWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't need an id for Person to save it!");
+
+  }
 
   @Test
-  @Order(14)
+  @Order(16)
   void deletePerson_withValidInputCoupleNames_thenReturn200()
       throws Exception {
 
@@ -633,7 +743,7 @@ class PersonRestControllerTest {
     ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
 
     verify(personService, times(1)).deletePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getIdPerson()).isEqualTo(1L);
+    assertThat(personCaptor.getValue().getIdPerson()).isNotNull();
     assertThat(personCaptor.getValue().getFirstName()).isEqualTo("Dorian");
     assertThat(personCaptor.getValue().getLastName()).isEqualTo("Delaval");
     assertThat(personCaptor.getValue().getAddress()).isEqualTo("26 av marechal foch");
@@ -646,7 +756,7 @@ class PersonRestControllerTest {
   }
 
   @Test
-  @Order(15)
+  @Order(17)
   void deletePerson_withNoValidInputCoupleNames_thenReturn404()
       throws Exception {
 
