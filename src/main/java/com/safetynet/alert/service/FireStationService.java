@@ -89,7 +89,7 @@ public class FireStationService {
   }
 
   /**
-   * return existed fireStation mapped by address given in parameter
+   * return existed fireStations mapped by address given in parameter
    * If there is no fireStation return a empty Optional(not null).
    *
    * @param  address
@@ -100,6 +100,22 @@ public class FireStationService {
       @Valid String address) {
 
     return fireStationRepository.findFireStationsByAddress(address);
+
+  }
+
+  /**
+   * return existed fireStations mapped by address given in parameter
+   * fetching all Persons.
+   * If there is no fireStation return a empty Optional(not null).
+   *
+   * @param  address
+   *            address mapped with FireStation to retrieve
+   * @return    List of FireStation mapped by address given in parameter
+   */
+  public List<FireStation> getFireStationsFetchPersonMappedToAddress(
+      @Valid String address) {
+
+    return fireStationRepository.findFireStationsFetchPersonByAddress(address);
 
   }
 

@@ -47,5 +47,11 @@ public interface FireStationRepository
       + " WHERE a = ?1")
   List<FireStation> findFireStationsByAddress(@Valid String address);
 
+  @Query("SELECT distinct f"
+      + " FROM FireStation AS f"
+      + " LEFT JOIN fetch f.addresses a"
+      + " LEFT JOIN Fetch f.persons"
+      + " WHERE a = ?1")
+  List<FireStation> findFireStationsFetchPersonByAddress(@Valid String address);
 
 }
