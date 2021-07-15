@@ -40,7 +40,7 @@ public class MedicalRecordService {
    */
   public Iterable<MedicalRecord> getMedicalRecords() {
 
-    return medicalRecordRepository.findAll();
+    return medicalRecordRepository.findAllFetchAll();
 
   }
 
@@ -48,14 +48,14 @@ public class MedicalRecordService {
    * retrieve a MedicalRecord with all its fields ( Person,Medications,Allergies).
    * Use to avoid the lazy Fetch of getMedicalRecordById().
    *
-   * @param l
+   * @param id
    *           the identification of MedicalRecord.
    *
    * @return the MedicalRecord with its all fields.Optioonal.empty() if it doesn't exist.
    */
-  public Optional<MedicalRecord> getMedicalRecordJoinAllById(long l) {
+  public Optional<MedicalRecord> getMedicalRecordJoinAllById(long id) {
 
-    return medicalRecordRepository.getOneJoinAllOtherById(l);
+    return medicalRecordRepository.getOneJoinAllOtherById(id);
 
   }
 

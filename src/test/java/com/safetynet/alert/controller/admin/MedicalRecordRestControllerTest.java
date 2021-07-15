@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordAlreadyExistedException;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordChangedNamesException;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordNotFoundException;
+import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordWithIdException;
 import com.safetynet.alert.model.Allergy;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
@@ -41,8 +42,10 @@ import java.util.Optional;
 import java.util.Set;
 import javax.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -57,6 +60,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(controllers = MedicalRecordRestController.class)
+@TestMethodOrder(OrderAnnotation.class)
 class MedicalRecordRestControllerTest {
 
   @MockBean
@@ -117,8 +121,8 @@ class MedicalRecordRestControllerTest {
                              "061-846-0160", "delaval.htps@gmail.com",
                              null, null);
     mockMedication1 = new Medication(1L, "medication1", "100mg", mockMedicalRecords);
-    mockMedications1 = new HashSet<Medication>();
 
+    mockMedications1 = new HashSet<Medication>();
     mockMedications1.add(mockMedication1);
 
     mockAllergy1 = new Allergy(1L, "allergy1", mockMedicalRecords);
@@ -162,6 +166,7 @@ class MedicalRecordRestControllerTest {
                                      "26 av maréchal Foch", "Cassis", 13260,
                                      "061-846-0160", "delaval.htps@gmail.com",
                                      null, null);
+
     mockMedicationWithoutId = new Medication(null, "medication1", "100mg", null);
 
     mockMedicationsWithoutId = new HashSet<Medication>();
@@ -204,8 +209,8 @@ class MedicalRecordRestControllerTest {
 
     mockMvc.perform(get("/medicalRecord")).andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
-        .andExpect(jsonPath("$[0].idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$[0].person.idPerson", is(1)))
+        .andExpect(jsonPath("$[0].idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$[0].person.idPerson", notNullValue()))
         .andExpect(jsonPath("$[0].person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$[0].person.firstName", is("Dorian")))
         .andExpect(jsonPath("$[0].person.lastName", is("Delaval")))
@@ -215,14 +220,14 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$[0].person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$[0].person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$[0].medications.length()", is(1)))
-        .andExpect(jsonPath("$[0].medications.[0]idMedication", is(1)))
+        .andExpect(jsonPath("$[0].medications.[0]idMedication", notNullValue()))
         .andExpect(jsonPath("$[0].medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$[0].medications[0].posology", is("100mg")))
         .andExpect(jsonPath("$[0].allergies.length()", is(1)))
-        .andExpect(jsonPath("$[0].allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$[0].allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$[0].allergies[0].designation", is("allergy1")))
-        .andExpect(jsonPath("$[1].idMedicalRecord", is(2)))
-        .andExpect(jsonPath("$[1].person.idPerson", is(2)))
+        .andExpect(jsonPath("$[1].idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$[1].person.idPerson", notNullValue()))
         .andExpect(jsonPath("$[1].person.address", is("150 rue de la  Prairie")))
         .andExpect(jsonPath("$[1].person.firstName", is("Emilie")))
         .andExpect(jsonPath("$[1].person.lastName", is("Delaval")))
@@ -232,11 +237,11 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$[1].person.phone", is("061-846-0260")))
         .andExpect(jsonPath("$[1].person.email", is("delaval.emilie@gmail.com")))
         .andExpect(jsonPath("$[1].medications.length()", is(1)))
-        .andExpect(jsonPath("$[1].medications[0].idMedication", is(2)))
+        .andExpect(jsonPath("$[1].medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$[1].medications[0].designation", is("medication2")))
         .andExpect(jsonPath("$[1].medications[0].posology", is("200mg")))
         .andExpect(jsonPath("$[1].allergies.length()", is(1)))
-        .andExpect(jsonPath("$[1].allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$[1].allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$[1].allergies[0].designation", is("allergy2")))
         .andDo(print());
 
@@ -247,15 +252,15 @@ class MedicalRecordRestControllerTest {
   void getMedicalRecordById_whenValidId_thenReturn200() throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     //when &then
     mockMvc.perform(get("/medicalRecord/{id}", 1))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -265,10 +270,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1")));
 
   }
@@ -278,7 +283,7 @@ class MedicalRecordRestControllerTest {
   void getMedicalRecordById_whenNotFoundId_thenReturn404() throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.empty());
 
     //when &then
@@ -293,7 +298,8 @@ class MedicalRecordRestControllerTest {
 
   @Test
   @Order(4)
-  void postMedicalRecord_whenValidInputWithNoPersistedDatas_thenReturn201() throws Exception {
+  void postMedicalRecord_whenNoPersonExistedAndAddressNotMappedByFireStation_thenReturn201()
+      throws Exception {
 
     //Given
     ObjectMapper mapper = mapperBuilder.build();
@@ -304,16 +310,19 @@ class MedicalRecordRestControllerTest {
     when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
         .thenReturn(mockMedicalRecord1);
 
+    when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
+
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/medicalRecord/1"))
+        .andExpect(redirectedUrlPattern("http://*/medicalRecord/*"))
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -323,15 +332,17 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
         ArgumentCaptor.forClass(MedicalRecord.class);
+    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
     verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
+
     assertThat(medicalRecordCaptor.getValue().getPerson().getIdPerson()).isNull();
     assertThat(medicalRecordCaptor.getValue().getPerson().getLastName()).isEqualTo("Delaval");
     assertThat(medicalRecordCaptor.getValue().getPerson().getFirstName()).isEqualTo("Dorian");
@@ -353,6 +364,80 @@ class MedicalRecordRestControllerTest {
 
   @Test
   @Order(5)
+  void postMedicalRecord_whenNoPersonExistedAndAddressMappedByFireStation_thenReturn201()
+      throws Exception {
+
+    //Given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(Optional.empty());
+
+    when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
+        .thenReturn(mockMedicalRecord1);
+
+    // fireStations mapped to address 26 av marechal Foch
+    mockAddresses.add("26 av marechal foch");
+    mockFireStation.setAddresses(mockAddresses);
+
+    when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(mockFireStation));
+
+    //when & then
+    mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
+
+        .andExpect(status().isCreated())
+        .andExpect(redirectedUrlPattern("http://*/medicalRecord/*"))
+        .andExpect(jsonPath("$.length()", is(4)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
+        .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
+        .andExpect(jsonPath("$.person.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.person.lastName", is("Delaval")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
+        .andExpect(jsonPath("$.person.city", is("Cassis")))
+        .andExpect(jsonPath("$.person.zip", is(13260)))
+        .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
+        .andExpect(jsonPath("$.medications.length()", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
+        .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
+        .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
+        .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
+
+    ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
+        ArgumentCaptor.forClass(MedicalRecord.class);
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
+    assertThat(fireStationCaptor.getValue().getPersons()).contains(mockPerson1);
+
+    verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
+    assertThat(medicalRecordCaptor.getValue().getPerson().getIdPerson()).isNull();
+    assertThat(medicalRecordCaptor.getValue().getPerson().getLastName()).isEqualTo("Delaval");
+    assertThat(medicalRecordCaptor.getValue().getPerson().getFirstName()).isEqualTo("Dorian");
+    assertThat(medicalRecordCaptor.getValue().getPerson().getAddress())
+        .isEqualTo("26 av maréchal Foch");
+    assertThat(medicalRecordCaptor.getValue().getPerson().getCity()).isEqualTo("Cassis");
+    assertThat(medicalRecordCaptor.getValue().getPerson().getZip()).isEqualTo(13260);
+    assertThat(medicalRecordCaptor.getValue().getPerson().getEmail())
+        .isEqualTo("delaval.htps@gmail.com");
+    assertThat(medicalRecordCaptor.getValue().getPerson().getPhone())
+        .isEqualTo("061-846-0160");
+    assertThat(medicalRecordCaptor.getValue().getMedications().size()).isEqualTo(1);
+    assertThat(medicalRecordCaptor.getValue().getMedications().toString()).isEqualTo(
+        "[Medication(idMedication=null, designation=medication1, posology=100mg)]");
+    assertThat(medicalRecordCaptor.getValue().getAllergies().toString()).isEqualTo(
+        "[Allergy(idAllergy=null, designation=allergy1)]");
+
+  }
+
+  @Test
+  @Order(6)
   void postMedicalRecord_whenExistedPersonWithoutMedicalRecord_thenReturn201()
       throws Exception {
 
@@ -377,10 +462,10 @@ class MedicalRecordRestControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/medicalRecord/1"))
+        .andExpect(redirectedUrlPattern("http://*/medicalRecord/*"))
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -390,10 +475,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     // check if person was correctly mapped to new medicalRecord
@@ -410,7 +495,7 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   void postMedicalRecord_whenMedicalRecordAlreadyExisted_thenReturn400() throws Exception {
 
     //given
@@ -422,7 +507,7 @@ class MedicalRecordRestControllerTest {
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(mockMedicalRecord1)))
+        .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isBadRequest())
         .andDo(print())
         .andExpect(result -> assertTrue(
@@ -434,7 +519,30 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(7)
+  @Order(8)
+  void postMedicalRecord_whenIdPresentInBody_thenReturn400() throws Exception {
+
+    //given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    //    Optional<MedicalRecord> mrTest = medicalRecordService.getMedicalRecordJoinAllById(1L);
+
+    //when & then
+    MvcResult result = mockMvc.perform(post("/medicalRecord")
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockMedicalRecord1)))
+        .andExpect(status().isBadRequest())
+        .andDo(print()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(MedicalRecordWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't use a Id in body request !");
+
+  }
+
+  @Test
+  @Order(9)
   void putMedicalRecord_whenNotFoundMedicalRecord_thenReturn404() throws Exception {
 
     //given
@@ -447,7 +555,7 @@ class MedicalRecordRestControllerTest {
     MvcResult result = mockMvc.perform(put("/medicalRecord/{id}", 1)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(mockMedicalRecord1)))
+        .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
 
         .andExpect(status().isNotFound())
         .andDo(print()).andReturn();
@@ -464,13 +572,13 @@ class MedicalRecordRestControllerTest {
               "John, Delaval",
               "Dorian,",
               ",Delaval"})
-  @Order(8)
+  @Order(10)
   void putMedicalRecord_whenMedicalRecordPersonChangedNames_thenReturn400(
       ArgumentsAccessor args) throws Exception {
 
     //given
 
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     mockPersonWithoutId.setFirstName(args.getString(0));
@@ -496,12 +604,12 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(9)
+  @Order(11)
   void putMedicalRecord_whenSameAddressMedicationAllergy_thenReturn200()
       throws Exception {
 
     //given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -530,8 +638,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -541,10 +649,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0260")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
     //check that there is no new medication nor allergy saved
@@ -561,12 +669,12 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(10)
+  @Order(12)
   void putMedicalRecord_whenChangeAddressNotMappedByFireStation_thenReturn200()
       throws Exception {
 
     //given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -596,8 +704,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("addressNotMapped")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -607,10 +715,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print())
         .andReturn();
 
@@ -618,7 +726,8 @@ class MedicalRecordRestControllerTest {
     ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
         ArgumentCaptor.forClass(MedicalRecord.class);
     verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
-    assertThat(medicalRecordCaptor.getValue().getPerson().getFireStations()).isNull();
+    assertThat(medicalRecordCaptor.getValue().getPerson().getFireStations()).isEmpty();
+
     //check that there is no new medication nor allergy saved
     verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
     verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
@@ -626,12 +735,12 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(11)
+  @Order(13)
   void putMedicalRecord_whenChangeAddressMappedByFireStation_thenReturn200()
       throws Exception {
 
     //given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -661,8 +770,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("AddressMappedByFireStation")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -672,10 +781,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print())
         .andReturn();
 
@@ -687,6 +796,7 @@ class MedicalRecordRestControllerTest {
 
       assertThat(fireStation.getIdFireStation()).isNotNull();
     });
+
     //check that there is no new medication nor allergy saved
     verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
     verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
@@ -694,12 +804,12 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(12)
+  @Order(14)
   void putMedicalRecord_whenChangeMedicationsWithExistedOne_thenReturn200()
       throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -748,8 +858,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -759,10 +869,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(2)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication2")))
         .andExpect(jsonPath("$.medications[0].posology", is("200mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print())
         .andReturn();
 
@@ -787,12 +897,12 @@ class MedicalRecordRestControllerTest {
   @ParameterizedTest
   @CsvSource({"newMedication,100mg",
               "medication1,200mg"})
-  @Order(13)
+  @Order(15)
   void putMedicalRecord_whenChangedMedicationWithNewOneReturn200(ArgumentsAccessor args)
       throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -841,8 +951,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -855,7 +965,7 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is(args.getString(0))))
         .andExpect(jsonPath("$.medications[0].posology", is(args.getString(1))))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(1)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print())
         .andReturn();
 
@@ -887,12 +997,12 @@ class MedicalRecordRestControllerTest {
 
 
   @Test
-  @Order(14)
+  @Order(16)
   void putMedicalRecord_whenChangeAllergiesWithNewOne_thenReturn200()
       throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -941,8 +1051,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -987,12 +1097,12 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
-  @Order(15)
+  @Order(17)
   void putMedicalRecord_whenChangeAllergiesWithExistedOne_thenReturn200()
       throws Exception {
 
     //Given
-    when(medicalRecordService.getMedicalRecordById(Mockito.anyLong()))
+    when(medicalRecordService.getMedicalRecordJoinAllById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockMedicalRecord1));
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
@@ -1040,8 +1150,8 @@ class MedicalRecordRestControllerTest {
         .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(4)))
-        .andExpect(jsonPath("$.idMedicalRecord", is(1)))
-        .andExpect(jsonPath("$.person.idPerson", is(1)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
         .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
         .andExpect(jsonPath("$.person.firstName", is("Dorian")))
         .andExpect(jsonPath("$.person.lastName", is("Delaval")))
@@ -1051,10 +1161,10 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
         .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
         .andExpect(jsonPath("$.medications.length()", is(1)))
-        .andExpect(jsonPath("$.medications[0].idMedication", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
         .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
         .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.allergies[0].idAllergy", is(2)))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy2"))).andDo(print())
         .andReturn();
 
@@ -1077,6 +1187,29 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
+  @Order(18)
+  void putMedicalRecord_whenIdPresentInBody_thenReturn400() throws Exception {
+
+    //given
+    ObjectMapper mapper = mapperBuilder.build();
+
+
+    //when & then
+    MvcResult result = mockMvc.perform(put("/medicalRecord/{id}", 1)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockMedicalRecord1)))
+        .andExpect(status().isBadRequest())
+        .andDo(print()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(MedicalRecordWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't use a Id in body request !");
+
+  }
+
+  @Test
+  @Order(19)
   void deleteMedicalRecord_whenValidInput_thenReturn200() throws Exception {
 
     //Given
@@ -1093,6 +1226,7 @@ class MedicalRecordRestControllerTest {
   }
 
   @Test
+  @Order(20)
   void deleteMedicalRecord_whenMedicalRecordNotFound_thenReturn404() throws Exception {
 
     //Given
