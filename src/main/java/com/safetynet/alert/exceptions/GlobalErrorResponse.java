@@ -73,6 +73,14 @@ public class GlobalErrorResponse {
 
   }
 
+  public void addFieldError(String objectName, String message) {
+
+    // FieldError error = new FieldError(objectName, path, defaultMessage);
+    this.fieldValidationErrors.add("In " + objectName + "  => " + message);
+
+
+  }
+
 
 
 }

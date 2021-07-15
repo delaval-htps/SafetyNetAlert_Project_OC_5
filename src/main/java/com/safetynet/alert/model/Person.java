@@ -82,7 +82,7 @@ public class Person {
 
   @Column
   @NotNull(message = "this address must not be null")
-  @NotBlank
+  @NotBlank(message = "this address must not be null")
   private String address;
 
   @Column
