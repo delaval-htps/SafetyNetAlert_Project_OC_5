@@ -76,7 +76,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " left join fetch pmr.medications m"
       + " left join fetch pmr.allergies a"
       + " where f.numberStation =?1"
-      + " order by p.address")
+      + " order by p.address,p.birthDate")
   List<Person> getPersonsWhenFlood(int station);
 
   //  @Query("select distinct mr"
@@ -102,16 +102,25 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
   //  List<PersonDto> getPersonsWithoutMedicalRecordWhenFlood(int station);
 
   //****************************** person Info *************************
-  @Query("select distinct p"
+  @Query("select   p, case p.firstName when :firstName then 1 else 2 end as firstname"
       + " from Person  p"
       + " left join fetch p.medicalRecord mr "
-      + " left join fetch mr.medications "
-      + " left join fetch mr.allergies "
-      + " where p.lastName=?2"
-      + " order by case when p.firstName =?1 then 1 else 2 end, p.firstName desc")
-
+      + " left join fetch mr.medications m"
+      + " left join fetch mr.allergies a"
+      + " where p.lastName=:lastName"
+      + " order by firstname")
   List<Person> getPersonInfoByNames(String firstName, String lastName);
-
+  //  @Query(value = "select  p.*"
+  //      + " from person as p"
+  //      + " left join  medical_record as mr on mr.id_medical_record= p.id_medical_record"
+  //      + " left join attribution_medication as am on am.id_medical_record = mr.id_medical_record"
+  //      + " left join attribution_allergy as aa on aa.id_medical_record= mr.id_medical_record"
+  //      + " left join medication as m on m.id_medication= am.id_medication"
+  //      + " left join allergy as a on a.id_allergy = aa.id_allergy"
+  //      + " where p.last_name = :lastName "
+  //      + " order by case p.first_name  when :firstName then 1 else 2 end",
+  //         nativeQuery = true)
+  //  List<Person> getPersonInfoByNames(String firstName, String lastName);
 
   //****************************** emails  *************************
   @Query("select distinct p.email from Person as p where p.city=?1 order by p.email")

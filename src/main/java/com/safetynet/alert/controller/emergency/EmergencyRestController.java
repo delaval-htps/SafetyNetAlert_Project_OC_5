@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -99,10 +100,7 @@ public class EmergencyRestController {
 
     if (childrenByAddress != null) {
 
-      if (childrenByAddress.get("children").isEmpty()) {
-
-        return new ResponseEntity<>("there is no children at the address !", HttpStatus.OK);
-      } else {
+      if (!childrenByAddress.get("children").isEmpty()) {
 
         result.put("children", new ArrayList<PersonDto>());
         result.put("otherMembers", new ArrayList<PersonDto>());
@@ -114,14 +112,17 @@ public class EmergencyRestController {
                                                    person.getBirthDate()));
         }
 
+
+
         for (Person person : childrenByAddress.get("otherMembers")) {
 
           result.get("otherMembers").add(new PersonDto(person.getFirstName(),
                                                        person.getLastName(),
                                                        person.getBirthDate()));
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
       }
+
+      return new ResponseEntity<>(result, HttpStatus.OK);
 
     } else {
 
@@ -140,6 +141,7 @@ public class EmergencyRestController {
    */
   @GetMapping("/phoneAlert")
   public ResponseEntity<?>
+
       getPhoneAlert(@RequestParam(name = "firestation") int fireStationNumber) {
 
     Optional<FireStation> existedFireStation =
@@ -258,15 +260,17 @@ public class EmergencyRestController {
    * @return a ResponseEntity with informations of person with given lastname, firstname
    */
   @GetMapping("/personInfo")
-  public ResponseEntity<?> getPersonInfo(@RequestParam Map<String, String> names) {
+  public ResponseEntity<?> getPersonInfo(@RequestParam(name = "firstName") String firstName,
+      @RequestParam(name = "lastName") String lastName) {
 
-    String firstName = names.get("firstName");
-    String lastName = names.get("lastName");
+    //    String firstName = names.get("firstName");
+    //    String lastName = names.get("lastName");
 
     List<PersonDto> personsInfoDto = new ArrayList<>();
 
-    List<Person> personsInfo =
+    Set<Person> personsInfo =
         personService.getPersonInfoByNames(firstName, lastName);
+    System.out.println("\n personInfo: " + personsInfo);
 
     if (personsInfo.iterator().hasNext()) {
 
