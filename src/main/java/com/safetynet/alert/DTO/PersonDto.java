@@ -32,7 +32,7 @@ public class PersonDto {
   private String address;
   private String phone;
   private String email;
-
+  private String status_MedicalRecord;
   private Set<Integer> numberStation;
   private Set<Medication> medications;
   private Set<Allergy> allergies;
@@ -48,6 +48,7 @@ public class PersonDto {
 
     this(lastName, birthDate, null, null);
     this.firstName = firstName;
+    this.status_MedicalRecord = null;
 
   }
 
@@ -125,6 +126,9 @@ public class PersonDto {
 
       this.medications = medicalRecord.getMedications();
       this.allergies = medicalRecord.getAllergies();
+    } else {
+
+      this.status_MedicalRecord = "not yet created";
     }
 
     this.phone = null;
