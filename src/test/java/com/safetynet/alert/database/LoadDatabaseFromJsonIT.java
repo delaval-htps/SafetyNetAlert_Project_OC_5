@@ -113,8 +113,7 @@ class LoadDatabaseFromJsonIT {
         1L);
 
     // verify relationship between first person and medical record
-    assertThat(personTable).column(9).hasColumnName("id_fire_station");
-    assertThat(personTable).column(10).hasColumnName("id_medical_record");
+    assertThat(personTable).column(9).hasColumnName("id_medical_record");
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(1).hasValues(2L, 1L);
