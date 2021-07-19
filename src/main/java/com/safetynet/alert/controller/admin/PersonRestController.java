@@ -3,6 +3,7 @@ package com.safetynet.alert.controller.admin;
 import com.safetynet.alert.exceptions.person.PersonAlreadyExistedException;
 import com.safetynet.alert.exceptions.person.PersonChangedNamesException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
+import com.safetynet.alert.exceptions.person.PersonWithIdException;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
@@ -85,13 +86,6 @@ public class PersonRestController {
 
   }
 
-  @GetMapping("/personjoinfire/{id}")
-  public ResponseEntity<?> getPersonJoinFireStation(@PathVariable Long id) {
-
-    Optional<Person> person = personService.getPersonJoinFireStationById(id);
-    return new ResponseEntity<Person>(person.get(), HttpStatus.OK);
-
-  }
 
   /**
    * Creation of new Person.
@@ -107,41 +101,47 @@ public class PersonRestController {
   @PostMapping("/person")
   public ResponseEntity<Person> postPerson(@Valid @RequestBody Person personToAdd) {
 
-    Optional<Person> existedPerson =
-        personService.getPersonByNames(personToAdd.getFirstName(), personToAdd.getLastName());
+    if (personToAdd.getIdPerson() == null) {
 
-    if (!existedPerson.isPresent()) {
+      Optional<Person> existedPerson =
+          personService.getPersonByNames(personToAdd.getFirstName(),
+              personToAdd.getLastName());
 
-      //check if address of personToAdd have a address already mapped with a fireStation
+      if (!existedPerson.isPresent()) {
 
-      personToAdd.clearFireStations();
+        Person savedPerson = personService.savePerson(personToAdd); // save new Person
 
-      List<FireStation> fireStationMappedToAddress =
-          fireStationService.getFireStationsMappedToAddress(personToAdd.getAddress());
+        //check if address of personToAdd have a address already mapped with a fireStation
 
-      if (!fireStationMappedToAddress.isEmpty()) {
+        List<FireStation> fireStationMappedToAddress =
+            fireStationService.getFireStationsMappedToAddress(personToAdd.getAddress());
 
-        personToAdd.addFireStations(fireStationMappedToAddress);
+        if (!fireStationMappedToAddress.isEmpty()) {
+
+          savedPerson.addFireStations(fireStationMappedToAddress);
+          personService.savePerson(savedPerson); // update of savedPerson to add firestations
+        }
+
+        URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(savedPerson.getIdPerson())
+            .toUri();
+
+        log.info("POST /person: Creation of Person {} sucessed with the locationId {}",
+            savedPerson,
+            locationUri.getPath());
+
+        return ResponseEntity.created(locationUri).body(savedPerson);
+      } else {
+
+        Person currentPerson = existedPerson.get();
+        throw new PersonAlreadyExistedException("this Person with firstname:"
+            + currentPerson.getFirstName() + " and lastname:" + currentPerson.getLastName()
+            + " already exist ! Can't add an already existed Person!");
       }
-
-      Person savedPerson = personService.savePerson(personToAdd);
-
-      URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest()
-          .path("/{id}")
-          .buildAndExpand(savedPerson.getIdPerson())
-          .toUri();
-
-      log.info("POST /person: Creation of Person {} sucessed with the locationId {}",
-          savedPerson,
-          locationUri.getPath());
-
-      return ResponseEntity.created(locationUri).body(savedPerson);
     } else {
 
-      Person currentPerson = existedPerson.get();
-      throw new PersonAlreadyExistedException("this Person with firstname:"
-          + currentPerson.getFirstName() + " and lastname:" + currentPerson.getLastName()
-          + " already exist ! Can't add an already existed Person!");
+      throw new PersonWithIdException("Don't need an id for Person to save it!");
     }
 
   }
@@ -166,69 +166,73 @@ public class PersonRestController {
    */
   @PutMapping("/person/{id}")
   public ResponseEntity<Person> putPerson(@PathVariable Long id,
-      @RequestBody
-      @Valid Person updatedPerson)
-      throws PersonNotFoundException,
-      PersonChangedNamesException {
+      @RequestBody @Valid Person updatedPerson)
+      throws PersonNotFoundException, PersonChangedNamesException {
 
-    Optional<Person> personToUpdate = personService.getPersonById(id);
+    if (updatedPerson.getIdPerson() == null) {
 
-    if (personToUpdate.isPresent()) {
+      Optional<Person> personToUpdate = personService.getPersonById(id);
 
-      Person currentPerson = personToUpdate.get();
+      if (personToUpdate.isPresent()) {
 
-      if (updatedPerson.getFirstName()
-          .equals(currentPerson.getFirstName())
-          && updatedPerson.getLastName()
-              .equals(currentPerson.getLastName())) {
+        Person currentPerson = personToUpdate.get();
+        String lastAddress = currentPerson.getAddress(); // save last address
 
-        currentPerson.setBirthDate(updatedPerson.getBirthDate());
+        if (updatedPerson.getFirstName()
+            .equals(currentPerson.getFirstName())
+            && updatedPerson.getLastName()
+                .equals(currentPerson.getLastName())) {
 
-        //If Person.address change then need to map it with another fireStation if it exists
-        if (!currentPerson.getAddress().equals(updatedPerson.getAddress())) {
-
-          //check if address of updatedPerson have a address already mapped with a fireStation
-          currentPerson.clearFireStations();
-
-          List<FireStation> fireStationMappedToAddress =
-              fireStationService.getFireStationsMappedToAddress(updatedPerson.getAddress());
-
-          if (!fireStationMappedToAddress.isEmpty()) {
-
-            //update fireStation for currentPerson
-            currentPerson.addFireStations(fireStationMappedToAddress);
-
-          }
+          currentPerson.setBirthDate(updatedPerson.getBirthDate());
 
           currentPerson.setAddress(updatedPerson.getAddress());
+
+          currentPerson.setCity(updatedPerson.getCity());
+
+          currentPerson.setZip(updatedPerson.getZip());
+
+          currentPerson.setPhone(updatedPerson.getPhone());
+
+          currentPerson.setEmail(updatedPerson.getEmail());
+
+          Person savedPerson = personService.savePerson(currentPerson);
+
+          //If Person.address change then need to map it with another fireStation if it exists
+          if (!lastAddress.equals(savedPerson.getAddress())) {
+
+            //check if address of updatedPerson have a address already mapped with a fireStation
+
+            List<FireStation> fireStationMappedToAddress =
+                fireStationService.getFireStationsMappedToAddress(savedPerson.getAddress());
+
+            if (!fireStationMappedToAddress.isEmpty()) {
+
+              //update fireStations for savedPerson
+              savedPerson.clearFireStations(); // need to clear last fireStations mapped
+              savedPerson.addFireStations(fireStationMappedToAddress);
+              personService.savePerson(savedPerson);
+
+            }
+          }
+
+          log.info("Person with id {} was correctly updated", id);
+
+          return new ResponseEntity<Person>(currentPerson, HttpStatus.OK);
+
+        } else {
+
+          throw new PersonChangedNamesException("When updating a person with id:"
+              + id + " you can't change names");
         }
-
-        currentPerson.setCity(updatedPerson.getCity());
-
-        currentPerson.setZip(updatedPerson.getZip());
-
-        currentPerson.setPhone(updatedPerson.getPhone());
-
-        currentPerson.setEmail(updatedPerson.getEmail());
-
-        personService.savePerson(currentPerson);
-
-        log.info("Person with id {} was correctly updated", id);
-
-        return new ResponseEntity<Person>(currentPerson, HttpStatus.OK);
 
       } else {
 
-        throw new PersonChangedNamesException("When updating a person with id:"
-            + id + " you can't change names");
-
+        throw new PersonNotFoundException("Person to update with id: "
+            + id + " was not found");
       }
-
     } else {
 
-      throw new PersonNotFoundException("Person to update with id: "
-          + id + " was not found");
-
+      throw new PersonWithIdException("Don't need an id for Person to save it!");
     }
 
   }

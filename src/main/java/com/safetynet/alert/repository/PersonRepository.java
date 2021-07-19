@@ -41,12 +41,6 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " where p.address =?1 order by p.birthDate desc")
   Iterable<Person> getChildrenByAddress(String address);
 
-  //  @Query("select p as person, "
-  //      + " (select  count(*) as children from Person as p"
-  //      + " where (p.birthDate >=:actualDate) and p.address =:address) as childrenCount"
-  //      + " from Person p"
-  //      + " where p.address =:address")
-  //  List<Tuple> getPersonsCountAgeByAddress2(String address, Date actualDate);
 
   // ************************* phone Alert ***************************
   @Query("select distinct p.phone"
@@ -76,40 +70,19 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
       + " left join fetch pmr.medications m"
       + " left join fetch pmr.allergies a"
       + " where f.numberStation =?1"
-      + " order by p.address")
+      + " order by p.address,p.birthDate")
   List<Person> getPersonsWhenFlood(int station);
 
-  //  @Query("select distinct mr"
-  //      + " from MedicalRecord as mr "
-  //      + " left join mr.person as p"
-  //      + " left join p.fireStations as f"
-  //      + " left join fetch mr.medications as m"
-  //      + " left join fetch mr.allergies as a "
-  //      + " where f.numberStation=?1 "
-  //      + " order by p.address")
-  //  @QueryHints(value = @QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH,
-  //                                 value = "false"))
-  //  List<MedicalRecord> getPersonsWithMedicalRecordWhenFlood(int station);
-  //
-  //  @Query("select distinct new com.safetynet.alert.DTO.PersonDto"
-  //      + "(p.firstName,p.lastName,p.birthDate,p.address,p.phone)"
-  //      + " from Person as p "
-  //      + " left join p.fireStations as f "
-  //      + " left join p.medicalRecord as mr"
-  //      + " where f.numberStation = :station and mr is null")
-  //  @QueryHints(value = @QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH,
-  //                                 value = "false"))
-  //  List<PersonDto> getPersonsWithoutMedicalRecordWhenFlood(int station);
+
 
   //****************************** person Info *************************
-  @Query("select distinct p"
+  @Query("select   p, case p.firstName when :firstName then 1 else 2 end as firstname"
       + " from Person  p"
       + " left join fetch p.medicalRecord mr "
-      + " left join fetch mr.medications "
-      + " left join fetch mr.allergies "
-      + " where p.lastName=?2"
-      + " order by case when p.firstName =?1 then 1 else 2 end, p.firstName desc")
-
+      + " left join fetch mr.medications m"
+      + " left join fetch mr.allergies a"
+      + " where p.lastName=:lastName"
+      + " order by firstname")
   List<Person> getPersonInfoByNames(String firstName, String lastName);
 
 

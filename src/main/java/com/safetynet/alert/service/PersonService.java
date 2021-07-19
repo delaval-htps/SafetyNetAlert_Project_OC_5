@@ -6,9 +6,11 @@ import com.safetynet.alert.repository.PersonRepository;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -347,11 +349,13 @@ public class PersonService {
    *
    * @return    list of informations of person with given lastname and firstname
    */
-  public List<Person> getPersonInfoByNames(String firstName,
+  public Set<Person> getPersonInfoByNames(String firstName,
       String lastName) {
 
-    return personRepository.getPersonInfoByNames(firstName, lastName);
-
+    List<Person> persons = personRepository.getPersonInfoByNames(firstName, lastName);
+    // transform list in linkedHashSet to avoid duplicate and keep sorted list
+    Set<Person> result = new LinkedHashSet<Person>(persons);
+    return result;
 
   }
 

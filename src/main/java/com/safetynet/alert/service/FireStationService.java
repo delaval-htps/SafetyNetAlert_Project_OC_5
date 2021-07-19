@@ -59,7 +59,37 @@ public class FireStationService {
   }
 
   /**
-   * return existed fireStation mapped by address given in parameter
+   * retrieve fireStation with id in parameter but with all it's fields du to a inner join
+   * To not have a lazyInitializationException with Hibernate.
+   *
+   * @param l   l'Id of FireStation
+   *
+   * @return  Optional firestation
+   *          if fireStation present return firestation else a empty Optional Firestation
+   */
+  public Optional<FireStation> getFireStationJoinAddressesById(long l) {
+
+    return fireStationRepository.getOneJoinAddressesById(l);
+
+  }
+
+  /**
+   * return existed fireStation with the numberStation given in parameter
+   * with all addresses and all persons mapped to it
+   * If there is no fireStation return a empty Optional(not null).
+   *
+   * @param  numberStation   the numberStation of FireStation to retrieve
+   * @return    Optional&lsaquo;FireStation&rsaquo;  FireStation with this numberStation
+   */
+  public Optional<FireStation> getFireStationAllFetchByNumberStation(
+      int numberStation) {
+
+    return fireStationRepository.getOneAllFetchByNumberStation(numberStation);
+
+  }
+
+  /**
+   * return existed fireStations mapped by address given in parameter
    * If there is no fireStation return a empty Optional(not null).
    *
    * @param  address
@@ -70,6 +100,22 @@ public class FireStationService {
       @Valid String address) {
 
     return fireStationRepository.findFireStationsByAddress(address);
+
+  }
+
+  /**
+   * return existed fireStations mapped by address given in parameter
+   * fetching all Persons.
+   * If there is no fireStation return a empty Optional(not null).
+   *
+   * @param  address
+   *            address mapped with FireStation to retrieve
+   * @return    List of FireStation mapped by address given in parameter
+   */
+  public List<FireStation> getFireStationsFetchPersonMappedToAddress(
+      @Valid String address) {
+
+    return fireStationRepository.findFireStationsFetchPersonByAddress(address);
 
   }
 
@@ -86,34 +132,17 @@ public class FireStationService {
   }
 
   /**
-   * retrieve fireStation with id in parameter but with all it's fields du to a inner join
-   * To not have a lazyInitializationException with Hibernate.
+   * delete a FireStation given in parameter.
    *
-   * @param l   l'Id of FireStation
-   *
-   * @return  Optional firestation
-   *          if fireStation present return firestation else a empty Optional Firestation
+   * @param  fireStation   FireStation to delete
+   * @return    FireStation deleted FireStation
    */
-  public Optional<FireStation> getFireStationJoinAllById(long l) {
+  public void deleteFireStation(FireStation fireStation) {
 
-    return fireStationRepository.getOneJoinAllById(l);
+    fireStationRepository.delete(fireStation);
 
   }
 
-  //  public Set<Person> getPersonsMappedWithFireStation(int numberStation) {
-  //
-  //    Optional<FireStation> fireStationByNumberStation =
-  //        fireStationRepository.getOneByNumberStation(numberStation);
-  //
-  //    if (fireStationByNumberStation.isPresent()) {
-  //
-  //      Set<Person> personsMapped = fireStationByNumberStation.get().getPersons();
-  //      return personsMapped;
-  //
-  //    } else {
-  //
-  //      throw new FireStationNotFoundException("FireStation with number_station: "
-  //          + numberStation + " was not found! please choose another existed one!");
-  //    }
-  //  }
+
+
 }

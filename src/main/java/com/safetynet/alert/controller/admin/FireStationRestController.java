@@ -3,12 +3,13 @@ package com.safetynet.alert.controller.admin;
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
-import com.safetynet.alert.exceptions.firestation.FireStationNotValidException;
+import com.safetynet.alert.exceptions.firestation.FireStationWithIdException;
 import com.safetynet.alert.model.FireStation;
+import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
+import com.safetynet.alert.service.PersonService;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -38,7 +39,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class FireStationRestController {
 
   @Autowired
-  FireStationService fireStationService;
+  private FireStationService fireStationService;
+
+  @Autowired
+  private PersonService personService;
 
   /**
    * Return all existed FireStation.
@@ -66,7 +70,7 @@ public class FireStationRestController {
   @GetMapping("/firestation/{id}")
   public ResponseEntity<FireStation> getFireStationById(@PathVariable Long id) {
 
-    Optional<FireStation> fireStation = fireStationService.getFireStationById(id);
+    Optional<FireStation> fireStation = fireStationService.getFireStationJoinAddressesById(id);
 
     if (fireStation.isPresent()) {
 
@@ -86,9 +90,9 @@ public class FireStationRestController {
   /**
    * creation of a new FireStation.
    *
-   * @param fireStation
+   * @param fireStationToSave
              a representation in Json of the new Object of FireStation.
-  
+
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
@@ -97,32 +101,69 @@ public class FireStationRestController {
    */
   @PostMapping("/firestation")
   public ResponseEntity<FireStation>
-      postMappingStationAddress(@Valid @RequestBody FireStation fireStation) {
+      postMappingStationAddress(@Valid @RequestBody FireStation fireStationToSave) {
 
-    Optional<FireStation> existedFireStation =
-        fireStationService.getFireStationByNumberStation(fireStation.getNumberStation());
+    if (fireStationToSave.getIdFireStation() == null) {
 
-    if (!existedFireStation.isPresent()) {
+      Optional<FireStation> existedFireStation = fireStationService
+          .getFireStationByNumberStation(fireStationToSave.getNumberStation());
 
-      FireStation savedFireStation = fireStationService.saveFireStation(fireStation);
+      if (!existedFireStation.isPresent()) {
 
-      URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-          .buildAndExpand(savedFireStation.getIdFireStation()).toUri();
+        FireStation savedFireStation = fireStationService.saveFireStation(fireStationToSave);
 
-      log.info("POST /fireStation: Creation of FireStation {} sucessed "
-          + "with the locationId {} and mapping with address:{}",
-          savedFireStation,
-          savedFireStation.getIdFireStation(),
-          savedFireStation.getAddresses());
+        URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+            .buildAndExpand(savedFireStation.getIdFireStation()).toUri();
 
-      return ResponseEntity.created(locationUri).body(savedFireStation);
+        //check if for new saved fireSation, there is person to map with it
+
+        if (!savedFireStation.getAddresses().isEmpty()) {
+
+          boolean AddedPersons = false;
+
+          for (String address : savedFireStation.getAddresses()) {
+
+            Iterable<Person> personsMappedWithAddress =
+                personService.getPersonsByAddress(address);
+
+            if (personsMappedWithAddress.iterator().hasNext()) {
+
+              AddedPersons = true;
+              personsMappedWithAddress.forEach(person -> {
+
+                savedFireStation.addPerson(person);
+              });
+            }
+          }
+
+          // to update junction table person_firestation.
+          if (AddedPersons) {
+
+            fireStationService.saveFireStation(savedFireStation);
+          }
+        }
+
+        log.info("POST /fireStation: Creation of FireStation {} sucessed "
+            + "with the locationId {} and mapping with address:{}",
+            savedFireStation,
+            savedFireStation.getIdFireStation(),
+            savedFireStation.getAddresses());
+
+        return ResponseEntity.created(locationUri).body(savedFireStation);
+
+      } else {
+
+        throw new FireStationAlreadyExistedException("this FireStation with NumberStation: "
+            + existedFireStation.get().getNumberStation() + " already Existed");
+      }
+
     } else {
 
-      throw new FireStationAlreadyExistedException("this FireStation with NumberStation: "
-          + existedFireStation.get().getNumberStation() + " already Existed");
+      throw new FireStationWithIdException("Don't put a id in Body to save new FireStation!");
     }
 
   }
+
 
   /**
    * Allows to change the mapping of a address with a existed FireStation.
@@ -147,29 +188,23 @@ public class FireStationRestController {
    *
    */
   @PutMapping("/firestation/{address}")
-  public ResponseEntity<Iterable<FireStation>> putMappingNumberStationAddress(
+  public ResponseEntity<FireStation> putMappingNumberStationAddress(
       @Valid @PathVariable String address,
       @Valid @RequestBody FireStation fireStationToMapWithAddress) {
 
-    List<FireStation> bodyResponse = new ArrayList<FireStation>();
+    if (fireStationToMapWithAddress.getIdFireStation() == null) {
+      //check if given body request fireStation exist
 
-    //check if given body request fireStation exist
+      Optional<FireStation> fireStationWithNumberStation =
+          fireStationService.getFireStationAllFetchByNumberStation(
+              fireStationToMapWithAddress.getNumberStation());
 
-    Optional<FireStation> fireStationWithNumberStation = fireStationService
-        .getFireStationByNumberStation(fireStationToMapWithAddress.getNumberStation());
 
+      if (fireStationWithNumberStation.isPresent()) {
 
-    if (fireStationWithNumberStation.isPresent()) {
+        FireStation existedFireStation = fireStationWithNumberStation.get();
 
-      FireStation existedFireStation = fireStationWithNumberStation.get();
-
-      //check validation of all field for given fireStationToMapWithAddress
-      if ((existedFireStation.getNumberStation() == fireStationToMapWithAddress
-          .getNumberStation())
-          && (existedFireStation.getIdFireStation() == fireStationToMapWithAddress
-              .getIdFireStation())
-          && (existedFireStation.getAddresses()
-              .equals(fireStationToMapWithAddress.getAddresses()))) {
+        //check validation of all field for given fireStationToMapWithAddress
 
         if (existedFireStation.getAddresses().contains(address)) {
 
@@ -179,27 +214,44 @@ public class FireStationRestController {
         } else {
 
           // add address to fireStationToMapWithAddress and save it .
+
           existedFireStation.addAddress(address);
+
+          //add persons Mapped by address to updated Firestation
+
+          Iterable<Person> personsMappedByAddress =
+              personService.getPersonsByAddress(address);
+
+          if (personsMappedByAddress.iterator().hasNext()) {
+
+            personsMappedByAddress.forEach(person -> {
+
+              existedFireStation.addPerson(person);
+            });
+          }
+          //update existedFireStation with new address
+          // and new Person mapped with it
+
           fireStationService.saveFireStation(existedFireStation);
 
-          bodyResponse.add(existedFireStation);
-          return new ResponseEntity<Iterable<FireStation>>(bodyResponse, HttpStatus.OK);
+          log.info("PUT/firestation/address: the address {} was correctly mapped"
+              + " with fireStation number{}",
+              address,
+              existedFireStation.getNumberStation());
+
+          return new ResponseEntity<FireStation>(existedFireStation, HttpStatus.OK);
         }
 
       } else {
 
-        throw new FireStationNotValidException("fireStation in body request"
-            + " doesn't match with a existed fireStation !"
-            + " Check fields are correctly entered");
+        throw new FireStationNotFoundException("fireStation given in body request"
+            + " with numberStation:" + fireStationToMapWithAddress.getNumberStation()
+            + " doesn't exist !");
       }
 
     } else {
 
-      throw new FireStationNotFoundException(
-                                             "fireStation given in body request with numberStation:"
-                                                 + fireStationToMapWithAddress
-                                                     .getNumberStation()
-                                                 + " doesn't exist !");
+      throw new FireStationWithIdException("Don't put a id in Body to save new FireStation!");
     }
 
   }
@@ -217,9 +269,7 @@ public class FireStationRestController {
    *            if numberStation doesn't match with any fireStation
    */
   @DeleteMapping("/firestation/station/{numberStation}")
-  public ResponseEntity<FireStation>
-
-      deleteMappingFireStation(@Valid @PathVariable int numberStation) {
+  public ResponseEntity<?> deleteMappingFireStation(@Valid @PathVariable int numberStation) {
 
     Optional<FireStation> fireStationWithNumberStation =
         fireStationService.getFireStationByNumberStation(numberStation);
@@ -228,17 +278,17 @@ public class FireStationRestController {
 
       FireStation currentFireStation = fireStationWithNumberStation.get();
 
-      currentFireStation.setAddresses(new HashSet<String>());
+      fireStationService.deleteFireStation(currentFireStation);
 
-      fireStationService.saveFireStation(currentFireStation);
+      log.info("FireStation with numberStation {} was deleted", numberStation);
 
-      return new ResponseEntity<FireStation>(currentFireStation, HttpStatus.OK);
+      return new ResponseEntity<>("FireStation with NumberStation:"
+          + numberStation + " was deleted!", HttpStatus.OK);
 
     } else {
 
-      throw new FireStationNotFoundException(
-                                             "FireStation with NumberStation:" + numberStation
-                                                 + " was not found");
+      throw new FireStationNotFoundException("FireStation with NumberStation:"
+          + numberStation + " was not found");
 
     }
 
@@ -257,22 +307,28 @@ public class FireStationRestController {
    *            if address isn't mapped with any fireStation
    */
   @DeleteMapping("/firestation/address/{address}")
-  public ResponseEntity<List<FireStation>>
+  public ResponseEntity<?>
       deleteAddressFromFireStations(@PathVariable @Valid String address) {
 
     List<FireStation> fireStationWithAddress =
         fireStationService.getFireStationsMappedToAddress(address);
 
+    List<Integer> numberStationsDeleted = new ArrayList<Integer>();
+
     if (!fireStationWithAddress.isEmpty()) {
 
       for (FireStation currentFireStation : fireStationWithAddress) {
 
-        currentFireStation.getAddresses().remove(address);
-        fireStationService.saveFireStation(currentFireStation);
+        numberStationsDeleted.add(currentFireStation.getNumberStation());
+        fireStationService.deleteFireStation(currentFireStation);
 
       }
 
-      return new ResponseEntity<List<FireStation>>(fireStationWithAddress, HttpStatus.OK);
+      log.info("FireStation with numberStations = {} mapped to address was deleted",
+          numberStationsDeleted);
+
+      return new ResponseEntity<>("FireStation with numberStations = {" + numberStationsDeleted
+          + "} mapped to address was deleted", HttpStatus.OK);
 
     } else {
 

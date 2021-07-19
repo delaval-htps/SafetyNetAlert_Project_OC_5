@@ -2,6 +2,7 @@ package com.safetynet.alert.controller.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
@@ -18,20 +19,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationAlreadyExistedException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
+import com.safetynet.alert.exceptions.firestation.FireStationWithIdException;
 import com.safetynet.alert.model.FireStation;
+import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
+import com.safetynet.alert.service.PersonService;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.validation.constraints.NotEmpty;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -59,6 +63,9 @@ class FireStationRestContollerTest {
   @MockBean
   private FireStationService fireStationService;
 
+  @MockBean
+  private PersonService personService;
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -69,37 +76,47 @@ class FireStationRestContollerTest {
   private static FireStation fireStationTest2;
   private static FireStation fireStationWithId;
   private static FireStation fireStationWithoutId;
+  private static Person person1;
+  private static Person person2;
+  private static Set<String> addresses1;
+  private static Set<String> addresses2;
+  private static Set<String> addresses3;
+  private static List<FireStation> fireStations;
 
-  private static List<FireStation> fireStations = new ArrayList<FireStation>();
 
-  @BeforeAll
-  static void setUpBeforeClass() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
 
-    final Set<@NotEmpty String> addresses1 = new LinkedHashSet();
+    addresses1 = new LinkedHashSet();
     addresses1.add("26 av maréchal Foch");
     addresses1.add("310 rue jean jaures");
 
 
-    final Set<@NotEmpty String> addresses2 = new LinkedHashSet();
+    addresses2 = new LinkedHashSet();
     addresses2.add("300 av Victor Hugo");
     addresses2.add("350 rue Emile Zola");
 
-    final Set<@NotEmpty String> addresses3 = new LinkedHashSet();
-    addresses3.add("adressTest de fireStationTest3");
-    addresses3.add("addressTest2 de fireStationTest3");
+    addresses3 = new LinkedHashSet();
+    addresses3.add("addressTest");
+    addresses3.add("addressTest2");
 
-    fireStationTest1 = new FireStation(1L, 1, addresses1, null);
-    fireStationTest2 = new FireStation(2L, 2, addresses2, null);
-    fireStationWithId = new FireStation(3L, 3, addresses3, null);
-    fireStationWithoutId = new FireStation(null, 3, addresses3, null);
+    fireStationTest1 = new FireStation(1L, 1, addresses1, new HashSet<>());
+    fireStationTest2 = new FireStation(2L, 2, addresses2, new HashSet<>());
+    fireStationWithId = new FireStation(3L, 3, addresses2, new HashSet<>());
+    fireStationWithoutId = new FireStation(null, 3, addresses2, new HashSet<>());
 
+    fireStations = new ArrayList<FireStation>();
     fireStations.add(fireStationTest1);
     fireStations.add(fireStationTest2);
 
-  }
+    person1 = new Person(1L, "Nom1", "Prenom1", new Date(System.currentTimeMillis() - 3600),
+                         "addressTest", "Culver", 97456, "061-846-0160", "np@email.com", null,
+                         null);
+    person2 = new Person(2L, "Nom2", "Prenom2", new Date(System.currentTimeMillis() - 3600),
+                         "addressTest2", "Culver", 97456, "061-846-0161", "np2@email.com",
+                         null, null);
 
-  @BeforeEach
-  void setUp() throws Exception {}
+  }
 
   @Test
   @Order(1)
@@ -127,7 +144,7 @@ class FireStationRestContollerTest {
   void testGetFireStationsById_withValidId_thenReturn200() throws Exception {
 
     // given
-    when(fireStationService.getFireStationById(Mockito.anyLong()))
+    when(fireStationService.getFireStationJoinAddressesById(Mockito.anyLong()))
         .thenReturn(Optional.of(fireStationTest1));
 
     // When & then
@@ -161,15 +178,23 @@ class FireStationRestContollerTest {
 
   @Test
   @Order(4)
-  void postFireStation_withValidInput_thenReturn201() throws Exception {
+  void postFireStation_withPersonsMappedWithAddresses_thenReturn201() throws Exception {
 
     // Given
     ObjectMapper mapper = mapperBuilder.build();
-    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-    String[] addressesTest = {"adressTest de fireStationTest3",
-                              "addressTest2 de fireStationTest3"};
+
+    // fireStation doesn't exist.
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
+
     when(fireStationService.saveFireStation(Mockito.any(FireStation.class)))
         .thenReturn(fireStationWithId);
+
+    when(personService.getPersonsByAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(person1, person2));
+
+    person1.setAddress("350 rue Emile Zola");
+    person2.setAddress("300 av Victor Hugo");
 
     // when & then
     mockMvc.perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
@@ -177,18 +202,102 @@ class FireStationRestContollerTest {
         .content(mapper.writeValueAsString(fireStationWithoutId)))
 
         .andExpect(status().isCreated())
-        .andExpect(redirectedUrlPattern("http://*/firestation/3"))
+        .andExpect(redirectedUrlPattern("http://*/firestation/*"))
         .andExpect(jsonPath("$.length()", is(3)))
-        .andExpect(jsonPath("$.idFireStation", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
         .andExpect(jsonPath("$.numberStation", is(3)))
-        .andExpect(jsonPath("$.addresses[0]", is("adressTest de fireStationTest3")))
-        .andExpect(jsonPath("$.addresses[1]", is("addressTest2 de fireStationTest3")));
+        .andExpect(jsonPath("$.addresses[0]", is("300 av Victor Hugo")))
+        .andExpect(jsonPath("$.addresses[1]", is("350 rue Emile Zola")));
 
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(2)).saveFireStation(fireStationCaptor.capture());
+
+    List<FireStation> values = fireStationCaptor.getAllValues();
+    assertThat(values.get(0).getIdFireStation()).isNull();
+    assertThat(values.get(0).getNumberStation()).isEqualTo(3);
+    assertThat(values.get(0).getAddresses())
+        .containsExactlyInAnyOrder("300 av Victor Hugo", "350 rue Emile Zola");
+    assertThat(values.get(1).getPersons())
+        .containsExactlyInAnyOrderElementsOf(Arrays.asList(person1, person2));
+
+  }
+
+  @Test
+  @Order(5)
+  void postFireStation_withNobodyMappedToAddresses_thenReturn201()
+      throws Exception {
+
+    // Given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    // fireStation doesn't exist.
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
+
+    when(fireStationService.saveFireStation(Mockito.any(FireStation.class)))
+        .thenReturn(fireStationWithId);
+
+    // when check if persons mapped with address , then return a emptyList
+    // nobody is mapped with address of new FireStation
+    when(personService.getPersonsByAddress(Mockito.anyString()))
+        .thenReturn(new ArrayList());
+
+    // when & then
+    mockMvc.perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
+
+        .andExpect(status().isCreated())
+        .andExpect(redirectedUrlPattern("http://*/firestation/*"))
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.numberStation", is(3)))
+        .andExpect(jsonPath("$.addresses[0]", is("300 av Victor Hugo")))
+        .andExpect(jsonPath("$.addresses[1]", is("350 rue Emile Zola")));
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
     verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
     assertThat(fireStationCaptor.getValue().getIdFireStation()).isNull();
     assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(3);
     assertThat(fireStationCaptor.getValue().getAddresses())
-        .containsExactlyInAnyOrder(addressesTest);
+        .containsExactlyInAnyOrder("300 av Victor Hugo", "350 rue Emile Zola");
+    assertThat(fireStationCaptor.getValue().getPersons()).isEmpty();
+
+  }
+
+  @Test
+  @Order(6)
+  void postFireStation_whenFireStationEmptyAddress_thenReturn200() throws Exception {
+
+    //Given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    // fireStation doesn't exist.
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
+
+    //fireStationWithId  and withoutId doesn't have addresses mapped with
+    fireStationWithId.setAddresses(new LinkedHashSet());
+    fireStationWithoutId.setAddresses(new LinkedHashSet());
+
+    when(fireStationService.saveFireStation(Mockito.any(FireStation.class)))
+        .thenReturn(fireStationWithId);
+
+    //when & then
+    MvcResult result = mockMvc.perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
+        .andExpect(status().isCreated())
+        .andExpect(redirectedUrlPattern("http://*/firestation/*"))
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.numberStation", is(3)))
+        .andExpect(jsonPath("$.addresses.length()", is(0))).andDo(print()).andReturn();
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
+    assertThat(fireStationCaptor.getValue().getAddresses()).isEmpty();
+    assertThat(fireStationCaptor.getValue().getPersons()).isNullOrEmpty();
 
   }
 
@@ -203,7 +312,7 @@ class FireStationRestContollerTest {
 
   @ParameterizedTest
   @MethodSource("factoryArgumentPost")
-  @Order(5)
+  @Order(6)
   void postFireStation_withInValidInput_thenReturn400(int numberStation,
       List<String> addresses) throws Exception {
 
@@ -232,13 +341,17 @@ class FireStationRestContollerTest {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   void postFireStation_whenFireStationAlreadyExisted_thenReturn400() throws Exception {
 
     //Given
     ObjectMapper mapper = mapperBuilder.build();
+
+    fireStationTest1.setIdFireStation(null);
+
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
+
     //when& then
     MvcResult result = mockMvc
         .perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
@@ -255,118 +368,147 @@ class FireStationRestContollerTest {
   }
 
   @Test
-  @Order(7)
-  void putFireStation_withValidAddressNotMappedAndFireStation_thenReturn200()
-      throws Exception {
-
-    // given
-    ObjectMapper mapper = mapperBuilder.build();
-    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-
-    String addressToMap = "new address to map with FireStation";
-
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
-        .thenReturn(new ArrayList());
-
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(fireStationTest1));
-
-    // when & then
-    mockMvc.perform(put("/firestation/{address}", addressToMap)
-        .accept(MediaType.APPLICATION_JSON)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(fireStationTest1)))
-
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
-        .andExpect(jsonPath("$[0].idFireStation", is(1)))
-        .andExpect(jsonPath("$[0].addresses.length()", is(3)))
-        .andExpect(jsonPath("$[0].addresses[0]", is("26 av maréchal Foch")))
-        .andExpect(jsonPath("$[0].addresses[1]", is("310 rue jean jaures")))
-        .andExpect(jsonPath("$[0].addresses[2]", is("new address to map with FireStation")))
-        .andExpect(jsonPath("$[0].numberStation", is(1))).andDo(print());
-
-    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
-    verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
-    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
-
-    assertThat(fireStationCaptor.getValue().getIdFireStation()).isEqualTo(1L);
-    assertThat(fireStationCaptor.getValue().getAddresses())
-        .containsExactlyInAnyOrder("26 av maréchal Foch",
-            "310 rue jean jaures",
-            "new address to map with FireStation");
-    assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
-
-  }
-
-  @Test
   @Order(8)
-  void putFireStation_withValidAddressAllreadyMappedWithGivenFireStation_thenReturn200()
-      throws Exception {
-
-    // given
-    ObjectMapper mapper = mapperBuilder.build();
-    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-
-    //address already map to fireStationTest2"310 rue jean jaures"
-    String addressToMap = "300 av Victor Hugo";
-
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(fireStationTest1));
-
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
-        .thenReturn(Arrays.asList(fireStationTest2));
-
-    // when & then
-    mockMvc.perform(put("/firestation/{address}", addressToMap)
-        .accept(MediaType.APPLICATION_JSON)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(fireStationTest1)))
-
-        .andExpect(status().isOk()).andDo(print());
-
-    verify(fireStationService, times(1)).getFireStationsMappedToAddress(Mockito.anyString());
-    verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
-    verify(fireStationService, times(2)).saveFireStation(fireStationCaptor.capture());
-
-    fireStations = fireStationCaptor.getAllValues();
-
-    // Modification for fireStation that normally expected
-    fireStationTest2.getAddresses().remove(addressToMap);
-    fireStationTest1.getAddresses().add(addressToMap);
-
-    assertThat(fireStations.get(1)).isEqualTo(fireStationTest1);
-    assertThat(fireStations.get(0)).isEqualTo(fireStationTest2);
-
-  }
-
-  @Test
-  @Order(9)
-  void putFireStation_withValidAddressAllreadyMappedWithGivenFireStation_thenReturn400()
-      throws Exception {
+  void postFireStation_withIdFireStationInBody_thenReturn400() throws Exception {
 
     // given
     ObjectMapper mapper = mapperBuilder.build();
 
-    String addressToMap = "26 av maréchal Foch";
-
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(fireStationTest1));
-
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
-        .thenReturn(Arrays.asList(fireStationTest1));
-
     // when & then
-
-    MvcResult result = mockMvc.perform(put("/firestation/{address}", addressToMap)
+    MvcResult result = mockMvc.perform(post("/firestation")
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(fireStationTest1)))
 
         .andExpect(status().isBadRequest()).andReturn();
 
-    verify(fireStationService, never()).getFireStationsMappedToAddress(Mockito.anyString());
-    verify(fireStationService, times(1)).getFireStationByNumberStation(Mockito.anyInt());
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't put a id in Body to save new FireStation!");
+
+  }
+
+  @Test
+  @Order(8)
+  void putFireStation_withPersonsNotMappedWithAddress_thenReturn200()
+      throws Exception {
+
+    // given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    String addressToMap = "new address";
+
+    // existed FireStation
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.of(fireStationWithId));
+
+    // no persons Mapped with address
+    when(personService.getPersonsByAddress(Mockito.anyString())).thenReturn(new ArrayList());
+
+    // when & then
+    mockMvc.perform(put("/firestation/{address}", addressToMap)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
+
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.addresses.length()", is(3)))
+        .andExpect(jsonPath("$.addresses[0]", is("300 av Victor Hugo")))
+        .andExpect(jsonPath("$.addresses[1]", is("350 rue Emile Zola")))
+        .andExpect(jsonPath("$.addresses[2]", is("new address")))
+        .andExpect(jsonPath("$.numberStation", is(3))).andDo(print());
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(1))
+        .getFireStationAllFetchByNumberStation(Mockito.anyInt());
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
+
+    assertThat(fireStationCaptor.getValue().getIdFireStation()).isNotNull();
+    assertThat(fireStationCaptor.getValue().getAddresses())
+        .containsExactlyInAnyOrder("300 av Victor Hugo", "350 rue Emile Zola", "new address");
+    assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(3);
+    assertThat(fireStationCaptor.getValue().getPersons()).isEmpty();
+
+  }
+
+  @Test
+  @Order(9)
+  void putFireStation_withPersonsMappedWithAddress_thenReturn200()
+      throws Exception {
+
+    // given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    String addressToMap = "addressMappedToPersons";
+
+    // existed FireStation
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.of(fireStationWithId));
+
+    // persons Mapped with address
+    person1.setAddress("addressMappedToPersons");
+    person2.setAddress("addressMappedToPersons");
+
+    when(personService.getPersonsByAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(person1, person2));
+
+    // when & then
+    mockMvc.perform(put("/firestation/{address}", addressToMap)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
+
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.addresses.length()", is(3)))
+        .andExpect(jsonPath("$.addresses[0]", is("300 av Victor Hugo")))
+        .andExpect(jsonPath("$.addresses[1]", is("350 rue Emile Zola")))
+        .andExpect(jsonPath("$.addresses[2]", is("addressMappedToPersons")))
+        .andExpect(jsonPath("$.numberStation", is(3))).andDo(print());
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(1))
+        .getFireStationAllFetchByNumberStation(Mockito.anyInt());
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
+
+    List<FireStation> values = fireStationCaptor.getAllValues();
+    assertThat(values.get(0).getIdFireStation()).isNotNull();
+    assertThat(values.get(0).getAddresses()).containsExactlyInAnyOrder("300 av Victor Hugo",
+        "350 rue Emile Zola",
+        "addressMappedToPersons");
+    assertThat(values.get(0).getNumberStation()).isEqualTo(3);
+    assertThat(values.get(0).getPersons()).containsExactlyInAnyOrder(person1, person2);
+
+  }
+
+
+  @Test
+  @Order(10)
+  void putFireStation_withValidAddressAllreadyMappedWithGivenFireStation_thenReturn400()
+      throws Exception {
+
+    // given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    String addressToMap = "300 av Victor Hugo";
+
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.of(fireStationWithId));
+
+    // when & then
+
+    MvcResult result = mockMvc.perform(put("/firestation/{address}", addressToMap)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
+
+        .andExpect(status().isBadRequest()).andReturn();
+
+    verify(fireStationService, times(1))
+        .getFireStationAllFetchByNumberStation(Mockito.anyInt());
     verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
 
     assertThat(result.getResolvedException().getMessage())
@@ -376,30 +518,53 @@ class FireStationRestContollerTest {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void putFireStation_withNotFoundNumberStation_thenReturn404() throws Exception {
 
     // given
     ObjectMapper mapper = mapperBuilder.build();
 
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
+
     // when & then
-    MvcResult result = mockMvc.perform(put("/firestation/{numberStation}", 1)
+    MvcResult result = mockMvc.perform(put("/firestation/{address}", "address")
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(fireStationTest1)))
+        .content(mapper.writeValueAsString(fireStationWithoutId)))
 
         .andExpect(status().isNotFound()).andReturn();
 
     verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
     assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("fireStation given in body request with numberStation:1 doesn't exist !");
+        .isEqualTo("fireStation given in body request with numberStation:3 doesn't exist !");
+
+  }
+
+  @Test
+  @Order(12)
+  void putFireStation_withIdFireStationInBody_thenReturn400() throws Exception {
+
+    // given
+    ObjectMapper mapper = mapperBuilder.build();
+
+    // when & then
+    MvcResult result = mockMvc.perform(put("/firestation/{numberStation}", 5)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(fireStationTest1)))
+
+        .andExpect(status().isBadRequest()).andReturn();
+
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationWithIdException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("Don't put a id in Body to save new FireStation!");
 
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  //  @ValueSource(strings = {"      "})  doesn't work!!!
-  @Order(11)
+  @Order(13)
   void putFireStation_withInValidInputAddress_thenReturn400(String addressToMap)
       throws Exception {
 
@@ -418,60 +583,9 @@ class FireStationRestContollerTest {
 
   }
 
-  private static Stream<Arguments> factoryArgumentPutInvalidFireStation() {
-
-    return Stream.of(
-
-        Arguments.of("34 rue fauvert",
-            2L,
-            1,
-            Arrays.asList("26 av maréchal Foch", "310 rue jean jaures")),
-        Arguments.of("34 rue fauvert", 1L, 1, Arrays.asList("29 15th St")),
-        Arguments.of("34 rue fauvert", 1L, 1, Arrays.asList("310 rue jean jaures")),
-        Arguments.of("34 rue fauvert",
-            1L,
-            2,
-            Arrays.asList("26 av maréchal Foch", "310 rue jean jaures")));
-
-  }
-
-  @ParameterizedTest
-  @MethodSource("factoryArgumentPutInvalidFireStation")
-  @Order(12)
-  void putFireStation_withInValidInputFireStation_thenReturn400(String addressToMap,
-      Long id,
-      int numberStation,
-      List<String> addresses) throws Exception {
-
-    // given
-    ObjectMapper mapper = mapperBuilder.build();
-
-    Set<String> addressesTest = new HashSet<>(addresses);
-
-    FireStation fireStationArgument =
-        new FireStation(id, numberStation, addressesTest, null);
-
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(fireStationTest1));
-
-    // when & then
-    MvcResult result = mockMvc.perform(put("/firestation/{address}", addressToMap)
-        .accept(MediaType.APPLICATION_JSON)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(fireStationArgument)))
-
-        .andExpect(status().isBadRequest()).andDo(print()).andReturn();
-
-    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
-
-    assertThat(result.getResolvedException().getMessage())
-        .isEqualTo("fireStation in body request doesn't match with a existed fireStation !"
-            + " Check fields are correctly entered");
-
-  }
 
   @Test
-  @Order(13)
+  @Order(14)
   void deleteMappingFireStation_withValidNumberStation_thenReturn200() throws Exception {
 
     //given
@@ -479,62 +593,65 @@ class FireStationRestContollerTest {
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
 
-    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-
     // when & then
     mockMvc.perform(delete("/firestation/station/{numberStation}", 1))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(3)))
-        .andExpect(jsonPath("$.idFireStation", is(1)))
-        .andExpect(jsonPath("$.addresses.length()", is(0)))
-        .andExpect(jsonPath("$.numberStation", is(1))).andDo(print());
+        .andExpect(jsonPath("$",
+            is("FireStation with NumberStation:1 was deleted!")));
 
-    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
-    assertThat(fireStationCaptor.getValue().getAddresses()).isEmpty();
-    assertThat(fireStationCaptor.getValue().getIdFireStation()).isEqualTo(1L);
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(1)).deleteFireStation(fireStationCaptor.capture());
+    assertThat(fireStationCaptor.getValue().getAddresses()).isEqualTo(addresses1);
+    assertThat(fireStationCaptor.getValue().getIdFireStation()).isNotNull();
     assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
-
-  }
-
-  @Test
-  @Order(14)
-  void deleteMappingFireStation_withNoValidNumberStation_thenReturn400()
-      throws Exception {
-
-    //given
-
-    // when & then
-    mockMvc.perform(delete("/firestation/station/{numberStation}", "abcdef"))
-        .andExpect(status().isBadRequest()).andDo(print());
-
-    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
 
   }
 
   @Test
   @Order(15)
-  void deleteAddressfromFireStation_withValidAddress_thenReturn200() throws Exception {
+  void deleteMappingFireStation_withNoFoundNumberStation_thenReturn404()
+      throws Exception {
 
-    //Given
-    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
-        .thenReturn(Arrays.asList(fireStationTest1));
+    //given
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
 
     // when & then
-    mockMvc.perform(delete("/firestation/address/{address}", "26 av maréchal Foch"))
-        .andExpect(status().isOk()).andDo(print()).andReturn();
+    MvcResult result =
+        mockMvc.perform(delete("/firestation/station/{numberStation}", 1))
+            .andExpect(status().isNotFound()).andDo(print()).andReturn();
 
-    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
-    assertThat(fireStationCaptor.getValue().getIdFireStation()).isEqualTo(1L);
-    assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
-    assertThat(fireStationCaptor.getValue().getAddresses())
-        .doesNotContain("26 av maréchal Foch");
+    verify(fireStationService, never()).deleteFireStation(Mockito.any(FireStation.class));
+    assertThat(result.getResolvedException()).isInstanceOf(FireStationNotFoundException.class);
+    assertThat(result.getResolvedException().getMessage())
+        .isEqualTo("FireStation with NumberStation:1 was not found");
 
   }
 
   @Test
   @Order(16)
+  void deleteAddressfromFireStation_withValidAddress_thenReturn200() throws Exception {
+
+    //Given
+    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+        .thenReturn(Arrays.asList(fireStationTest1));
+
+    // when & then
+    mockMvc.perform(delete("/firestation/address/{address}", "26 av maréchal Foch"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$",
+            is("FireStation with numberStations = {[1]} mapped to address was deleted")));
+
+    ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
+    verify(fireStationService, times(1)).deleteFireStation(fireStationCaptor.capture());
+    assertThat(fireStationCaptor.getValue().getAddresses()).isEqualTo(addresses1);
+    assertThat(fireStationCaptor.getValue().getIdFireStation()).isNotNull();
+    assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
+
+  }
+
+  @Test
+  @Order(17)
   void deleteAddressfromFireStation_withNotFoundAddress_thenReturn404() throws Exception {
 
     //given
@@ -545,8 +662,8 @@ class FireStationRestContollerTest {
     MvcResult result = mockMvc.perform(delete("/firestation/address/{address}", "testAddress"))
         .andExpect(status().isNotFound()).andReturn();
 
-    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
-
+    verify(fireStationService, never()).deleteFireStation(Mockito.any(FireStation.class));
+    assertThat(result.getResolvedException()).isInstanceOf(AddressNotFoundException.class);
     assertThat(result.getResolvedException().getMessage())
         .isEqualTo("There is no FireStation mapped with this address:testAddress");
 
@@ -554,8 +671,7 @@ class FireStationRestContollerTest {
 
   @ParameterizedTest
   @NullAndEmptySource
-  //@ValueSource(strings = {" "})
-  @Order(17)
+  @Order(18)
   void deleteAddressfromFireStation_withNoValidAddress_thenReturn400(String address)
       throws Exception {
 
@@ -563,7 +679,7 @@ class FireStationRestContollerTest {
     mockMvc.perform(delete("/firestation/address/{address}", address))
         .andExpect(status().isBadRequest()).andDo(print());
 
-    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
+    verify(fireStationService, never()).deleteFireStation(Mockito.any(FireStation.class));
 
   }
 

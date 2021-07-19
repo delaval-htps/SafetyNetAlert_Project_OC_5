@@ -63,14 +63,15 @@ public class FireStation implements Serializable {
 
 
   @ManyToMany(fetch = FetchType.LAZY,
-              cascade = {CascadeType.REFRESH,
-                         CascadeType.DETACH,
+              cascade = {CascadeType.DETACH,
                          CascadeType.MERGE,
-                         CascadeType.PERSIST})
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH})
   @JoinTable(
              name = "person_firestation",
              joinColumns = @JoinColumn(name = "idFireStation"),
              inverseJoinColumns = @JoinColumn(name = "idPerson"))
+
   @JsonIgnore
   private Set<Person> persons = new HashSet<>();
 
@@ -82,7 +83,7 @@ public class FireStation implements Serializable {
    */
   public void addPerson(Person person) {
 
-    persons.add(person);
+    this.persons.add(person);
 
   }
 
@@ -94,7 +95,7 @@ public class FireStation implements Serializable {
    */
   public void removePerson(Person person) {
 
-    persons.remove(person);
+    this.persons.remove(person);
 
   }
 
@@ -106,7 +107,7 @@ public class FireStation implements Serializable {
    */
   public void addAddress(String address) {
 
-    addresses.add(address);
+    this.addresses.add(address);
 
   }
 

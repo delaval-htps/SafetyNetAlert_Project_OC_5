@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -59,7 +59,6 @@ class PersonServiceIT {
     //Given
     Long id = 1L;
     //When
-    //Optional<Person> personWithId = personRepository.findById(id);
     Optional<Person> personWithId = classUnderTest.getPersonById(id);
 
     //then
@@ -72,10 +71,11 @@ class PersonServiceIT {
     assertThat(personWithId.get().getPhone()).isEqualTo("841-874-6512");
     assertThat(personWithId.get().getEmail()).isEqualTo("jaboyd@email.com");
     assertThat(personWithId.get().getMedicalRecord()).isNotNull();
+    //    assertThat(personWithId.get().getMedicalRecord().getMedications()).hasSize(2)
+    //        .extracting(Medication::getDesignation)
+    //        .containsExactlyInAnyOrder("aznol", "hydrapermazol");
     assertThat(personWithId.get().getFireStations()).isNotNull();
 
-    // cause of lazy Fetch we can't check medications and allergies
-    //they are not retrieved with this query
   }
 
   @Test
@@ -205,6 +205,9 @@ class PersonServiceIT {
 
     //given
     Long idPerson = 1L;
+    List<String> addresses = new ArrayList<>();
+    addresses.add("1509 Culver St");
+    addresses.add("1509 Av marechal foch");
 
     //when
     Optional<Person> person = classUnderTest.getPersonJoinFireStationById(idPerson);
@@ -221,9 +224,10 @@ class PersonServiceIT {
     assertThat(firstPerson.getEmail()).isEqualTo("jaboyd@email.com");
     assertThat(firstPerson.getMedicalRecord()).isNotNull();
     assertThat(firstPerson.getFireStations()).isNotNull();
-    firstPerson.getFireStations().forEach(idFireStation -> {
+    firstPerson.getFireStations().forEach(fireStation -> {
 
-      assertThat(idFireStation).isNotNull();
+      assertThat(fireStation.getAddresses()).hasSize(2).containsAnyElementsOf(addresses);
+      assertThat(fireStation.getIdFireStation()).isNotNull();
     });
 
   }
@@ -245,7 +249,7 @@ class PersonServiceIT {
 
 
   @Test
-  @Order(9)
+  @Order(10)
   void savePerson_whenExistedPerson() {
 
     //given
@@ -273,7 +277,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void savePerson_whenNullPerson() {
 
     //given
@@ -292,7 +296,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(11)
+  @Order(12)
   void deletePerson_whenExistedPerson() {
 
     //given
@@ -307,7 +311,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(12)
+  @Order(13)
   void deletePerson_whenNullPerson() {
 
     //given
@@ -328,7 +332,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(13)
+  @Order(14)
   void getPersonsMappedWithFireStation_whenExistedFireStation() {
 
     //Given
@@ -374,41 +378,6 @@ class PersonServiceIT {
 
   }
 
-  //  @Test
-  //  @Order(14)
-  //  void getPersonsMappedWithFireStation_whenOnePersonWithoutMedicalRecord() {
-  //
-  //    //Given
-  //    Map<String, Object> map = new LinkedHashMap<>();
-  //    int existedNumberStation = 2;
-  //
-  //    //When
-  //    map = classUnderTest.getPersonsMappedWithFireStation(existedNumberStation);
-  //
-  //    //Then
-  //
-  //    assertThat(map.get("AdultCount")).isEqualTo(1);
-  //    assertThat(map.get("ChildrenCount")).isEqualTo(0);
-  //    assertThat(map.get("BirthDateNotSpecified")).isEqualTo(1);
-  //    assertThat(map.get("persons")).asList().size().isEqualTo(2);
-  //    assertThat(map.get("persons")).asList().element(0)
-  //        .hasFieldOrPropertyWithValue("lastName", "Marrack");
-  //    assertThat(map.get("persons")).asList().element(0)
-  //        .hasFieldOrPropertyWithValue("firstName", "Jonanathan");
-  //    assertThat(map.get("persons")).asList().element(0)
-  //        .hasFieldOrPropertyWithValue("address", "29 15th St");
-  //    assertThat(map.get("persons")).asList().element(0)
-  //        .hasFieldOrPropertyWithValue("phone", "841-874-6513");
-  //    assertThat(map.get("persons")).asList().element(1)
-  //        .hasFieldOrPropertyWithValue("lastName", "Marrack");
-  //    assertThat(map.get("persons")).asList().element(1)
-  //        .hasFieldOrPropertyWithValue("firstName", "Jonathan");
-  //    assertThat(map.get("persons")).asList().element(1)
-  //        .hasFieldOrPropertyWithValue("address", "29 15th St");
-  //    assertThat(map.get("persons")).asList().element(1)
-  //        .hasFieldOrPropertyWithValue("phone", "841-874-6513");
-  //
-  //  }
 
   @Test
   @Order(15)
@@ -434,10 +403,10 @@ class PersonServiceIT {
 
     //Given
     Map<String, Object> map = new LinkedHashMap<>();
-    int noExistedNumberStation = 4;
+    int existedStationWithoutPersons = 4;
 
     //When
-    map = classUnderTest.getPersonsMappedWithFireStation(noExistedNumberStation);
+    map = classUnderTest.getPersonsMappedWithFireStation(existedStationWithoutPersons);
 
     //then
     assertThat(map.get("AdultCount")).isEqualTo(0);
@@ -491,9 +460,11 @@ class PersonServiceIT {
     List<Person> others = map.get("otherMembers");
     assertThat(children).size().isEqualTo(0);
     assertThat(others).size().isEqualTo(2);
-    assertThat(others.get(0).getLastName()).isEqualTo("Marrack Jonanathan");
+    assertThat(others.get(0).getLastName()).isEqualTo("Marrack");
+    assertThat(others.get(0).getFirstName()).isEqualTo("Jonanathan");
     assertThat(others.get(0).getBirthDate()).isNotNull();
-    assertThat(others.get(1).getLastName()).isEqualTo("Marrack Jonathan");
+    assertThat(others.get(1).getLastName()).isEqualTo("Marrack");
+    assertThat(others.get(1).getFirstName()).isEqualTo("Jonathan");
     assertThat(others.get(1).getBirthDate()).isNull();
 
   }
@@ -516,8 +487,7 @@ class PersonServiceIT {
 
   @Test
   @Order(20)
-  @Transactional
-  void getPersonsWhenFireMappedByAddress_whenExistedAddress() {
+  void getPersonsWhenFireMappedByAddress_whenExistedAddressWithoutMedicalRecord() {
 
     //Given
     List<Person> result;
@@ -530,18 +500,18 @@ class PersonServiceIT {
     // Age and MedicalRecord are not specified and not yet created
     //  for this person because he has no medicalRecord
     assertThat(result).size().isEqualTo(1);
-    assertThat(result.get(0).getLastName()).isEqualTo("Delaval Dorian");
+    assertThat(result.get(0).getLastName()).isEqualTo("Delaval");
+    assertThat(result.get(0).getFirstName()).isEqualTo("Dorian");
     assertThat(result.get(0).getBirthDate()).isNull();
     assertThat(result.get(0).getPhone()).isEqualTo("061-846-0160");
-    assertThat(result.get(0).getFireStations().size()).isEqualTo("3");
-    assertThat(result.get(0).getMedicalRecord()).isEqualTo("not yet created");
+    assertThat(result.get(0).getFireStations().size()).isEqualTo(1);
+    assertThat(result.get(0).getMedicalRecord()).isNull();
 
   }
 
   @Test
-  @Order(20)
-  @Transactional
-  void getPersonsWhenFireMappedByAddress_whenExistedAddressWithMedicalRecord() {
+  @Order(21)
+  void getPersonsWhenFireMappedByAddress_whenExistedAddressAndMedicalRecord() {
 
     //Given
     List<Person> result;
@@ -554,16 +524,25 @@ class PersonServiceIT {
     // Age and MedicalRecord are not specified and not yet created
     //  for this person because he has no medicalRecord
     assertThat(result).size().isEqualTo(2);
-    assertThat(result.get(1).getLastName()).isEqualTo("Marrack Jonanathan");
+    assertThat(result.get(0).getLastName()).isEqualTo("Marrack");
+    assertThat(result.get(0).getFirstName()).isEqualTo("Jonathan");
+    assertThat(result.get(0).getBirthDate()).isNull();
+    assertThat(result.get(0).getPhone()).isEqualTo("841-874-6513");
+    assertThat(result.get(0).getFireStations().size()).isEqualTo(1);
+    assertThat(result.get(0).getMedicalRecord()).isNull();
+    assertThat(result.get(1).getLastName()).isEqualTo("Marrack");
+    assertThat(result.get(1).getFirstName()).isEqualTo("Jonanathan");
     assertThat(result.get(1).getBirthDate()).isNotNull();
     assertThat(result.get(1).getPhone()).isEqualTo("841-874-6513");
-    assertThat(result.get(1).getFireStations().size()).isEqualTo("2");
-    //assertThat(result.get(1).getMedicalRecord()).isNotBlank();
+    assertThat(result.get(1).getFireStations().size()).isEqualTo(1);
+    assertThat(result.get(1).getMedicalRecord()).isNotNull();
+    assertThat(result.get(1).getMedicalRecord().getMedications()).hasSize(0);
+    assertThat(result.get(1).getMedicalRecord().getAllergies()).hasSize(0);
 
   }
 
   @Test
-  @Order(21)
+  @Order(22)
   void getPersonsWhenFireMappedByAddress_whenNoExistedAddress() {
 
     //Given
@@ -581,8 +560,6 @@ class PersonServiceIT {
 
   @Test
   @Order(22)
-  @Transactional
-
   void getPersonsWhenFloodByStation() {
 
     //Given
@@ -591,70 +568,102 @@ class PersonServiceIT {
 
     //When
     result = classUnderTest.getPersonsWhenFloodByStations(numberStations);
-    System.out.println("\n resultDTO = " + result);
     //Then
 
     assertThat(result).size().isEqualTo(3);
     assertThat(result.keySet())
         .containsExactlyInAnyOrder("1509 Culver St", "1509 Av marechal foch", "29 15th St");
-    assertThat(result.get("1509 Culver St")).asList().size().isEqualTo(5);
-    assertThat(result.get("1509 Av marechal foch")).asList().size().isEqualTo(1);
-    assertThat(result.get("29 15th St")).asList().size().isEqualTo(2);
-    // lazy initialisation exception pour medications & allergies
-    // meme en rajoutant @transactional
+    assertThat(result.get("1509 Culver St")).hasSize(5);
+    assertThat(result.get("1509 Av marechal foch")).hasSize(1);
+    assertThat(result.get("29 15th St")).hasSize(2);
 
     List<Person> persons = result.get("1509 Culver St");
 
     assertThat(persons.get(0).getLastName()).isEqualTo("Boyd");
     assertThat(persons.get(0).getFirstName()).isEqualTo("John");
-    assertThat(persons.get(0).getBirthDate()).isEqualTo("03/06/1984");
+    assertThat(persons.get(0).getBirthDate()).isNotNull();
     assertThat(persons.get(0).getPhone()).isEqualTo("841-874-6512");
     assertThat(persons.get(0).getMedicalRecord().getMedications()).isNotEmpty();
-    assertThat(persons.get(0).getMedicalRecord().getMedications().size()).isEqualTo(2);
-    assertThat(persons.get(3).getLastName()).isEqualTo("Boyd");
-    assertThat(persons.get(3).getFirstName()).isEqualTo("Jacob");
-    assertThat(persons.get(3).getBirthDate()).isNotNull();
-    assertThat(persons.get(3).getPhone()).isEqualTo("841-874-6513");
-    assertThat(persons.get(1).getLastName()).isEqualTo("Boyd");
-    assertThat(persons.get(1).getFirstName()).isEqualTo("Tenley");
-
+    assertThat(persons.get(0).getMedicalRecord().getMedications()).hasSize(2)
+        .extracting("IdMedication").isNotNull();
+    assertThat(persons.get(0).getMedicalRecord().getMedications()).hasSize(2)
+        .extracting("designation").containsExactlyInAnyOrder("aznol", "hydrapermazol");
+    assertThat(persons.get(0).getMedicalRecord().getMedications()).hasSize(2)
+        .extracting("posology").containsExactlyInAnyOrder("350mg", "100mg");
+    assertThat(persons.get(0).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("IdAllergy").isNotNull();
+    assertThat(persons.get(0).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("designation").containsExactlyInAnyOrder("nillacilan");
+    assertThat(persons.get(1).getFirstName()).isEqualTo("Felicia");
     assertThat(persons.get(1).getBirthDate()).isNotNull();
-    assertThat(persons.get(1).getPhone()).isEqualTo("841-874-6512");
+    assertThat(persons.get(1).getPhone()).isEqualTo("841-874-6544");
+    assertThat(persons.get(1).getMedicalRecord().getMedications()).isNotEmpty();
+    assertThat(persons.get(1).getMedicalRecord().getMedications()).hasSize(1)
+        .extracting("IdMedication").isNotNull();
+    assertThat(persons.get(1).getMedicalRecord().getMedications()).hasSize(1)
+        .extracting("designation").containsExactlyInAnyOrder("tetracyclaz");
+    assertThat(persons.get(1).getMedicalRecord().getMedications()).hasSize(1)
+        .extracting("posology").containsExactlyInAnyOrder("650mg");
+    assertThat(persons.get(1).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("IdAllergy").isNotNull();
+    assertThat(persons.get(1).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("designation").containsExactlyInAnyOrder("xilliathal");
     assertThat(persons.get(2).getLastName()).isEqualTo("Boyd");
-    assertThat(persons.get(2).getFirstName()).isEqualTo("Roger");
-
+    assertThat(persons.get(2).getFirstName()).isEqualTo("Jacob");
     assertThat(persons.get(2).getBirthDate()).isNotNull();
-    assertThat(persons.get(2).getPhone()).isEqualTo("841-874-6512");
+    assertThat(persons.get(2).getPhone()).isEqualTo("841-874-6513");
+    assertThat(persons.get(2).getMedicalRecord().getMedications()).isNotEmpty();
+    assertThat(persons.get(2).getMedicalRecord().getMedications()).hasSize(3)
+        .extracting("IdMedication").isNotNull();
+    assertThat(persons.get(2).getMedicalRecord().getMedications()).hasSize(3)
+        .extracting("designation")
+        .containsExactlyInAnyOrder("pharmacol", "terazine", "noznazol");
+    assertThat(persons.get(2).getMedicalRecord().getMedications()).hasSize(3)
+        .extracting("posology").containsExactlyInAnyOrder("250mg", "10mg", "5000mg");
+    assertThat(persons.get(2).getMedicalRecord().getAllergies()).hasSize(0);
+    assertThat(persons.get(3).getLastName()).isEqualTo("Boyd");
+    assertThat(persons.get(3).getFirstName()).isEqualTo("Tenley");
+    assertThat(persons.get(3).getBirthDate()).isNotNull();
+    assertThat(persons.get(3).getMedicalRecord().getMedications()).isEmpty();
+    assertThat(persons.get(3).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("IdAllergy").isNotNull();
+    assertThat(persons.get(3).getMedicalRecord().getAllergies()).hasSize(1)
+        .extracting("designation").containsExactlyInAnyOrder("peanut");
+    assertThat(persons.get(3).getPhone()).isEqualTo("841-874-6512");
     assertThat(persons.get(4).getLastName()).isEqualTo("Boyd");
-    assertThat(persons.get(4).getFirstName()).isEqualTo("Felicia");
-
+    assertThat(persons.get(4).getFirstName()).isEqualTo("Roger");
     assertThat(persons.get(4).getBirthDate()).isNotNull();
-    assertThat(persons.get(4).getPhone()).isEqualTo("841-874-6544");
+    assertThat(persons.get(4).getPhone()).isEqualTo("841-874-6512");
+    assertThat(persons.get(4).getMedicalRecord().getMedications()).isEmpty();
+    assertThat(persons.get(4).getMedicalRecord().getAllergies()).isEmpty();
+    assertThat(persons.get(1).getLastName()).isEqualTo("Boyd");
+
 
     persons = result.get("1509 Av marechal foch");
     assertThat(persons.get(0).getLastName()).isEqualTo("Delaval");
     assertThat(persons.get(0).getFirstName()).isEqualTo("Dorian");
-
-    assertThat(persons.get(0).getBirthDate()).isNotNull();
+    assertThat(persons.get(0).getBirthDate()).isNull();
     assertThat(persons.get(0).getPhone()).isEqualTo("061-846-0160");
+    assertThat(persons.get(0).getMedicalRecord()).isNull();
 
     persons = result.get("29 15th St");
     assertThat(persons.get(0).getLastName()).isEqualTo("Marrack");
     assertThat(persons.get(0).getFirstName()).isEqualTo("Jonathan");
-
-    assertThat(persons.get(0).getBirthDate()).isNotNull();
+    assertThat(persons.get(0).getBirthDate()).isNull();
     assertThat(persons.get(0).getPhone()).isEqualTo("841-874-6513");
+    assertThat(persons.get(0).getMedicalRecord()).isNull();
     assertThat(persons.get(1).getLastName()).isEqualTo("Marrack");
     assertThat(persons.get(1).getFirstName()).isEqualTo("Jonanathan");
     assertThat(persons.get(1).getBirthDate()).isNotNull();
     assertThat(persons.get(1).getPhone()).isEqualTo("841-874-6513");
+    assertThat(persons.get(1).getMedicalRecord()).isNotNull();
+    assertThat(persons.get(1).getMedicalRecord().getMedications()).isEmpty();
+    assertThat(persons.get(1).getMedicalRecord().getAllergies()).isEmpty();
 
   }
 
   @Test
-  @Order(23)
-  @Transactional // obliger de mettre transactional sinon quand je rajoute une autre station ca pete
-  // lazy initialisation
+  @Order(24)
   void getPersonsWhenFloodByStation_whenNobodyMappedWithAddressesStation() {
 
     //Given
@@ -676,17 +685,18 @@ class PersonServiceIT {
     //given
     String lastName = "Boyd";
     String firstName = "John";
-    List<Person> result;
+    Set<Person> result;
 
     //When
     result = classUnderTest.getPersonInfoByNames(firstName, lastName);
 
     //then
-    assertThat(result.get(0).getLastName()).isEqualTo("Boyd John");
-    assertThat(result.get(0).getAddress()).isEqualTo("1509 Culver St");
-    assertThat(result.get(0).getBirthDate()).isNotNull();
-    assertThat(result.get(0).getEmail()).isEqualTo("jaboyd@email.com");
-    assertThat(result.get(0).getMedicalRecord().getMedications()).isNotEmpty();
+    Person firstPerson = result.iterator().next();
+    assertThat(firstPerson.getLastName()).isEqualTo("Boyd");
+    assertThat(firstPerson.getAddress()).isEqualTo("1509 Culver St");
+    assertThat(firstPerson.getBirthDate()).isNotNull();
+    assertThat(firstPerson.getEmail()).isEqualTo("jaboyd@email.com");
+    assertThat(firstPerson.getMedicalRecord().getMedications()).isNotEmpty();
 
   }
 

@@ -17,6 +17,7 @@ import com.safetynet.alert.exceptions.person.PersonNotFoundException;
 import com.safetynet.alert.service.PersonService;
 import java.util.Arrays;
 import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -143,17 +144,22 @@ class EmergencyRestControllerIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
         .andExpect(jsonPath("$.children.length()", is(2)))
-        .andExpect(jsonPath("$.children[0].Name", is("Boyd Roger")))
-        .andExpect(jsonPath("$.children[0].Age", notNullValue()))
-        .andExpect(jsonPath("$.children[1].Name", is("Boyd Tenley")))
-        .andExpect(jsonPath("$.children[1].Age", notNullValue()))
+        .andExpect(jsonPath("$.children[0].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.children[0].firstName", is("Roger")))
+        .andExpect(jsonPath("$.children[0].age", notNullValue()))
+        .andExpect(jsonPath("$.children[1].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.children[1].firstName", is("Tenley")))
+        .andExpect(jsonPath("$.children[1].age", notNullValue()))
         .andExpect(jsonPath("$.otherMembers.length()", is(3)))
-        .andExpect(jsonPath("$.otherMembers[0].Name", is("Boyd Jacob")))
-        .andExpect(jsonPath("$.otherMembers[0].Age", notNullValue()))
-        .andExpect(jsonPath("$.otherMembers[1].Name", is("Boyd Felicia")))
-        .andExpect(jsonPath("$.otherMembers[1].Age", notNullValue()))
-        .andExpect(jsonPath("$.otherMembers[2].Name", is("Boyd John")))
-        .andExpect(jsonPath("$.otherMembers[2].Age", notNullValue()))
+        .andExpect(jsonPath("$.otherMembers[0].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.otherMembers[0].firstName", is("Jacob")))
+        .andExpect(jsonPath("$.otherMembers[0].age", notNullValue()))
+        .andExpect(jsonPath("$.otherMembers[1].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.otherMembers[1].firstName", is("Felicia")))
+        .andExpect(jsonPath("$.otherMembers[1].age", notNullValue()))
+        .andExpect(jsonPath("$.otherMembers[2].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.otherMembers[2].firstName", is("John")))
+        .andExpect(jsonPath("$.otherMembers[2].age", notNullValue()))
         .andDo(print());
 
 
@@ -217,39 +223,37 @@ class EmergencyRestControllerIT {
     mockMvc.perform(get("/fire").param("address", "1509 Culver St"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(5)))
-        .andExpect(jsonPath("$[0].lastName", is("Boyd John")))
+        .andExpect(jsonPath("$[0].lastName", is("Boyd")))
         .andExpect(jsonPath("$[0].phone", is("841-874-6512")))
         .andExpect(jsonPath("$[0].age", notNullValue()))
         .andExpect(jsonPath("$[0].medications.length()", is(2)))
-        .andExpect(jsonPath("$[0].medications[0].designation", is("aznol")))
-        .andExpect(jsonPath("$[0].medications[0].posology", is("350mg")))
-        .andExpect(jsonPath("$[0].medications[1].designation", is("hydrapermazol")))
-        .andExpect(jsonPath("$[0].medications[1].posology", is("100mg")))
+        .andExpect(jsonPath("$[0].medications[*].designation",
+            Matchers.containsInAnyOrder("aznol", "hydrapermazol")))
+        .andExpect(jsonPath("$[0].medications[*].posology",
+            Matchers.containsInAnyOrder("350mg", "100mg")))
         .andExpect(jsonPath("$[0].allergies.length()", is(1)))
         .andExpect(jsonPath("$[0].allergies[0].designation", is("nillacilan")))
-        .andExpect(jsonPath("$[1].lastName", is("Boyd Tenley")))
+        .andExpect(jsonPath("$[1].lastName", is("Boyd")))
         .andExpect(jsonPath("$[1].phone", is("841-874-6512")))
         .andExpect(jsonPath("$[1].age", notNullValue()))
         .andExpect(jsonPath("$[1].medications.length()", is(0)))
         .andExpect(jsonPath("$[1].allergies.length()", is(1)))
         .andExpect(jsonPath("$[1].allergies[0].designation", is("peanut")))
-        .andExpect(jsonPath("$[2].lastName", is("Boyd Roger")))
+        .andExpect(jsonPath("$[2].lastName", is("Boyd")))
         .andExpect(jsonPath("$[2].phone", is("841-874-6512")))
         .andExpect(jsonPath("$[2].age", notNullValue()))
         .andExpect(jsonPath("$[2].medications.length()", is(0)))
         .andExpect(jsonPath("$[2].allergies.length()", is(0)))
-        .andExpect(jsonPath("$[3].lastName", is("Boyd Jacob")))
+        .andExpect(jsonPath("$[3].lastName", is("Boyd")))
         .andExpect(jsonPath("$[3].phone", is("841-874-6513")))
         .andExpect(jsonPath("$[3].age", notNullValue()))
         .andExpect(jsonPath("$[3].medications.length()", is(3)))
-        .andExpect(jsonPath("$[3].medications[0].designation", is("pharmacol")))
-        .andExpect(jsonPath("$[3].medications[0].posology", is("5000mg")))
-        .andExpect(jsonPath("$[3].medications[1].designation", is("terazine")))
-        .andExpect(jsonPath("$[3].medications[1].posology", is("10mg")))
-        .andExpect(jsonPath("$[3].medications[2].designation", is("noznazol")))
-        .andExpect(jsonPath("$[3].medications[2].posology", is("250mg")))
+        .andExpect(jsonPath("$[3].medications[*].designation",
+            Matchers.containsInAnyOrder("pharmacol", "terazine", "noznazol")))
+        .andExpect(jsonPath("$[3].medications[*].posology",
+            Matchers.containsInAnyOrder("5000mg", "10mg", "250mg")))
         .andExpect(jsonPath("$[3].allergies.length()", is(0)))
-        .andExpect(jsonPath("$[4].lastlastName", is("Boyd Felicia")))
+        .andExpect(jsonPath("$[4].lastName", is("Boyd")))
         .andExpect(jsonPath("$[4].phone", is("841-874-6544")))
         .andExpect(jsonPath("$[4].age", notNullValue()))
         .andExpect(jsonPath("$[4].medications.length()", is(1)))
@@ -285,7 +289,7 @@ class EmergencyRestControllerIT {
   void getPersonsWhenFlood_whenAllExistedStations_thenReturn200() throws Exception {
 
     //Given
-    List<String> values = Arrays.asList("3", "2");
+    List<String> values = Arrays.asList("3");
 
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.addAll("stations", values);
@@ -293,70 +297,55 @@ class EmergencyRestControllerIT {
     //When& then
     mockMvc.perform(get("/flood/stations").params(params))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(3)))
-        .andExpect(jsonPath("$.['1509 Av marechal foch'][0].lastlastName", is("Delaval")))
+        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$.['1509 Av marechal foch'][0].lastName", is("Delaval")))
         .andExpect(jsonPath("$.['1509 Av marechal foch'][0].phone", is("061-846-0160")))
         .andExpect(jsonPath("$.['1509 Av marechal foch'][0].age", is("not specified")))
         .andExpect(
-            jsonPath("$.['1509 Av marechal foch'][0].medicalRecord", is("not yet created")))
+            jsonPath("$.['1509 Av marechal foch'][0].status_MedicalRecord",
+                is("not yet created")))
 
         .andExpect(jsonPath("$.['1509 Culver St'][0].lastName", is("Boyd")))
         .andExpect(jsonPath("$.['1509 Culver St'][0].phone", is("841-874-6512")))
         .andExpect(jsonPath("$.['1509 Culver St'][0].age", notNullValue()))
         .andExpect(jsonPath("$.['1509 Culver St'][0].medications.length()", is(2)))
-        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[0].designation", is("aznol")))
-        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[0].posology", is("350mg")))
-        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[1].designation",
-            is("hydrapermazol")))
-        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[1].posology", is("100mg")))
+        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[*].designation",
+            Matchers.containsInAnyOrder("aznol", "hydrapermazol")))
+        .andExpect(jsonPath("$.['1509 Culver St'][0].medications[*].posology",
+            Matchers.containsInAnyOrder("350mg", "100mg")))
         .andExpect(jsonPath("$.['1509 Culver St'][0].allergies.length()", is(1)))
         .andExpect(
             jsonPath("$.['1509 Culver St'][0].allergies[0].designation", is("nillacilan")))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].lastName", is("Boyd")))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].phone", is("841-874-6512")))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].age", notNullValue()))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].medications.length()", is(0)))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].allergies.length()", is(1)))
-        .andExpect(jsonPath("$.['1509 Culver St'][1].allergies[0].designation", is("peanut")))
-        .andExpect(jsonPath("$.['1509 Culver St'][2].lastName", is("Boyd")))
-        .andExpect(jsonPath("$.['1509 Culver St'][2].phone", is("841-874-6512")))
-        .andExpect(jsonPath("$.['1509 Culver St'][2].age", notNullValue()))
-        .andExpect(jsonPath("$.['1509 Culver St'][2].medications.length()", is(0)))
-        .andExpect(jsonPath("$.['1509 Culver St'][2].allergies.length()", is(0)))
         .andExpect(jsonPath("$.['1509 Culver St'][3].lastName", is("Boyd")))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].phone", is("841-874-6513")))
+        .andExpect(jsonPath("$.['1509 Culver St'][3].phone", is("841-874-6512")))
         .andExpect(jsonPath("$.['1509 Culver St'][3].age", notNullValue()))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].medications.length()", is(3)))
-        .andExpect(
-            jsonPath("$.['1509 Culver St'][3].medications[0].designation", is("pharmacol")))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].medications[0].posology", is("5000mg")))
-        .andExpect(
-            jsonPath("$.['1509 Culver St'][3].medications[1].designation", is("terazine")))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].medications[1].posology", is("10mg")))
-        .andExpect(
-            jsonPath("$.['1509 Culver St'][3].medications[2].designation", is("noznazol")))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].medications[2].posology", is("250mg")))
-        .andExpect(jsonPath("$.['1509 Culver St'][3].allergies.length()", is(0)))
+        .andExpect(jsonPath("$.['1509 Culver St'][3].medications.length()", is(0)))
+        .andExpect(jsonPath("$.['1509 Culver St'][3].allergies.length()", is(1)))
+        .andExpect(jsonPath("$.['1509 Culver St'][3].allergies[0].designation", is("peanut")))
         .andExpect(jsonPath("$.['1509 Culver St'][4].lastName", is("Boyd")))
-        .andExpect(jsonPath("$.['1509 Culver St'][4].phone", is("841-874-6544")))
+        .andExpect(jsonPath("$.['1509 Culver St'][4].phone", is("841-874-6512")))
         .andExpect(jsonPath("$.['1509 Culver St'][4].age", notNullValue()))
-        .andExpect(jsonPath("$.['1509 Culver St'][4].medications.length()", is(1)))
+        .andExpect(jsonPath("$.['1509 Culver St'][4].medications.length()", is(0)))
+        .andExpect(jsonPath("$.['1509 Culver St'][4].allergies.length()", is(0)))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].phone", is("841-874-6513")))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].age", notNullValue()))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].medications.length()", is(3)))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].medications[*].designation",
+            Matchers.containsInAnyOrder("pharmacol", "terazine", "noznazol")))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].medications[*].posology",
+            Matchers.containsInAnyOrder("5000mg", "10mg", "250mg")))
+        .andExpect(jsonPath("$.['1509 Culver St'][2].allergies.length()", is(0)))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].lastName", is("Boyd")))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].phone", is("841-874-6544")))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].age", notNullValue()))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].medications.length()", is(1)))
         .andExpect(
-            jsonPath("$.['1509 Culver St'][4].medications[0].designation", is("tetracyclaz")))
-        .andExpect(jsonPath("$.['1509 Culver St'][4].medications[0].posology", is("650mg")))
-        .andExpect(jsonPath("$.['1509 Culver St'][4].allergies.length()", is(1)))
+            jsonPath("$.['1509 Culver St'][1].medications[0].designation", is("tetracyclaz")))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].medications[0].posology", is("650mg")))
+        .andExpect(jsonPath("$.['1509 Culver St'][1].allergies.length()", is(1)))
         .andExpect(
-            jsonPath("$.['1509 Culver St'][4].allergies[0].designation", is("xilliathal")))
-
-        .andExpect(jsonPath("$.['29 15th St'][0].lastName", is("Marrack")))
-        .andExpect(jsonPath("$.['29 15th St'][0].phone", is("841-874-6513")))
-        .andExpect(jsonPath("$.['29 15th St'][0].age", is("not specified")))
-        .andExpect(jsonPath("$.['29 15th St'][0].medicalRecord", is("not yet created")))
-        .andExpect(jsonPath("$.['29 15th St'][1].lastName", is("Marrack")))
-        .andExpect(jsonPath("$.['29 15th St'][1].phone", is("841-874-6513")))
-        .andExpect(jsonPath("$.['29 15th St'][1].age", notNullValue()))
-        .andExpect(jsonPath("$.['29 15th St'][1].medications.length()", is(0)))
-        .andExpect(jsonPath("$.['29 15th St'][1].allergies.length()", is(0)))
+            jsonPath("$.['1509 Culver St'][1].allergies[0].designation", is("xilliathal")))
         .andDo(print());
 
   }
@@ -367,7 +356,7 @@ class EmergencyRestControllerIT {
   void getPersonsWhenFlood_whenNoExistedStationInList_thenReturn404() throws Exception {
 
     //Given
-    List<String> values = Arrays.asList("3", "18");
+    List<String> values = Arrays.asList("3", "5");
 
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.addAll("stations", values);
@@ -380,7 +369,7 @@ class EmergencyRestControllerIT {
     assertThat(mvcResult.getResolvedException())
         .isInstanceOf(FireStationNotFoundException.class);
     assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo(
-        "the Firestation with numberStation: 18 was not found."
+        "the Firestation with numberStation: 5 was not found."
             + "Please replace it by existed FireStation");
 
   }
@@ -402,7 +391,7 @@ class EmergencyRestControllerIT {
         .andExpect(jsonPath("$.['29 15th St'][0].lastName", is("Marrack")))
         .andExpect(jsonPath("$.['29 15th St'][0].phone", is("841-874-6513")))
         .andExpect(jsonPath("$.['29 15th St'][0].age", is("not specified")))
-        .andExpect(jsonPath("$.['29 15th St'][0].medicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$.['29 15th St'][0].status_MedicalRecord", is("not yet created")))
         .andDo(print());
 
   }
@@ -412,22 +401,26 @@ class EmergencyRestControllerIT {
   void getPersonInfo_whenExistedPerson_thenReturn200() throws Exception {
 
     //given
-    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("firstName", "John");
-    map.add("lastName", "Boyd");
+    //    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    //    map.add("firstName", "John");
+    //    map.add("lastName", "Boyd");
+
+    String firstName = "John";
+    String lastName = "Boyd";
     //when & Then
-    mockMvc.perform(get("/personInfo").params(map)).andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
+    mockMvc
+        .perform(get("/personInfo").param("lastName", lastName).param("firstName", firstName))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()", is(5)))
         .andExpect(jsonPath("$[0].lastName", is("Boyd")))
         .andExpect(jsonPath("$[0].address", is("1509 Culver St")))
         .andExpect(jsonPath("$[0].age", notNullValue()))
         .andExpect(jsonPath("$[0].email", is("jaboyd@email.com")))
         .andExpect(jsonPath("$[0].medications.length()", is(2)))
-        .andExpect(jsonPath("$[0].medications[0].designation", is("aznol")))
-        .andExpect(jsonPath("$[0].medications[0].posology", is("350mg")))
-        .andExpect(jsonPath("$[0].medications[1].designation",
-            is("hydrapermazol")))
-        .andExpect(jsonPath("$[0].medications[1].posology", is("100mg")))
+        .andExpect(jsonPath("$[0].medications[*].designation",
+            Matchers.containsInAnyOrder("aznol", "hydrapermazol")))
+        .andExpect(jsonPath("$[0].medications[*].posology",
+            Matchers.containsInAnyOrder("350mg", "100mg")))
         .andExpect(jsonPath("$[0].allergies.length()", is(1)))
         .andExpect(
             jsonPath("$[0].allergies[0].designation", is("nillacilan")))
@@ -442,8 +435,9 @@ class EmergencyRestControllerIT {
     //Given
 
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("firstName", "Emilie");
+
     map.add("lastName", "Baudouin");
+    map.add("firstName", "Emilie");
 
     //When & then
 

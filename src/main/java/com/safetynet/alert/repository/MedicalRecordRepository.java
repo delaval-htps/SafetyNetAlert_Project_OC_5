@@ -17,17 +17,28 @@ import org.springframework.stereotype.Repository;
 public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Long> {
 
   @Query("select mr from MedicalRecord as mr "
-      + "join fetch mr.person as p "
-      + "join fetch mr.medications m "
-      + "join fetch mr.allergies a "
-      + "where mr.idMedicalRecord=?1")
+      + " left join fetch mr.person as p "
+      + " left join fetch p.fireStations"
+      + " left join fetch mr.medications m "
+      + " left join fetch mr.allergies a "
+      + " where mr.idMedicalRecord=?1"
+      + " order by m.idMedication,a.idAllergy asc")
   Optional<MedicalRecord> getOneJoinAllOtherById(long l);
 
   @Query("select mr from MedicalRecord as mr "
-      + "join fetch mr.person as p "
-      + "where p.lastName=?1 and p.firstName=?2")
+      + " join fetch mr.person as p "
+      + " left join fetch mr.medications m"
+      + " left join fetch mr.allergies a"
+      + " where p.lastName=?1 and p.firstName=?2")
   Optional<MedicalRecord> getOneByNames(@Valid String lastName, @Valid String firstName);
 
+  @Query("select distinct mr"
+      + " from MedicalRecord as mr "
+      + " left join mr.person as p "
+      + " left join fetch mr.medications m"
+      + " left join fetch mr.allergies a"
+      + " order by mr.idMedicalRecord,m.idMedication, a.idAllergy asc")
+  Iterable<MedicalRecord> findAllFetchAll();
 
 
 }
