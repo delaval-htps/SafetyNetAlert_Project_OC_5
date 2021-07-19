@@ -249,7 +249,7 @@ class PersonServiceIT {
 
 
   @Test
-  @Order(9)
+  @Order(10)
   void savePerson_whenExistedPerson() {
 
     //given
@@ -277,7 +277,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   void savePerson_whenNullPerson() {
 
     //given
@@ -296,7 +296,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(11)
+  @Order(12)
   void deletePerson_whenExistedPerson() {
 
     //given
@@ -311,7 +311,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(12)
+  @Order(13)
   void deletePerson_whenNullPerson() {
 
     //given
@@ -332,7 +332,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(13)
+  @Order(14)
   void getPersonsMappedWithFireStation_whenExistedFireStation() {
 
     //Given
@@ -510,7 +510,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(20)
+  @Order(21)
   void getPersonsWhenFireMappedByAddress_whenExistedAddressAndMedicalRecord() {
 
     //Given
@@ -542,7 +542,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(21)
+  @Order(22)
   void getPersonsWhenFireMappedByAddress_whenNoExistedAddress() {
 
     //Given
@@ -663,7 +663,7 @@ class PersonServiceIT {
   }
 
   @Test
-  @Order(23)
+  @Order(24)
   void getPersonsWhenFloodByStation_whenNobodyMappedWithAddressesStation() {
 
     //Given
