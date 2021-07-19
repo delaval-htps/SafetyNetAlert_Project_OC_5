@@ -149,7 +149,7 @@ public class Person {
 
   public void addFireStations(List<FireStation> fireStations) {
 
-    if (!fireStations.isEmpty() && fireStations != null) {
+    if (!fireStations.isEmpty()) {
 
       this.fireStations.addAll(fireStations);
     }
