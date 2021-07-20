@@ -8,6 +8,8 @@ import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  *
  */
 @RestController
+@Api(description = "API to Manage FireStations")
 @RequestMapping("/")
 @Log4j2
 public class FireStationRestController {
@@ -49,7 +52,10 @@ public class FireStationRestController {
    *
    * @return    a collection of all FireStations
    */
-  @GetMapping("/firestation")
+  @GetMapping(value = "/firestation", produces = "application/json")
+  @ApiOperation(value = "Get all Firestations",
+                notes = "Retrieve all fireStations",
+                response = FireStation.class)
   public Iterable<FireStation> getFireStations() {
 
     return fireStationService.getFireStations();
@@ -67,7 +73,10 @@ public class FireStationRestController {
    * @throws    a {@link FireStationNotFoundException}
    *            if there isn't a FireStation mapped by this Id.
    */
-  @GetMapping("/firestation/{id}")
+  @GetMapping(value = "/firestation/{id}", produces = "application/json")
+  @ApiOperation(value = "Get FireStation by ID",
+                notes = "Retrieve a Firestation by it's given ID",
+                response = FireStation.class)
   public ResponseEntity<FireStation> getFireStationById(@PathVariable Long id) {
 
     Optional<FireStation> fireStation = fireStationService.getFireStationJoinAddressesById(id);
@@ -92,14 +101,17 @@ public class FireStationRestController {
    *
    * @param fireStationToSave
              a representation in Json of the new Object of FireStation.
-
+  
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
    * @throws    a {@link FireStationAlreadyExistedException}
    *            if the FireStation already exists with the given numberStation.
    */
-  @PostMapping("/firestation")
+  @PostMapping(value = "/firestation", produces = "application/json")
+  @ApiOperation(value = "Creation of FireStation",
+                notes = "Create a new FireStationby",
+                response = FireStation.class)
   public ResponseEntity<FireStation>
       postMappingStationAddress(@Valid @RequestBody FireStation fireStationToSave) {
 
@@ -187,7 +199,10 @@ public class FireStationRestController {
    *                    doesn't exist.
    *
    */
-  @PutMapping("/firestation/{address}")
+  @PutMapping(value = "/firestation/{address}", produces = "application/json")
+  @ApiOperation(value = "Update address/FireStation",
+                notes = "Change the mapping of a address with a existed FireStation",
+                response = FireStation.class)
   public ResponseEntity<FireStation> putMappingNumberStationAddress(
       @Valid @PathVariable String address,
       @Valid @RequestBody FireStation fireStationToMapWithAddress) {
@@ -268,7 +283,9 @@ public class FireStationRestController {
    * @throws    a {@link FireStationNotFoundException}
    *            if numberStation doesn't match with any fireStation
    */
-  @DeleteMapping("/firestation/station/{numberStation}")
+  @DeleteMapping(value = "/firestation/station/{numberStation}", produces = "application/json")
+  @ApiOperation(value = "Delete FireStation",
+                notes = "Delete a FireStation and all mapping with it's addresses")
   public ResponseEntity<?> deleteMappingFireStation(@Valid @PathVariable int numberStation) {
 
     Optional<FireStation> fireStationWithNumberStation =
@@ -306,7 +323,9 @@ public class FireStationRestController {
    * @throws    a {@link FireStationNotFoundException}
    *            if address isn't mapped with any fireStation
    */
-  @DeleteMapping("/firestation/address/{address}")
+  @DeleteMapping(value = "/firestation/address/{address}", produces = "application/json")
+  @ApiOperation(value = "Delete address of FireStation",
+                notes = "Delete mapping of address to FireStations")
   public ResponseEntity<?>
       deleteAddressFromFireStations(@PathVariable @Valid String address) {
 

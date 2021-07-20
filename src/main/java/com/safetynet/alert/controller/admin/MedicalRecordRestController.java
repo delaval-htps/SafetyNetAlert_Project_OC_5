@@ -14,6 +14,8 @@ import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  *
  */
 @RestController
+@Api(description = "Api to Manage MedicalRecord")
 @RequestMapping("/")
 @Log4j2
 public class MedicalRecordRestController {
@@ -61,7 +64,10 @@ public class MedicalRecordRestController {
    *
    *@return  a collection of MedicalRecord.
    */
-  @GetMapping("/medicalRecord")
+  @GetMapping(value = "/medicalRecord", produces = "application/json")
+  @ApiOperation(value = "MedicalRecords",
+                notes = "Retrieve all existed MedicalRecords",
+                response = MedicalRecord.class)
   public Iterable<MedicalRecord> getMedicalRecords() {
 
     return medicalRecordService.getMedicalRecords();
@@ -78,7 +84,10 @@ public class MedicalRecordRestController {
    *
    * @throws    a {@link MedicalRecordNotFoundException} if MedicalRecord doesn't exist.
    */
-  @GetMapping("/medicalRecord/{id}")
+  @GetMapping(value = "/medicalRecord/{id}", produces = "application/json")
+  @ApiOperation(value = "MedicalRecord by Id",
+                notes = "Retrieve an existed MedicalRecord by given ID",
+                response = MedicalRecord.class)
   public ResponseEntity<MedicalRecord> getMedicalRecordById(@Valid @PathVariable Long id) {
 
     Optional<MedicalRecord> currentMedicalRecord =
@@ -109,7 +118,10 @@ public class MedicalRecordRestController {
    *            for a Person.
    *
    */
-  @PostMapping("/medicalRecord")
+  @PostMapping(value = "/medicalRecord", produces = "application/json")
+  @ApiOperation(value = "Create a MedicalRecord",
+                notes = "create a MedicalRecord for a Person",
+                response = MedicalRecord.class)
   public ResponseEntity<MedicalRecord>
       postMedicalRecord(@Valid @RequestBody MedicalRecord medicalRecord) {
 
@@ -230,7 +242,10 @@ public class MedicalRecordRestController {
    * @throws  a {@link MedicalRecordNotFoundException}
    *          if there isn't a existed MedicalRecord with Id given in parameter.
    */
-  @PutMapping("/medicalRecord/{id}")
+  @PutMapping(value = "/medicalRecord/{id}", produces = "application/json")
+  @ApiOperation(value = "Update MedicalRecord",
+                notes = "Update a MedicalRecord by it's given ID",
+                response = MedicalRecord.class)
   public ResponseEntity<MedicalRecord> putMedicalRecord(@Valid @PathVariable Long id,
       @Valid @RequestBody MedicalRecord medicalRecord) {
 
@@ -376,7 +391,11 @@ public class MedicalRecordRestController {
    * @Throws    a {@link MedicalRecordNotFoundException}
    *            if couple firstname/lastName doesn't match with any Person.
    */
-  @DeleteMapping("/medicalRecord/{lastName}/{firstName}")
+  @DeleteMapping(value = "/medicalRecord/{lastName}/{firstName}",
+                 produces = "application/json")
+  @ApiOperation(value = "Delete MedicalRecord",
+                notes = "Delete a MedicalRecord by given owner's LastName and FirstName",
+                response = MedicalRecord.class)
   public ResponseEntity<?> deleteMedicalRecord(
       @Valid @PathVariable String lastName,
       @Valid @PathVariable String firstName) {

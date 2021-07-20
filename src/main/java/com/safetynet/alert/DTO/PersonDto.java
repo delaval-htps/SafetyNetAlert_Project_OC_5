@@ -5,6 +5,8 @@ import com.safetynet.alert.model.Allergy;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.model.Medication;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
@@ -24,17 +26,28 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@ApiModel(value = "Person Details",
+          description = "Details of Person for emergency's endpoints")
 public class PersonDto {
-
+  @ApiModelProperty(notes = "the lastName of Person")
   private String lastName;
+  @ApiModelProperty(notes = "the firstName of Person")
   private String firstName;
+  @ApiModelProperty(notes = "the age of Person")
   private String age;
+  @ApiModelProperty(notes = "the address of Person")
   private String address;
+  @ApiModelProperty(notes = "the phone's number of Person")
   private String phone;
+  @ApiModelProperty(notes = "the email of Person")
   private String email;
+  @ApiModelProperty(notes = "the status of Person's medicalRecord")
   private String status_MedicalRecord;
+  @ApiModelProperty(notes = "the list of numberstations mapped with Person")
   private Set<Integer> numberStation;
+  @ApiModelProperty(notes = "the list of medications of Person")
   private Set<Medication> medications;
+  @ApiModelProperty(notes = "the list of allergy of Person")
   private Set<Allergy> allergies;
 
   /**

@@ -5,12 +5,14 @@ import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /** class main of application safetynet Alert .
  *
  * @author delaval */
 
 @SpringBootApplication
+@EnableSwagger2
 public class SafetyNetAlertApplication {
 
   public static void main(String[] args) {

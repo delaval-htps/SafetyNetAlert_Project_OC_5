@@ -2,6 +2,9 @@ package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,6 +42,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonPropertyOrder({"idFireStation",
+                    "numberStation",
+                    "addresses"})
 @Table(name = "FireStation",
        uniqueConstraints = @UniqueConstraint(columnNames = {"idFireStation",
                                                             "station"}))
@@ -49,16 +55,20 @@ public class FireStation implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @ApiModelProperty(notes = "ID of FireStation")
   private Long idFireStation;
 
   @Column(name = "station")
   @Min(value = 1)
   @JsonAlias("station")
+  @ApiModelProperty(notes = "numberStation of FireStation")
   private Integer numberStation;
 
   @ElementCollection
   @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation"))
   @Column(name = "adresses")
+  @ApiModelProperty(notes = "List of addresses mapped with FireStation")
   private Set<@NotBlank String> addresses = new HashSet<String>();
 
 
@@ -73,6 +83,7 @@ public class FireStation implements Serializable {
              inverseJoinColumns = @JoinColumn(name = "idPerson"))
 
   @JsonIgnore
+  @ApiModelProperty(notes = "List of Persons managed by FireStation")
   private Set<Person> persons = new HashSet<>();
 
   /**

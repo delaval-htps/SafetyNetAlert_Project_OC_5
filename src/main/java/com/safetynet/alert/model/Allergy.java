@@ -1,6 +1,9 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiModelProperty;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -36,14 +39,19 @@ import lombok.ToString;
        uniqueConstraints = @UniqueConstraint(columnNames = {"idAllergy",
                                                             "designation"}))
 @Entity
+@JsonPropertyOrder({"idAllergy",
+                    "designation"})
 public class Allergy {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @ApiModelProperty(notes = "Id of Allergy")
   private Long idAllergy;
 
   @Column
+  @ApiModelProperty(notes = "designation of allergy")
   private String designation;
 
   @ManyToMany(

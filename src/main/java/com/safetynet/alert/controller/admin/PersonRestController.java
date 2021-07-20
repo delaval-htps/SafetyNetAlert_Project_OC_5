@@ -8,6 +8,8 @@ import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +35,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  *
  */
 @RestController
+@Api(description = "API to Manage Person")
 @RequestMapping("/")
 @Log4j2
 public class PersonRestController {
@@ -48,7 +51,11 @@ public class PersonRestController {
    *
    * @return    a collection (Iterable) of all existed Persons.
    */
-  @GetMapping("/person")
+
+  @GetMapping(value = "/person", produces = "application/json")
+  @ApiOperation(value = "Persons",
+                notes = "Retrieve all existed Persons",
+                response = Person.class)
   public Iterable<Person> getPersons() {
 
     return personService.getPersons();
@@ -65,7 +72,11 @@ public class PersonRestController {
    *
    * @throws  a {@link PersonNotFoundException} if there isn't Person with this Id.
    */
-  @GetMapping("/person/{id}")
+
+  @GetMapping(value = "/person/{id}", produces = "application/json")
+  @ApiOperation(value = "Person with ID",
+                notes = "Retrieve an existed Person with it's given ID",
+                response = Person.class)
   public ResponseEntity<Person> getPersonById(@PathVariable Long id) {
 
     Optional<Person> person = personService.getPersonById(id);
@@ -98,8 +109,13 @@ public class PersonRestController {
    * @throws    a {@link PersonAlreadyExistedException}
    *            if the person with LastName/FirstName given in personToAdd already exists.
    */
-  @PostMapping("/person")
-  public ResponseEntity<Person> postPerson(@Valid @RequestBody Person personToAdd) {
+
+  @PostMapping(value = "/person", produces = "application/json")
+  @ApiOperation(value = "Create a new Person",
+                response = Person.class)
+  public ResponseEntity<Person> postPerson(
+      @Valid
+      @RequestBody Person personToAdd) {
 
     if (personToAdd.getIdPerson() == null) {
 
@@ -164,9 +180,13 @@ public class PersonRestController {
    *          if updatedPerson has modify couple of LastName/FirstName.
    *
    */
-  @PutMapping("/person/{id}")
-  public ResponseEntity<Person> putPerson(@PathVariable Long id,
-      @RequestBody @Valid Person updatedPerson)
+
+  @PutMapping(value = "/person/{id}", produces = "application/json")
+  @ApiOperation(value = "Update an existed Person by giving it's ID", response = Person.class)
+  public ResponseEntity<Person> putPerson(
+      @PathVariable Long id,
+      @RequestBody
+      @Valid Person updatedPerson)
       throws PersonNotFoundException, PersonChangedNamesException {
 
     if (updatedPerson.getIdPerson() == null) {
@@ -251,6 +271,7 @@ public class PersonRestController {
    */
 
   @DeleteMapping("/person/{lastName}/{firstName}")
+  @ApiOperation(value = "Delete an existed Person by giving it's LastName and FirstName")
   public ResponseEntity<?> deletePerson(@PathVariable String lastName,
       @PathVariable String firstName) {
 
