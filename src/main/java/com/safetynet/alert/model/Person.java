@@ -3,8 +3,6 @@ package com.safetynet.alert.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
@@ -55,24 +53,14 @@ import org.hibernate.validator.constraints.Range;
                                                             "firstName"}))
 @Entity
 @ApiModel
-@JsonPropertyOrder({"idPerson",
-                    "firstName",
-                    "lastName",
-                    "birthDate",
-                    "address",
-                    "city",
-                    "zip",
-                    "phone",
-                    "email",
-                    "medicalRecord"})
 public class Person {
 
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @ApiModelProperty(notes = "Id of Person")
+  @ApiModelProperty(readOnly = true)
+
   private Long idPerson;
 
   @Column
@@ -82,6 +70,7 @@ public class Person {
            message = "this firstName must contains first capital letter "
                + "and for the other letter lowercase  ")
   @ApiModelProperty(notes = "firstName of Person")
+
   private String firstName;
 
   @Column
@@ -91,6 +80,7 @@ public class Person {
            message = "this firstName must contains first capital letter"
                + " and for the other letter lowercase  ")
   @ApiModelProperty(notes = "lastName of Person")
+
   private String lastName;
 
   @Column
@@ -98,12 +88,14 @@ public class Person {
   @JsonFormat(shape = JsonFormat.Shape.STRING,
               pattern = "MM/dd/yyyy")
   @ApiModelProperty(notes = "birthDate of Person")
+
   private Date birthDate;
 
   @Column
   @NotNull(message = "this address must not be null")
   @NotBlank(message = "this address must not be null")
   @ApiModelProperty(notes = "address of Person")
+
   private String address;
 
   @Column
@@ -113,6 +105,7 @@ public class Person {
            message = "this City must contains first capital letter "
                + "and for the other letter lowercase  ")
   @ApiModelProperty(notes = "city of Person")
+
   private String city;
 
   @Column
@@ -122,6 +115,7 @@ public class Person {
          message = "this zip must not be beetween 0 and 99999")
   @NotNull
   @ApiModelProperty(notes = "zip of person's city")
+
   private Integer zip;
 
   @Column
@@ -131,6 +125,7 @@ public class Person {
            message = "this phone number must match "
                + "with this pattern xxx-xxx-xxxx with x for a integer")
   @ApiModelProperty(notes = "phone's number of Person")
+
   private String phone;
 
   @Column
@@ -138,6 +133,7 @@ public class Person {
   @Email(
          message = "this field need to be a correct Email, example: john.boyd@email.com")
   @ApiModelProperty(notes = "email of Person")
+
   private String email;
 
   //Cascade ALL to delete automatically all relationships
@@ -148,6 +144,7 @@ public class Person {
               referencedColumnName = "idMedicalRecord")
   @JsonBackReference(value = "person_medicalRecord")
   @ApiModelProperty(notes = "MedicalRecord of Person")
+
   private MedicalRecord medicalRecord;
 
 
@@ -162,6 +159,7 @@ public class Person {
              inverseJoinColumns = {@JoinColumn(name = "idFireStation")})
   @JsonIgnore
   @ApiModelProperty(notes = "List of FireStations mapped with address of Person")
+
   private Set<FireStation> fireStations = new HashSet<>();
 
 
@@ -234,6 +232,7 @@ public class Person {
     this.phone = phone;
 
   }
+
 
 }
 

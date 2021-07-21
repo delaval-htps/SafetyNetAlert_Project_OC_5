@@ -62,8 +62,7 @@ public class EmergencyRestController {
   @GetMapping(value = "/firestation/getpersons", produces = "application/json")
   @ApiOperation(value = "Persons mapped by FireStation",
                 notes = "Retrieve all Persons mapped by FireStation with given numberStation",
-                responseContainer = "Map",
-                response = String.class)
+                responseContainer = "Map")
   public ResponseEntity<Map<String, Object>> getPersonsMappedWithFireStation(
       @RequestParam(name = "stationNumber") int stationNumber) {
 

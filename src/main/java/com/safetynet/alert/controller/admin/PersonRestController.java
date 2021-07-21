@@ -55,10 +55,11 @@ public class PersonRestController {
   @GetMapping(value = "/person", produces = "application/json")
   @ApiOperation(value = "Persons",
                 notes = "Retrieve all existed Persons",
-                response = Person.class)
-  public Iterable<Person> getPersons() {
+                response = Person.class,
+                responseContainer = "List")
+  public List<Person> getPersons() {
 
-    return personService.getPersons();
+    return (List<Person>) personService.getPersons();
 
   }
 
@@ -270,7 +271,7 @@ public class PersonRestController {
    *          if Person to delete with Identification couple lastName/firstName is not found.
    */
 
-  @DeleteMapping("/person/{lastName}/{firstName}")
+  @DeleteMapping(value = "/person/{lastName}/{firstName}", produces = "application/json")
   @ApiOperation(value = "Delete an existed Person by giving it's LastName and FirstName")
   public ResponseEntity<?> deletePerson(@PathVariable String lastName,
       @PathVariable String firstName) {

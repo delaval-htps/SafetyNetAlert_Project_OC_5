@@ -48,7 +48,7 @@ public class MedicalRecord {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @ApiModelProperty(notes = "Id of MedicalRecord")
+  @ApiModelProperty(notes = "Id of MedicalRecord", readOnly = true)
   private Long idMedicalRecord;
 
   // declaration of relationship 1:1 to have bidirectionnal relation
@@ -61,6 +61,7 @@ public class MedicalRecord {
                        CascadeType.PERSIST})
   @JsonManagedReference(value = "person_medicalRecord")
   @ApiModelProperty(notes = "Person owner of Medicalrecord")
+
   private Person person;
 
   @ManyToMany(
@@ -75,6 +76,7 @@ public class MedicalRecord {
              inverseJoinColumns = {@JoinColumn(name = "idMedication")})
   //@OrderBy("idMedication") // to impose jsonPath to be ordered by id when response
   @ApiModelProperty(notes = "list of medications in MedicalRecord")
+
   private Set<Medication> medications = new HashSet<>();
 
 
@@ -90,6 +92,7 @@ public class MedicalRecord {
              inverseJoinColumns = {@JoinColumn(name = "idAllergy")})
   //@OrderBy("idAllergy") // to impose jsonPath to be ordered by id when response
   @ApiModelProperty(notes = "list of allergies in Medicalrecord")
+
   private Set<Allergy> allergies = new HashSet<>();
 
   /**
