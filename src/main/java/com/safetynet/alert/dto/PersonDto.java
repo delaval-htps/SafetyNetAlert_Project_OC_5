@@ -1,4 +1,4 @@
-package com.safetynet.alert.DTO;
+package com.safetynet.alert.dto;
 
 import com.safetynet.alert.controller.emergency.EmergencyRestController;
 import com.safetynet.alert.model.Allergy;
@@ -29,24 +29,34 @@ import lombok.ToString;
 @ApiModel(value = "Person Details",
           description = "Details of Person for emergency's endpoints")
 public class PersonDto {
+
   @ApiModelProperty(notes = "the lastName of Person")
   private String lastName;
+
   @ApiModelProperty(notes = "the firstName of Person")
   private String firstName;
+
   @ApiModelProperty(notes = "the age of Person")
   private String age;
+
   @ApiModelProperty(notes = "the address of Person")
   private String address;
+
   @ApiModelProperty(notes = "the phone's number of Person")
   private String phone;
+
   @ApiModelProperty(notes = "the email of Person")
   private String email;
+
   @ApiModelProperty(notes = "the status of Person's medicalRecord")
-  private String status_MedicalRecord;
+  private String statusMedicalRecord;
+
   @ApiModelProperty(notes = "the list of numberstations mapped with Person")
   private Set<Integer> numberStation;
+
   @ApiModelProperty(notes = "the list of medications of Person")
   private Set<Medication> medications;
+
   @ApiModelProperty(notes = "the list of allergy of Person")
   private Set<Allergy> allergies;
 
@@ -61,7 +71,7 @@ public class PersonDto {
 
     this(lastName, birthDate, null, null);
     this.firstName = firstName;
-    this.status_MedicalRecord = null;
+    this.statusMedicalRecord = null;
 
   }
 
@@ -141,15 +151,13 @@ public class PersonDto {
       this.allergies = medicalRecord.getAllergies();
     } else {
 
-      this.status_MedicalRecord = "not yet created";
+      this.statusMedicalRecord = "not yet created";
     }
 
     this.phone = null;
     this.numberStation = null;
 
   }
-
-
 
   /**
    * Method to calculate age of Person with its given Date birhtDate.

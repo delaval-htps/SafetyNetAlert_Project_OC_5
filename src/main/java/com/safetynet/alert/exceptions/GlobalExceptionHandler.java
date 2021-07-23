@@ -172,6 +172,21 @@ public class GlobalExceptionHandler {
 
   }
 
+  /**
+   * Handler for global {@link ConstraintViolationException} .
+   * Allows to manage the error throw by this exception and to return
+   * a {@link GlobalErrorResponse} more adapted to read.
+   *
+   * @param exception the {@link ConstraintViolationException} thrown by controller
+   *                    when hibernate validation fails.
+   *
+   * @param request   the request given to a controller.
+   *
+   * @return  a ResponseEntity with a {@link GlobalErrorResponse} specified for this exception
+   *            and a {@link HttpStatus} of Bad Request. NB: this GlobalErrorResponse contains
+   *            a FieldsValidationError to allows to find which field of the
+   *            request is not valid
+   */
   @ExceptionHandler
   public ResponseEntity<GlobalErrorResponse>
       handlerMethodArgumentNotValidException(ConstraintViolationException exception,

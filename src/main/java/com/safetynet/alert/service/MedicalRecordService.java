@@ -2,6 +2,7 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.repository.MedicalRecordRepository;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class MedicalRecordService {
    *
    * @return    collection of all existed medicalRecords.Iterable.empty() if there is no one.
    */
-  public Iterable<MedicalRecord> getMedicalRecords() {
+  public List<MedicalRecord> getMedicalRecords() {
 
     return medicalRecordRepository.findAllFetchAll();
 

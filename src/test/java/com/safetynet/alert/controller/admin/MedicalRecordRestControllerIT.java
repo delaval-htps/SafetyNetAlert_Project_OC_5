@@ -320,7 +320,6 @@ class MedicalRecordRestControllerIT {
   void postMedicalRecord_whenMedicalRecordAlreadyExisted_thenReturn400() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
 
     Optional<MedicalRecord> mrTest = medicalRecordService.getMedicalRecordJoinAllById(1L);
     MedicalRecord existedMedicalRecord = mrTest.get();
@@ -329,6 +328,9 @@ class MedicalRecordRestControllerIT {
     existedMedicalRecord.getAllergies().forEach(allergy -> allergy.setIdAllergy(null));
     existedMedicalRecord.getMedications()
         .forEach(medication -> medication.setIdMedication(null));
+
+    ObjectMapper mapper = mapperBuilder.build();
+
     //when & then
     mockMvc.perform(post("/medicalRecord")
         .accept(MediaType.APPLICATION_JSON)

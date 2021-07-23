@@ -1,7 +1,6 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.HashSet;
@@ -46,12 +45,13 @@ public class Allergy {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @ApiModelProperty(notes = "Id of Allergy")
+  @ApiModelProperty(notes = "Id of Allergy", readOnly = true)
+
   private Long idAllergy;
 
   @Column
   @ApiModelProperty(notes = "designation of allergy")
+
   private String designation;
 
   @ManyToMany(
@@ -65,6 +65,7 @@ public class Allergy {
              joinColumns = @JoinColumn(name = "idAllergy"),
              inverseJoinColumns = @JoinColumn(name = "idMedicalRecord"))
   @JsonIgnore
+
   private Set<MedicalRecord> medicalRecords = new HashSet<>();
 
   /**

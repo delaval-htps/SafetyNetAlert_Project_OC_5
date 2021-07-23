@@ -27,15 +27,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class LoadDatabaseFromJsonIT {
 
   // instance to check database
-  private static Source source;
-  private static Table personTable;
-  private static Table fireStationTable;
-  private static Table fireStationPersonJointTable;
-  private static Table medicalRecordTable;
-  private static Table medicationTable;
-  private static Table allergyTable;
-  private static Table attributionAllergyJointTable;
-  private static Table attributionMedicationJointTable;
+  private Source source;
+  private Table personTable;
+  private Table fireStationTable;
+  private Table fireStationPersonJointTable;
+  private Table medicalRecordTable;
+  private Table medicationTable;
+  private Table allergyTable;
+  private Table attributionAllergyJointTable;
+  private Table attributionMedicationJointTable;
 
   // instance that CUT uses
   @Autowired

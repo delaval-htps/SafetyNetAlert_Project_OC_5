@@ -73,6 +73,16 @@ public class GlobalErrorResponse {
 
   }
 
+  /**
+   * Method to add additional error's field with message when hibernate constraint
+   * are thrown.
+   *
+   * @param objectName
+   *            Field's name of entity where constraint was detected
+   *
+   * @param message
+   *            message implemented in the entity when violation constraint is thrown.
+   */
   public void addFieldError(String objectName, String message) {
 
     // FieldError error = new FieldError(objectName, path, defaultMessage);

@@ -72,16 +72,16 @@ class FireStationRestContollerTest {
   @Autowired
   private Jackson2ObjectMapperBuilder mapperBuilder;
 
-  private static FireStation fireStationTest1;
-  private static FireStation fireStationTest2;
-  private static FireStation fireStationWithId;
-  private static FireStation fireStationWithoutId;
-  private static Person person1;
-  private static Person person2;
-  private static Set<String> addresses1;
-  private static Set<String> addresses2;
-  private static Set<String> addresses3;
-  private static List<FireStation> fireStations;
+  private FireStation fireStationTest1;
+  private FireStation fireStationTest2;
+  private FireStation fireStationWithId;
+  private FireStation fireStationWithoutId;
+  private Person person1;
+  private Person person2;
+  private Set<String> addresses1;
+  private Set<String> addresses2;
+  private Set<String> addresses3;
+  private List<FireStation> fireStations;
 
 
   @BeforeEach
@@ -181,8 +181,6 @@ class FireStationRestContollerTest {
   void postFireStation_withPersonsMappedWithAddresses_thenReturn201() throws Exception {
 
     // Given
-    ObjectMapper mapper = mapperBuilder.build();
-
     // fireStation doesn't exist.
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.empty());
@@ -195,6 +193,8 @@ class FireStationRestContollerTest {
 
     person1.setAddress("350 rue Emile Zola");
     person2.setAddress("300 av Victor Hugo");
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     // when & then
     mockMvc.perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
@@ -270,8 +270,6 @@ class FireStationRestContollerTest {
   void postFireStation_whenFireStationEmptyAddress_thenReturn200() throws Exception {
 
     //Given
-    ObjectMapper mapper = mapperBuilder.build();
-
     // fireStation doesn't exist.
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.empty());
@@ -282,6 +280,8 @@ class FireStationRestContollerTest {
 
     when(fireStationService.saveFireStation(Mockito.any(FireStation.class)))
         .thenReturn(fireStationWithId);
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
     MvcResult result = mockMvc.perform(post("/firestation").accept(MediaType.APPLICATION_JSON)
@@ -439,10 +439,6 @@ class FireStationRestContollerTest {
       throws Exception {
 
     // given
-    ObjectMapper mapper = mapperBuilder.build();
-
-    String addressToMap = "addressMappedToPersons";
-
     // existed FireStation
     when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationWithId));
@@ -453,6 +449,9 @@ class FireStationRestContollerTest {
 
     when(personService.getPersonsByAddress(Mockito.anyString()))
         .thenReturn(Arrays.asList(person1, person2));
+
+    ObjectMapper mapper = mapperBuilder.build();
+    String addressToMap = "addressMappedToPersons";
 
     // when & then
     mockMvc.perform(put("/firestation/{address}", addressToMap)

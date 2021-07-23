@@ -68,7 +68,7 @@ public class MedicalRecordRestController {
   @ApiOperation(value = "MedicalRecords",
                 notes = "Retrieve all existed MedicalRecords",
                 response = MedicalRecord.class)
-  public Iterable<MedicalRecord> getMedicalRecords() {
+  public List<MedicalRecord> getMedicalRecords() {
 
     return medicalRecordService.getMedicalRecords();
 
@@ -242,6 +242,7 @@ public class MedicalRecordRestController {
    * @throws  a {@link MedicalRecordNotFoundException}
    *          if there isn't a existed MedicalRecord with Id given in parameter.
    */
+
   @PutMapping(value = "/medicalRecord/{id}", produces = "application/json")
   @ApiOperation(value = "Update MedicalRecord",
                 notes = "Update a MedicalRecord by it's given ID",

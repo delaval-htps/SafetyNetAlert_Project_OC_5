@@ -2,6 +2,7 @@ package com.safetynet.alert.controller.admin;
 
 import com.safetynet.alert.model.Allergy;
 import com.safetynet.alert.service.AllergyService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,7 @@ public class AllergyRestController {
    * @return Iterable  a collection of all existed allergies
    */
   @GetMapping("/allergies")
-  public Iterable<Allergy> getAlllergies() {
+  public List<Allergy> getAlllergies() {
 
     return allergyService.getAllergies();
 

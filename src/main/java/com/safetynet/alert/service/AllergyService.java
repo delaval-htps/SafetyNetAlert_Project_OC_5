@@ -40,7 +40,7 @@ public class AllergyService {
    * @return  a collection of all existed allergies.
    *            Iterable.empty() if there isn't existed one.
    */
-  public Iterable<Allergy> getAllergies() {
+  public List<Allergy> getAllergies() {
 
     return allergyRepository.findAll();
 

@@ -56,9 +56,9 @@ public class FireStationRestController {
   @ApiOperation(value = "Get all Firestations",
                 notes = "Retrieve all fireStations",
                 response = FireStation.class)
-  public Iterable<FireStation> getFireStations() {
+  public List<FireStation> getFireStations() {
 
-    return fireStationService.getFireStations();
+    return (List<FireStation>) fireStationService.getFireStations();
 
   }
 
@@ -101,7 +101,7 @@ public class FireStationRestController {
    *
    * @param fireStationToSave
              a representation in Json of the new Object of FireStation.
-  
+
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
@@ -131,7 +131,7 @@ public class FireStationRestController {
 
         if (!savedFireStation.getAddresses().isEmpty()) {
 
-          boolean AddedPersons = false;
+          boolean addedPersons = false;
 
           for (String address : savedFireStation.getAddresses()) {
 
@@ -140,7 +140,7 @@ public class FireStationRestController {
 
             if (personsMappedWithAddress.iterator().hasNext()) {
 
-              AddedPersons = true;
+              addedPersons = true;
               personsMappedWithAddress.forEach(person -> {
 
                 savedFireStation.addPerson(person);
@@ -149,7 +149,7 @@ public class FireStationRestController {
           }
 
           // to update junction table person_firestation.
-          if (AddedPersons) {
+          if (addedPersons) {
 
             fireStationService.saveFireStation(savedFireStation);
           }

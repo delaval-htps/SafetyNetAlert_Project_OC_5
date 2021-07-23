@@ -1,6 +1,7 @@
 package com.safetynet.alert.repository;
 
 import com.safetynet.alert.model.MedicalRecord;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,7 +39,7 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
       + " left join fetch mr.medications m"
       + " left join fetch mr.allergies a"
       + " order by mr.idMedicalRecord,m.idMedication, a.idAllergy asc")
-  Iterable<MedicalRecord> findAllFetchAll();
+  List<MedicalRecord> findAllFetchAll();
 
 
 }
