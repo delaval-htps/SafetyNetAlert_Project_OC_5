@@ -15,6 +15,12 @@ import springfox.documentation.oas.annotations.EnableOpenApi;
 @EnableOpenApi
 public class SafetyNetAlertApplication {
 
+  /**
+   * Main method for SafetyNet Application.
+   *
+   * @param args
+   *
+   */
   public static void main(String[] args) {
 
     SpringApplication.run(SafetyNetAlertApplication.class, args);

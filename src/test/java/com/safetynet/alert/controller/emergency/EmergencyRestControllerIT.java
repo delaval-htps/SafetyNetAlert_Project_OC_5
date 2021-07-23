@@ -302,7 +302,7 @@ class EmergencyRestControllerIT {
         .andExpect(jsonPath("$.['1509 Av marechal foch'][0].phone", is("061-846-0160")))
         .andExpect(jsonPath("$.['1509 Av marechal foch'][0].age", is("not specified")))
         .andExpect(
-            jsonPath("$.['1509 Av marechal foch'][0].status_MedicalRecord",
+            jsonPath("$.['1509 Av marechal foch'][0].statusMedicalRecord",
                 is("not yet created")))
 
         .andExpect(jsonPath("$.['1509 Culver St'][0].lastName", is("Boyd")))
@@ -391,7 +391,7 @@ class EmergencyRestControllerIT {
         .andExpect(jsonPath("$.['29 15th St'][0].lastName", is("Marrack")))
         .andExpect(jsonPath("$.['29 15th St'][0].phone", is("841-874-6513")))
         .andExpect(jsonPath("$.['29 15th St'][0].age", is("not specified")))
-        .andExpect(jsonPath("$.['29 15th St'][0].status_MedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$.['29 15th St'][0].statusMedicalRecord", is("not yet created")))
         .andDo(print());
 
   }

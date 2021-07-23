@@ -368,8 +368,6 @@ class MedicalRecordRestControllerTest {
       throws Exception {
 
     //Given
-    ObjectMapper mapper = mapperBuilder.build();
-
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
@@ -382,6 +380,8 @@ class MedicalRecordRestControllerTest {
 
     when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
         .thenReturn(Arrays.asList(mockFireStation));
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)

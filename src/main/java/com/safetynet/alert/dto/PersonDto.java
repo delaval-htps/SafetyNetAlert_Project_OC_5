@@ -1,4 +1,4 @@
-package com.safetynet.alert.DTO;
+package com.safetynet.alert.dto;
 
 import com.safetynet.alert.controller.emergency.EmergencyRestController;
 import com.safetynet.alert.model.Allergy;
@@ -49,7 +49,7 @@ public class PersonDto {
   private String email;
 
   @ApiModelProperty(notes = "the status of Person's medicalRecord")
-  private String status_MedicalRecord;
+  private String statusMedicalRecord;
 
   @ApiModelProperty(notes = "the list of numberstations mapped with Person")
   private Set<Integer> numberStation;
@@ -71,7 +71,7 @@ public class PersonDto {
 
     this(lastName, birthDate, null, null);
     this.firstName = firstName;
-    this.status_MedicalRecord = null;
+    this.statusMedicalRecord = null;
 
   }
 
@@ -151,7 +151,7 @@ public class PersonDto {
       this.allergies = medicalRecord.getAllergies();
     } else {
 
-      this.status_MedicalRecord = "not yet created";
+      this.statusMedicalRecord = "not yet created";
     }
 
     this.phone = null;

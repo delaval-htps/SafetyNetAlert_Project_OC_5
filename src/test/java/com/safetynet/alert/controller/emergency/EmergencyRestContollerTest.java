@@ -507,7 +507,7 @@ class EmergencyRestContollerTest {
         .andExpect(jsonPath("$.address2[0].lastName", is("Adult3")))
         .andExpect(jsonPath("$.address2[0].phone", is("061-846-0163")))
         .andExpect(jsonPath("$.address2[0].age", notNullValue()))
-        .andExpect(jsonPath("$.address2[0].status_MedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$.address2[0].statusMedicalRecord", is("not yet created")))
         .andDo(print());
 
   }
@@ -560,7 +560,7 @@ class EmergencyRestContollerTest {
   //        .andExpect(jsonPath("$.address3[0].lastName", is("Test2")))
   //        .andExpect(jsonPath("$.address3[0].phone", is("061-846-0164")))
   //        .andExpect(jsonPath("$.address3[0].age", notNullValue()))
-  //        .andExpect(jsonPath("$.address3[0].status_MedicalRecord", is("not yet created")))
+  //        .andExpect(jsonPath("$.address3[0].statusMedicalRecord", is("not yet created")))
   //        .andDo(print());
   //
   //  }
@@ -594,12 +594,12 @@ class EmergencyRestContollerTest {
         .andExpect(jsonPath("$[0].address", is("address1")))
         .andExpect(jsonPath("$[0].age", notNullValue()))
         .andExpect(jsonPath("$[0].email", is("person1@email.com")))
-        .andExpect(jsonPath("$[0].status_MedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$[0].statusMedicalRecord", is("not yet created")))
         .andExpect(jsonPath("$[1].lastName", is("Adult1")))
         .andExpect(jsonPath("$[1].address", is("address1")))
         .andExpect(jsonPath("$[1].age", notNullValue()))
         .andExpect(jsonPath("$[1].email", is("adult2@email.com")))
-        .andExpect(jsonPath("$[1].status_MedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$[1].statusMedicalRecord", is("not yet created")))
         .andDo(print());
 
   }

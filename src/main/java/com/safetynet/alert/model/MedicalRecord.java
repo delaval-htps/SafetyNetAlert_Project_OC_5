@@ -129,6 +129,12 @@ public class MedicalRecord {
 
   }
 
+  /**
+   * Method to add a Set of medications and of allergy to a MedicalRecord.
+   *
+   * @param medications Set of medications to add.
+   * @param allergies   Set of allergies to add.
+   */
   public MedicalRecord(Medication medications, Allergy allergies) {
 
     this.allergies.add(allergies);

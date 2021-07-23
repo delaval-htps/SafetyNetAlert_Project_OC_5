@@ -162,7 +162,12 @@ public class Person {
 
   private Set<FireStation> fireStations = new HashSet<>();
 
-
+  /**
+   * Method to add a fireStation into Set of FireStations of Person.
+   *
+   * @param fireStation the fireStation to add
+   *
+   */
   public void addFireStation(FireStation fireStation) {
 
     if (fireStation != null) {
@@ -172,6 +177,12 @@ public class Person {
 
   }
 
+  /**
+   * Method to add all FireStations into Set of FireStations of Person.
+   *
+   * @param fireStations    List of FireStations to add
+   *
+   */
   public void addFireStations(List<FireStation> fireStations) {
 
     if (!fireStations.isEmpty()) {
@@ -181,6 +192,12 @@ public class Person {
 
   }
 
+  /**
+   * Method to remove a firestation from Set Firestations of Person.
+   *
+   * @param fireStation the fireStation to remove.
+   *
+   */
   public void removeFireStation(FireStation fireStation) {
 
     if (fireStation != null) {
@@ -200,7 +217,7 @@ public class Person {
   }
 
   /**
-   * Constructor with some fields used in hql query: "/childAlert?address=String".
+   * Constructor with some fields used in jpql query: "/childAlert?address=String".
    *
    * @param firstName   the firstName of Person
    * @param lastName    the lastName of Person
@@ -213,7 +230,7 @@ public class Person {
   }
 
   /**
-   * Constructor with some fields used in hql query: "/fireStation?stationNumber= int".
+   * Constructor with some fields used in jpql query: "/fireStation?stationNumber= int".
    *
    * @param firstName the firstName of person.
    * @param lastName  the lastName of person.

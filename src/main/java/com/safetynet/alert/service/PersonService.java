@@ -260,7 +260,7 @@ public class PersonService {
   }
 
   /**
-   * Retrieve the list of person's phones mapped  with the given FireStation's numberStation
+   * Retrieve the list of person's phones mapped  with the given FireStation's numberStation.
    *
    * @param fireStationNumber   the numberStation of FireStation
    *

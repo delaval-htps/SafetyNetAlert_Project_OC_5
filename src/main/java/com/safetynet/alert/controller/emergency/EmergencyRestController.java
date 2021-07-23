@@ -1,6 +1,6 @@
 package com.safetynet.alert.controller.emergency;
 
-import com.safetynet.alert.DTO.PersonDto;
+import com.safetynet.alert.dto.PersonDto;
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
@@ -271,8 +271,10 @@ public class EmergencyRestController {
    * Retrieve informations of a Person with given lastname and firstname.
    * in this informations , we have lastName,address,age,email,medications and allergies.
    *
-   * @param names
-   *          a Map with firstName and lastName of person
+   * @param firstName
+   *            firstName of person
+   * @param  lastName
+   *            lastName of Person
    *
    * @return a ResponseEntity with informations of person with given lastname, firstname
    */

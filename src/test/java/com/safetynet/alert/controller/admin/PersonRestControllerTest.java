@@ -272,8 +272,6 @@ class PersonRestControllerTest {
   void postPerson_WithAddressPersonMappedByFireStation_thenReturn201() throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
-
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
@@ -295,6 +293,8 @@ class PersonRestControllerTest {
 
     when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
         .thenReturn(fireStations);
+
+    ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
     mockMvc.perform(post("/person")
@@ -437,8 +437,7 @@ class PersonRestControllerTest {
   @Order(9)
   void putPerson_WithValidInputButSameAddress_thenReturn200() throws Exception {
 
-    ObjectMapper mapper = mapperBuilder.build();
-
+    //given
     when(personService.getPersonById(Mockito.anyLong()))
         .thenReturn(Optional.of(mockPersonWithId));
 
@@ -449,6 +448,9 @@ class PersonRestControllerTest {
     when(personService.savePerson(Mockito.any(Person.class)))
         .thenReturn(mockPersonWithIdAndChanges);
 
+    ObjectMapper mapper = mapperBuilder.build();
+
+    //when
     mockMvc.perform(put("/person/{id}", 1)
         .accept(MediaType.APPLICATION_JSON)
         .contentType(MediaType.APPLICATION_JSON)

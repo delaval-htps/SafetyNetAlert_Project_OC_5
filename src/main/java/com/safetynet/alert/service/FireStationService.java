@@ -135,7 +135,6 @@ public class FireStationService {
    * delete a FireStation given in parameter.
    *
    * @param  fireStation   FireStation to delete
-   * @return    FireStation deleted FireStation
    */
   public void deleteFireStation(FireStation fireStation) {
 

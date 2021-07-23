@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModelProperty;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -47,9 +46,7 @@ import lombok.ToString;
 @Table(name = "FireStation",
        uniqueConstraints = @UniqueConstraint(columnNames = {"idFireStation",
                                                             "station"}))
-public class FireStation implements Serializable {
-
-  private static final long serialVersionUID = 5090513180865338976L;
+public class FireStation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

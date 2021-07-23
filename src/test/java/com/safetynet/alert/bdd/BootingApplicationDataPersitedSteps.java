@@ -29,15 +29,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 @CucumberContextConfiguration
 public class BootingApplicationDataPersitedSteps {
 
-  private static Source source;
-  private static Table personTable;
-  private static Table fireStationTable;
-  private static Table fireStationPersonJointTable;
-  private static Table medicalRecordTable;
-  private static Table medicationTable;
-  private static Table allergyTable;
-  private static Table attributionAllergyJointTable;
-  private static Table attributionMedicationJointTable;
+  private Source source;
+  private Table personTable;
+  private Table fireStationTable;
+  private Table fireStationPersonJointTable;
+  private Table medicalRecordTable;
+  private Table medicationTable;
+  private Table allergyTable;
+  private Table attributionAllergyJointTable;
+  private Table attributionMedicationJointTable;
 
   @Value("${spring.datasource.url}")
   private String databaseSource;
@@ -46,7 +46,7 @@ public class BootingApplicationDataPersitedSteps {
   @Value("${spring.datasource.password}")
   private String datasourcePassword;
 
-  private static Map<String, String> personMap;
+  private Map<String, String> personMap;
 
   /**
    * Set up before.
