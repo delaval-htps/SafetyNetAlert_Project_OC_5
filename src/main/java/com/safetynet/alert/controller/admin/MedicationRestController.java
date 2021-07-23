@@ -28,7 +28,7 @@ public class MedicationRestController {
   @GetMapping("/medications")
   public List<Medication> getMedications() {
 
-    return (List<Medication>) medicationService.getMedications();
+    return medicationService.getMedications();
 
   }
 

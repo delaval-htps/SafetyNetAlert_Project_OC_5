@@ -48,7 +48,7 @@ public class PersonService {
    * @return  a collection of all existed instances of Person.
    *          a empty collection if there is no instances.
    */
-  public Iterable<Person> getPersons() {
+  public List<Person> getPersons() {
 
     return personRepository.findAll();
 

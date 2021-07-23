@@ -28,7 +28,7 @@ public class AllergyRestController {
   @GetMapping("/allergies")
   public List<Allergy> getAlllergies() {
 
-    return (List<Allergy>) allergyService.getAllergies();
+    return allergyService.getAllergies();
 
   }
 }

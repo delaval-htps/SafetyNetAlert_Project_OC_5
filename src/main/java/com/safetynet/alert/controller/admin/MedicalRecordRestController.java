@@ -70,7 +70,7 @@ public class MedicalRecordRestController {
                 response = MedicalRecord.class)
   public List<MedicalRecord> getMedicalRecords() {
 
-    return (List<MedicalRecord>) medicalRecordService.getMedicalRecords();
+    return medicalRecordService.getMedicalRecords();
 
   }
 

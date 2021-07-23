@@ -59,7 +59,7 @@ public class PersonRestController {
                 responseContainer = "List")
   public List<Person> getPersons() {
 
-    return (List<Person>) personService.getPersons();
+    return personService.getPersons();
 
   }
 

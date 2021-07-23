@@ -205,7 +205,7 @@ class MedicalRecordRestControllerTest {
     //given
 
     when(medicalRecordService.getMedicalRecords())
-        .thenReturn(mockMedicalRecords);
+        .thenReturn(new ArrayList(mockMedicalRecords));
 
     mockMvc.perform(get("/medicalRecord")).andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
