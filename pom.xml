@@ -12,10 +12,39 @@
 	
 	<groupId>com.safetynet.alert</groupId>
 	<artifactId>SafetyNetAlert</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
-	<name>SafetyNetAlert</name>
-	<description>Project_OC_Java-5</description>
+	<version>1.0.0-SNAPSHOT</version>
 	
+	<!-- ===== info generale ===== -->
+	<name>SafetyNetAlert</name>
+	<description>Project_OC_Java-5: 	Realization of Rest API with Spring Boot Application</description>
+	<url>https://github.com/delaval-htps/SafetyNetAlert_Project_OC_5</url>
+	
+    <organization>
+        <name>SafetyNet-Alert</name>
+        <url>https://github.com/delaval-htps/SafetyNetAlert_Project_OC_5</url>
+    </organization>
+	
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    
+	 <developers>
+	    <developer>
+	      <id>dd</id>
+	      <name>Dorian Delaval</name>
+	      <email>delaval.htps@gmail.com</email>
+	      <url>http://www.doriandelaval.fr</url>
+	      <organization>SafetyNet</organization>
+	      <organizationUrl>https://github.com/delaval-htps/SafetyNetAlert_Project_OC_5</organizationUrl>
+	      <roles>
+	        <role>developer</role>
+	      </roles>
+	    </developer>
+	  </developers>
+	  
 	<properties>
 		<java.version>1.8</java.version>
 		<!-- version cucumber -->

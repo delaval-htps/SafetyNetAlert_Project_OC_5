@@ -55,7 +55,7 @@ public class EmergencyRestController {
    * @return     a ResponseEntity with as body a Map with Key/Value:
    *            <ul>
    *            <li> AdultCount/adultCount </li>
-   *            <li> ChildrenCount/childrenCount</li><
+   *            <li> ChildrenCount/childrenCount</li>
    *            <li> Persons/ List of persons mapped with FireStation</li>
    *            </ul>
    */

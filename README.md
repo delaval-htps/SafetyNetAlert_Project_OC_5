@@ -22,15 +22,69 @@ Since application started, you can access to all endpoints of REST API with the 
 ```html
 https://localhost:8080/
 ```
-Below you can find list of different endpoints :their description and use are explained in REST API documentation located at:`target/documentation`
+Below you can find list of all endpoints with their descriptions and uses explained in API documentation located at:
+
+```html
+http://localhost:8080/swagger-ui/
+```
+For a better organization of endpoints , they are regrouping in two sections :
+
+* **Administration :** to manage all endpoints relative to entities ( Person, FireStation, MedicalRecord).
+* **Emergency:** to manage all endpoints relative to URLS 
+
+
+<div style="display:flex;flex-direction: row;">
+<img src="src/main/resources/images/swagger1.png"
+     alt="swagger-ui/administration"
+     style="margin:auto;width: 50%; " />`
+     
+<img src="src/main/resources/images/swagger2.png"
+     alt="swagger-ui/administration"
+    style="margin:auto;width: 50%;" />
+</div>
 
 ##Run test
-We use TDD to implement code in this project:
+We used TDD to implement code in this project:
+
 So, from creation of integration and unit tests, we created the source's code and check it to be sure of its correct working.
+
+* To run unit tests only, you can use command:
+
+```shell
+mvn:test
+```
+* To run integration tests only, you can use command:
+
+```shell
+mvn failsafe:integration-test
+```
+* If you want to launch a build phase without integration tests, you can use next option for example:
+
+```shell
+mvn verify -Dskip.it=true
+```
+##Jacoco Coverage
+A report of coverage is automatically done when you launch tests.
+
+you can access to it at location :`target/site/jacoco/index.html`
+
+<div style="display:flex;flex-direction: row;">
+<img src="src/main/resources/images/Jacoco.png"
+     alt="swagger-ui/administration"
+     style="margin:auto;width: 100%; " />
+</div>
 
 ##Site and Reports
 
-We created a site with Maven to aggregate different reports.To deploy the site use the command:
+We created a site with Maven to aggregate different reports:
+
+
+* 	**SureFire Report** for all unit Tests.
+* 	**Jacoco Report** for coverage in Junit Tests.
+* 	**Javadoc Report** on src/main/java. 
+
+
+To deploy the site use the command:
 
 ```shell
 mvn site
@@ -66,3 +120,11 @@ and in `target/site` you will find a page index.html that you can open in your w
 		2. creation of Model Response to make more easily readable the body of each URLS's ResponseEntity
 		3. activation and configuration of actuator for health, info, metrics and httpTrace
 		4. implementation of javadoc and check for chekstyle rules.
+		
+* **V1.0.0**	:	Forth and Lastest version of application with upgrade tests and documentation::
+
+		1. Update relationship between Person and fireStation to M:M
+		2. Update Model Response to PersonDto for more readable response for each URL's endpoint
+		3. Update and check all UT and IT for the application
+		4. Creation of Api Documentation with swagger2 and mvn site with reports
+		5. Management of Actuator: health,info,trace and metrics.
