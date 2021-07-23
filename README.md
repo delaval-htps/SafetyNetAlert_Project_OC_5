@@ -1,4 +1,4 @@
-#SafetyNetAlert
+# SafetyNetAlert
 
 SafetyNetAlert is a back-end java application that gives essential informations to emergency's services through a RESTfull API.
 
@@ -43,7 +43,8 @@ For a better organization of endpoints , they are regrouping in two sections :
     style="margin:auto;width: 50%;" />
 </div>
 
-##Run test
+## Run test
+
 We used TDD to implement code in this project:
 
 So, from creation of integration and unit tests, we created the source's code and check it to be sure of its correct working.
@@ -63,7 +64,8 @@ mvn failsafe:integration-test
 ```shell
 mvn verify -Dskip.it=true
 ```
-##Jacoco Coverage
+## Jacoco Coverage
+
 A report of coverage is automatically done when you launch tests.
 
 you can access to it at location :`target/site/jacoco/index.html`
@@ -74,7 +76,7 @@ you can access to it at location :`target/site/jacoco/index.html`
      style="margin:auto;width: 100%; " />
 </div>
 
-##Site and Reports
+## Site and Reports
 
 We created a site with Maven to aggregate different reports:
 
@@ -91,7 +93,7 @@ mvn site
 ```
 and in `target/site` you will find a page index.html that you can open in your web browser witch contains these different reports:
 
-##Application was built with
+## Application was built with
 
 * `SpringBoot 2.4.4`
 * `Java 8`
@@ -101,7 +103,8 @@ and in `target/site` you will find a page index.html that you can open in your w
 * `Jacoco`
 * `Log4j`
 
-##Versions
+## Versions
+
 * **V0.0.1**	: 	First version of the project. implementation of Structure only.
 
 
