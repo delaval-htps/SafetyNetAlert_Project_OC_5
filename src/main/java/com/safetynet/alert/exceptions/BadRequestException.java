@@ -5,7 +5,7 @@ package com.safetynet.alert.exceptions;
  * this class is extended by following classes:
  * <ul>
  * <li>{@link ChangedNamesException}</li>
- * <li>{@link AlreadyExistedException}</li>
+ * <li>{@link AlReadyExistedException}</li>
  * </ul>
  *
  * @author delaval

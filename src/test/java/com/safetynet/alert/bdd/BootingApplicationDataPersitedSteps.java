@@ -29,15 +29,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 @CucumberContextConfiguration
 public class BootingApplicationDataPersitedSteps {
 
-  private static Source source;
-  private static Table personTable;
-  private static Table fireStationTable;
-  private static Table fireStationPersonJointTable;
-  private static Table medicalRecordTable;
-  private static Table medicationTable;
-  private static Table allergyTable;
-  private static Table attributionAllergyJointTable;
-  private static Table attributionMedicationJointTable;
+  private Source source;
+  private Table personTable;
+  private Table fireStationTable;
+  private Table fireStationPersonJointTable;
+  private Table medicalRecordTable;
+  private Table medicationTable;
+  private Table allergyTable;
+  private Table attributionAllergyJointTable;
+  private Table attributionMedicationJointTable;
 
   @Value("${spring.datasource.url}")
   private String databaseSource;
@@ -46,7 +46,7 @@ public class BootingApplicationDataPersitedSteps {
   @Value("${spring.datasource.password}")
   private String datasourcePassword;
 
-  private static Map<String, String> personMap;
+  private Map<String, String> personMap;
 
   /**
    * Set up before.
@@ -138,12 +138,11 @@ public class BootingApplicationDataPersitedSteps {
         personMap.get("lastName"),
         personMap.get("phone"),
         personMap.get("zip"),
-        1L,
         1L);
 
     // verify relationship between first person and medical record
-    assertThat(personTable).column(9).hasColumnName("id_fire_station");
-    assertThat(personTable).column(10).hasColumnName("id_medical_record");
+
+    assertThat(personTable).column(9).hasColumnName("id_medical_record");
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(1).hasValues(2L, 1L);

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -66,14 +67,22 @@ class EmergencyRestContollerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  private Person mockPerson1;
-  private Person mockPerson2;
-  private Person mockPerson3;
-  private Person mockPerson4;
-  private Person mockPerson5;
+  private Person mockAdult1;
+  private Person mockAdult2;
+  private Person mockChild1;
+  private Person mockAdult3;
 
-  private FireStation mockFireStation;
+  private Set<String> addresses1;
+  private Set<String> addresses2;
+
+  private Set<Person> persons1;
+  private Set<Person> persons2;
+
+  private FireStation mockFireStation1;
   private FireStation mockFireStation2;
+
+  private Set<FireStation> mockSetFireStation1;
+  private Set<FireStation> mockSetFireStation2;
 
   private Medication mockMedication1;
   private Medication mockMedication2;
@@ -81,79 +90,82 @@ class EmergencyRestContollerTest {
 
   private MedicalRecord mockMedicalRecord;
 
-  private Map<String, Object> mapReponsebody;
+  private Map<String, List<Person>> mapBodyResponse;
+  private Map<String, Object> mapBodyResponseWithCount;
 
-  private Set<String> addresses;
-  private Set<String> addresses2;
-
-  private Set<Person> persons;
-  private Set<Person> persons2;
 
   private LinkedHashSet<Medication> medications;
   private Set<Allergy> allergies;
 
   private Date birthDatePerson3;
 
+
+
   @BeforeEach
   void setUp() throws Exception {
 
-    mockPerson1 =
-        new Person(null, "Person1", "Test",
+    mockAdult1 =
+        new Person(null, "Person1", "Adult1",
                    new SimpleDateFormat("MM/dd/yyyy").parse("12/27/1976"), "address1",
-                   null, null, "061-846-0160", null, null, mockFireStation);
-    mockPerson2 =
-        new Person(null, "Person2", "Test",
+                   null, null, "061-846-0160", null, null, mockSetFireStation1);
+    mockAdult2 =
+        new Person(null, "Person2", "Adult2",
                    new SimpleDateFormat("MM/dd/yyyy").parse("02/22/1984"), "address1",
-                   null, null, "061-846-0161", null, null, mockFireStation);
+                   null, null, "061-846-0161", null, null, mockSetFireStation1);
 
     Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.YEAR, -18);
+    cal.add(Calendar.YEAR, -12);
     birthDatePerson3 = cal.getTime();
 
-    mockPerson3 =
-        new Person(null, "Person3", "Test",
-                   birthDatePerson3, "address1",
-                   null, null, "061-846-0162", null, null, mockFireStation);
-    mockPerson4 =
-        new Person(null, "Person4", "Test",
-                   birthDatePerson3, "address2",
-                   null, null, "061-846-0163", null, null, mockFireStation);
+    mockChild1 =
+        new Person(null, "Person3", "Child1", birthDatePerson3, "address1",
+                   null, null, "061-846-0162", null, null, mockSetFireStation1);
+    mockAdult3 =
+        new Person(null, "Person4", "Adult3",
+                   new SimpleDateFormat("MM/dd/yyyy").parse("12/27/1965"),
+                   "address2", null, null, "061-846-0163", null, null, mockSetFireStation2);
 
-    mockPerson5 =
-        new Person(null, "Person5", "Test",
-                   birthDatePerson3, "address3",
-                   null, null, "061-846-0164", null, null, mockFireStation2);
-
-    medications = new LinkedHashSet<>();
-    allergies = new HashSet<>();
 
     mockMedication1 = new Medication(1L, "medication1", "100mg", null);
-    mockMedication2 = new Medication(2L, "medication2", "100mg", null);
+    mockMedication2 = new Medication(2L, "medication2", "200mg", null);
 
     mockAllergy1 = new Allergy(1L, "allergy1", null);
 
+    medications = new LinkedHashSet<>();
     medications.add(mockMedication1);
     medications.add(mockMedication2);
 
+    allergies = new HashSet<>();
     allergies.add(mockAllergy1);
 
-    addresses = new HashSet<String>();
+    addresses1 = new HashSet<String>();
+    addresses1.add("address1");
+    addresses1.add("address2");
+
     addresses2 = new HashSet<String>();
-    addresses.add("address1");
-    addresses.add("address2");
     addresses2.add("address3");
 
-    persons = new LinkedHashSet<Person>();
-    persons2 = new LinkedHashSet<Person>();
-    persons.add(mockPerson1);
-    persons.add(mockPerson2);
-    persons.add(mockPerson3);
-    persons2.add(mockPerson5);
+    persons1 = new LinkedHashSet<Person>();
+    persons1.add(mockAdult1);
+    persons1.add(mockAdult2);
+    persons1.add(mockChild1);
 
-    mockFireStation = new FireStation(1L, 1, addresses, persons);
+    persons2 = new LinkedHashSet<Person>();
+    persons2.add(mockAdult3);
+
+    mockFireStation1 = new FireStation(1L, 1, addresses1, persons1);
     mockFireStation2 = new FireStation(2L, 2, addresses2, persons2);
-    mockMedicalRecord = new MedicalRecord(1L, mockPerson3, medications, allergies);
-    mapReponsebody = new LinkedHashMap<>();
+
+    mockSetFireStation1 = new HashSet<>();
+    mockSetFireStation1.add(mockFireStation1);
+
+    mockSetFireStation2 = new HashSet<>();
+    mockSetFireStation2.add(mockFireStation2);
+
+    mockMedicalRecord = new MedicalRecord(1L, mockChild1, medications, allergies);
+
+    mapBodyResponse = new LinkedHashMap<>();
+    mapBodyResponseWithCount = new LinkedHashMap<>();
 
   }
 
@@ -163,28 +175,30 @@ class EmergencyRestContollerTest {
       throws Exception {
 
     //Given
-    mapReponsebody.put("AdultCount", 2);
-    mapReponsebody.put("ChildrenCount", 1);
-    mapReponsebody.put("persons", new ArrayList<>(persons));
+    mapBodyResponseWithCount.put("AdultCount", 2);
+    mapBodyResponseWithCount.put("ChildrenCount", 1);
+
+    //persons1 contains mockAdult1,2 and mockChild1 mapped with address1
+    mapBodyResponseWithCount.put("persons", new ArrayList<>(persons1));
 
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(mockFireStation));
+        .thenReturn(Optional.of(mockFireStation1));
 
     when(personService.getPersonsMappedWithFireStation(Mockito.anyInt()))
-        .thenReturn(mapReponsebody);
+        .thenReturn(mapBodyResponseWithCount);
 
     //When and Then
     mockMvc.perform(get("/firestation/getpersons").param("stationNumber", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(3)))
         .andExpect(jsonPath("$.persons[0].firstName", is("Person1")))
-        .andExpect(jsonPath("$.persons[0].lastName", is("Test")))
+        .andExpect(jsonPath("$.persons[0].lastName", is("Adult1")))
         .andExpect(jsonPath("$.persons[0].phone", is("061-846-0160")))
         .andExpect(jsonPath("$.persons[1].firstName", is("Person2")))
-        .andExpect(jsonPath("$.persons[1].lastName", is("Test")))
+        .andExpect(jsonPath("$.persons[1].lastName", is("Adult2")))
         .andExpect(jsonPath("$.persons[1].phone", is("061-846-0161")))
         .andExpect(jsonPath("$.persons[2].firstName", is("Person3")))
-        .andExpect(jsonPath("$.persons[2].lastName", is("Test")))
+        .andExpect(jsonPath("$.persons[2].lastName", is("Child1")))
         .andExpect(jsonPath("$.persons[2].phone", is("061-846-0162")))
         .andExpect(jsonPath("$.AdultCount", is(2)))
         .andExpect(jsonPath("$.ChildrenCount", is(1))).andDo(print());
@@ -197,15 +211,16 @@ class EmergencyRestContollerTest {
       throws Exception {
 
     //Given
-    mapReponsebody.put("AdultCount", 0);
-    mapReponsebody.put("ChildrenCount", 0);
-    mapReponsebody.put("persons", new ArrayList<>());
+    mapBodyResponseWithCount.put("AdultCount", 0);
+    mapBodyResponseWithCount.put("ChildrenCount", 0);
+    mapBodyResponseWithCount.put("persons", new ArrayList<>());
 
+    mockFireStation1.setAddresses(new HashSet<String>());
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(mockFireStation));
+        .thenReturn(Optional.of(mockFireStation1));
 
     when(personService.getPersonsMappedWithFireStation(Mockito.anyInt()))
-        .thenReturn(mapReponsebody);
+        .thenReturn(mapBodyResponseWithCount);
     //When and Then
     mockMvc.perform(get("/firestation/getpersons").param("stationNumber", "1"))
         .andExpect(status().isOk())
@@ -239,34 +254,31 @@ class EmergencyRestContollerTest {
   void getChildAlert_whenValidAddressAndExistedChildren_thenReturn200() throws Exception {
 
     //Given
-    List<Person> children = new ArrayList<Person>();
-    children.add(mockPerson3);
+    List<Person> children = new ArrayList();
+    children.add(mockChild1);
 
-    List<Person> otherMembers = new ArrayList<Person>();
-    otherMembers.add(mockPerson1);
-    otherMembers.add(mockPerson2);
+    List<Person> otherMembers = new ArrayList();
+    otherMembers.add(mockAdult1);
+    otherMembers.add(mockAdult2);
 
-    mapReponsebody.put("Children", children);
-    mapReponsebody.put("OtherMembers", otherMembers);
 
-    when(personService.getChildrenByAddress(Mockito.anyString())).thenReturn(mapReponsebody);
+    mapBodyResponse.put("children", children);
+    mapBodyResponse.put("otherMembers", otherMembers);
+
+    when(personService.getChildrenByAddress(Mockito.anyString())).thenReturn(mapBodyResponse);
 
     //when and then
-    mockMvc.perform(get("/childAlert").param("address", "1509 Culver St"))
+    mockMvc.perform(get("/childAlert").param("address", "address1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
-        .andExpect(jsonPath("$.Children.length()", is(1)))
-        .andExpect(jsonPath("$.Children[0].firstName", is("Person3")))
-        .andExpect(jsonPath("$.Children[0].lastName", is("Test")))
-        .andExpect(jsonPath("$.Children[0].birthDate",
-            is(new SimpleDateFormat("MM/dd/yyyy").format(birthDatePerson3).toString())))
-        .andExpect(jsonPath("$.OtherMembers.length()", is(2)))
-        .andExpect(jsonPath("$.OtherMembers[0].firstName", is("Person1")))
-        .andExpect(jsonPath("$.OtherMembers[0].lastName", is("Test")))
-        .andExpect(jsonPath("$.OtherMembers[0].birthDate", is("12/27/1976")))
-        .andExpect(jsonPath("$.OtherMembers[1].firstName", is("Person2")))
-        .andExpect(jsonPath("$.OtherMembers[1].lastName", is("Test")))
-        .andExpect(jsonPath("$.OtherMembers[1].birthDate", is("02/22/1984")))
+        .andExpect(jsonPath("$.children.length()", is(1)))
+        .andExpect(jsonPath("$.children[0].lastName", is("Child1")))
+        .andExpect(jsonPath("$.children[0].age", notNullValue()))
+        .andExpect(jsonPath("$.otherMembers.length()", is(2)))
+        .andExpect(jsonPath("$.otherMembers[0].lastName", is("Adult1")))
+        .andExpect(jsonPath("$.otherMembers[0].age", notNullValue()))
+        .andExpect(jsonPath("$.otherMembers[1].lastName", is("Adult2")))
+        .andExpect(jsonPath("$.otherMembers[1].age", notNullValue()))
         .andDo(print());
 
 
@@ -291,20 +303,48 @@ class EmergencyRestContollerTest {
 
   @Test
   @Order(6)
+  void getChildAlert_whenNoChildren_thenReturnEmptyList200() throws Exception {
+
+    //Given
+    List<Person> children = new ArrayList();
+    List<Person> otherMembers = new ArrayList();
+    otherMembers.add(mockAdult1);
+    otherMembers.add(mockAdult2);
+
+    mapBodyResponse.put("children", children);
+    mapBodyResponse.put("otherMembers", otherMembers);
+    when(personService.getChildrenByAddress(Mockito.anyString())).thenReturn(mapBodyResponse);
+
+    //when and then
+    MvcResult result =
+        mockMvc.perform(get("/childAlert").param("address", "AddressWithNoChildren"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()", is(0)))
+            .andReturn();
+
+  }
+
+  @Test
+  @Order(6)
   void getPhoneAlert_whenExistedFireStation_thenReturn200() throws Exception {
 
     //Given
-
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(mockFireStation));
+        .thenReturn(Optional.of(mockFireStation1));
+
+    // as mockFireStation has mockPerson1,2,3
+    List<String> phones =
+        Arrays.asList(mockAdult1.getPhone(), mockAdult2.getPhone(), mockChild1.getPhone());
+
+    when(personService.getPhonesByNumberStation(Mockito.anyInt())).thenReturn(phones);
 
     //When and Then
     mockMvc.perform(get("/phoneAlert").param("firestation", "1"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.Phones.length()", is(3)))
-        .andExpect(jsonPath("$.Phones[0]", is("061-846-0160")))
-        .andExpect(jsonPath("$.Phones[1]", is("061-846-0161")))
-        .andExpect(jsonPath("$.Phones[2]", is("061-846-0162")))
+        .andExpect(jsonPath("$.phones.length()", is(3)))
+        .andExpect(jsonPath("$.phones[0]", is("061-846-0160")))
+        .andExpect(jsonPath("$.phones[1]", is("061-846-0161")))
+        .andExpect(jsonPath("$.phones[2]", is("061-846-0162")))
         .andDo(print());
 
   }
@@ -313,6 +353,9 @@ class EmergencyRestContollerTest {
   @Order(7)
   void getphoneAlert_whenNotExistedFireStation_thenReturn404() throws Exception {
     //Given
+
+    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+        .thenReturn(Optional.empty());
 
     //when and then
     MvcResult result = mockMvc.perform(get("/phoneAlert").param("firestation", "6"))
@@ -329,33 +372,50 @@ class EmergencyRestContollerTest {
   void getPersonsWhenFire_whenValidAddress_thenReturn200() throws Exception {
 
     //Given
-    Map<String, Object> mockMapInfo = new LinkedHashMap<>();
-    mockMapInfo.put("Name", "Person3");
-    mockMapInfo.put("Phone", "061-846-0162");
-    mockMapInfo.put("Age", 18);
-    mockMapInfo.put("Medications", medications);
-    mockMapInfo.put("Allergies", allergies);
+    // as set persons1 contains persons with the same address address1
+    // set mockMedicalRecord for all just to check if fetching medications and allergies
+    for (Person person : persons1) {
 
-    List<Object> personsList = new ArrayList<>();
-    personsList.add(mockMapInfo);
+      person.setMedicalRecord(mockMedicalRecord);
+
+    }
+    List<Person> personsMappedToAddress = new ArrayList(persons1);
 
     when(personService.getPersonsWhenFireMappedByAddress(Mockito.anyString()))
-        .thenReturn(personsList);
+        .thenReturn(personsMappedToAddress);
 
     //when & then
-    mockMvc.perform(get("/fire").param("address", "address2"))
+    mockMvc.perform(get("/fire").param("address", "address1"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
-        .andExpect(jsonPath("$[0].Name", is("Person3")))
-        .andExpect(jsonPath("$[0].Phone", is("061-846-0162")))
-        .andExpect(jsonPath("$[0].Age", is(18)))
-        .andExpect(jsonPath("$[0].Medications.length()", is(2)))
-        .andExpect(jsonPath("$[0].Medications[0].designation", is("medication1")))
-        .andExpect(jsonPath("$[0].Medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$[0].Medications[1].designation", is("medication2")))
-        .andExpect(jsonPath("$[0].Medications[1].posology", is("100mg")))
-        .andExpect(jsonPath("$[0].Allergies.length()", is(1)))
-        .andExpect(jsonPath("$[0].Allergies[0].designation", is("allergy1")))
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$[0].lastName", is("Adult1")))
+        .andExpect(jsonPath("$[0].phone", is("061-846-0160")))
+        .andExpect(jsonPath("$[0].age", notNullValue()))
+        .andExpect(jsonPath("$[0].medications.length()", is(2)))
+        .andExpect(jsonPath("$[0].medications[*].designation",
+            Matchers.containsInAnyOrder("medication1", "medication2")))
+        .andExpect(jsonPath("$[0].medications[*].posology",
+            Matchers.containsInAnyOrder("100mg", "200mg")))
+        .andExpect(jsonPath("$[0].allergies.length()", is(1)))
+        .andExpect(jsonPath("$[0].allergies[0].designation", is("allergy1")))
+        .andExpect(jsonPath("$[1].lastName", is("Adult2")))
+        .andExpect(jsonPath("$[1].phone", is("061-846-0161")))
+        .andExpect(jsonPath("$[1].age", notNullValue()))
+        .andExpect(jsonPath("$[1].medications[*].designation",
+            Matchers.containsInAnyOrder("medication1", "medication2")))
+        .andExpect(jsonPath("$[1].medications[*].posology",
+            Matchers.containsInAnyOrder("100mg", "200mg")))
+        .andExpect(jsonPath("$[1].allergies.length()", is(1)))
+        .andExpect(jsonPath("$[1].allergies[0].designation", is("allergy1")))
+        .andExpect(jsonPath("$[2].lastName", is("Child1")))
+        .andExpect(jsonPath("$[2].phone", is("061-846-0162")))
+        .andExpect(jsonPath("$[2].age", notNullValue()))
+        .andExpect(jsonPath("$[2].medications[*].designation",
+            Matchers.containsInAnyOrder("medication1", "medication2")))
+        .andExpect(jsonPath("$[2].medications[*].posology",
+            Matchers.containsInAnyOrder("100mg", "200mg")))
+        .andExpect(jsonPath("$[2].allergies.length()", is(1)))
+        .andExpect(jsonPath("$[2].allergies[0].designation", is("allergy1")))
         .andDo(print());
 
   }
@@ -366,7 +426,7 @@ class EmergencyRestContollerTest {
       throws Exception {
 
     //Given
-    List<Object> personsList = new ArrayList<>();
+    List<Person> personsList = new ArrayList<>();
 
     when(personService.getPersonsWhenFireMappedByAddress(Mockito.anyString()))
         .thenReturn(personsList);
@@ -388,88 +448,66 @@ class EmergencyRestContollerTest {
   void getPersonsWhenFlood_whenAllExistedStations_thenReturn200() throws Exception {
 
     //Given
+
+    //the list of numberStations
     List<String> valuesStation = Arrays.asList("1", "2");
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.addAll("stations", valuesStation);
 
-    mockPerson1.setMedicalRecord(mockMedicalRecord);
-    mockPerson2.setMedicalRecord(mockMedicalRecord);
-    mockPerson3.setMedicalRecord(mockMedicalRecord);
+    // mapping a medicalRecord and firestation to persons
+    mockAdult1.setMedicalRecord(mockMedicalRecord);
+    mockAdult2.setMedicalRecord(mockMedicalRecord);
+    mockChild1.setMedicalRecord(mockMedicalRecord);
+    mockAdult1.setFireStations(mockSetFireStation1);
+    mockAdult2.setFireStations(mockSetFireStation1);
+    mockChild1.setFireStations(mockSetFireStation1);
 
-    List<Object> personsInfo1 = new ArrayList<>();
+    mockAdult3.setMedicalRecord(null);
+    mockAdult3.setFireStations(mockSetFireStation2);
 
-    for (Person person : persons) {
+    // persons1 contains persons with address1
+    // persons2 contains persons with address2
+    mapBodyResponse.put("address1", new ArrayList<>(persons1));
+    mapBodyResponse.put("address2", new ArrayList<>(persons2));
 
-      Map<String, Object> personInfo = new LinkedHashMap<>();
-      personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-      personInfo.put("Phone", person.getPhone());
-      personInfo.put("Age", "age");
-      personInfo.put("Medications", person.getMedicalRecord().getMedications());
-      personInfo.put("Allergies", person.getMedicalRecord().getAllergies());
-      personsInfo1.add(personInfo);
-    }
-
-    mapReponsebody.put("address1", personsInfo1);
-
-    List<Object> personsInfo2 = new ArrayList<>();
-
-    for (Person person : persons2) {
-
-      Map<String, Object> personInfo = new LinkedHashMap<>();
-      personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-      personInfo.put("Phone", person.getPhone());
-      personInfo.put("Age", "not specified");
-      personInfo.put("MedicalRecord", "not yet created");
-      personsInfo2.add(personInfo);
-    }
-
-    mapReponsebody.put("address3", personsInfo2);
-
+    //mockFirestation has address1 and mockPerson1,2,3
+    //mockFireStation2 has address2 and mockPerson5
     when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(mockFireStation), Optional.of(mockFireStation2));
+        .thenReturn(Optional.of(mockFireStation1), Optional.of(mockFireStation2));
 
     when(personService.getPersonsWhenFloodByStations(Mockito.anyList()))
-        .thenReturn(mapReponsebody);
+        .thenReturn(mapBodyResponse);
 
     //When& then
     mockMvc
         .perform(get("/flood/stations").params(params))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(2)))
-        .andExpect(jsonPath("$.['address1'][0].Name", is("Test Person1")))
-        .andExpect(jsonPath("$.['address1'][0].Phone", is("061-846-0160")))
-        .andExpect(jsonPath("$.['address1'][0].Age", is("age")))
-        .andExpect(jsonPath("$.['address1'][0].Medications.length()", is(2)))
-        .andExpect(jsonPath("$.['address1'][0].Medications[0].designation", is("medication1")))
-        .andExpect(jsonPath("$.['address1'][0].Medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][0].Medications[1].designation", is("medication2")))
-        .andExpect(jsonPath("$.['address1'][0].Medications[1].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][0].Allergies.length()", is(1)))
-        .andExpect(jsonPath("$.['address1'][0].Allergies[0].designation", is("allergy1")))
-        .andExpect(jsonPath("$.['address1'][1].Name", is("Test Person2")))
-        .andExpect(jsonPath("$.['address1'][1].Phone", is("061-846-0161")))
-        .andExpect(jsonPath("$.['address1'][1].Age", is("age")))
-        .andExpect(jsonPath("$.['address1'][1].Medications.length()", is(2)))
-        .andExpect(jsonPath("$.['address1'][1].Medications[0].designation", is("medication1")))
-        .andExpect(jsonPath("$.['address1'][1].Medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][1].Medications[1].designation", is("medication2")))
-        .andExpect(jsonPath("$.['address1'][1].Medications[1].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][1].Allergies.length()", is(1)))
-        .andExpect(jsonPath("$.['address1'][1].Allergies[0].designation", is("allergy1")))
-        .andExpect(jsonPath("$.['address1'][2].Name", is("Test Person3")))
-        .andExpect(jsonPath("$.['address1'][2].Phone", is("061-846-0162")))
-        .andExpect(jsonPath("$.['address1'][2].Age", is("age")))
-        .andExpect(jsonPath("$.['address1'][2].Medications.length()", is(2)))
-        .andExpect(jsonPath("$.['address1'][2].Medications[0].designation", is("medication1")))
-        .andExpect(jsonPath("$.['address1'][2].Medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][2].Medications[1].designation", is("medication2")))
-        .andExpect(jsonPath("$.['address1'][2].Medications[1].posology", is("100mg")))
-        .andExpect(jsonPath("$.['address1'][2].Allergies.length()", is(1)))
-        .andExpect(jsonPath("$.['address1'][2].Allergies[0].designation", is("allergy1")))
-        .andExpect(jsonPath("$.['address3'][0].Name", is("Test Person5")))
-        .andExpect(jsonPath("$.['address3'][0].Phone", is("061-846-0164")))
-        .andExpect(jsonPath("$.['address3'][0].Age", notNullValue()))
-        .andExpect(jsonPath("$.['address3'][0].MedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$.address1[0].lastName", is("Adult1")))
+        .andExpect(jsonPath("$.address1[0].phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.address1[0].age", notNullValue()))
+        .andExpect(jsonPath("$.address1[0].medications.length()", is(2)))
+        .andExpect(jsonPath("$.address1[*].medications[*].designation",
+            Matchers.hasItems("medication1", "medication2")))
+        .andExpect(jsonPath("$.address1[*].medications[*].posology",
+            Matchers.hasItems("100mg", "200mg")))
+        .andExpect(jsonPath("$.address1[0].allergies.length()", is(1)))
+        .andExpect(
+            jsonPath("$.address1[*].allergies[*].designation", Matchers.hasItems("allergy1")))
+        .andExpect(jsonPath("$.address1[1].lastName", is("Adult2")))
+        .andExpect(jsonPath("$.address1[1].phone", is("061-846-0161")))
+        .andExpect(jsonPath("$.address1[1].age", notNullValue()))
+        .andExpect(jsonPath("$.address1[1].medications.length()", is(2)))
+        .andExpect(jsonPath("$.address1[1].allergies.length()", is(1)))
+        .andExpect(jsonPath("$.address1[2].lastName", is("Child1")))
+        .andExpect(jsonPath("$.address1[2].phone", is("061-846-0162")))
+        .andExpect(jsonPath("$.address1[2].age", notNullValue()))
+        .andExpect(jsonPath("$.address1[2].medications.length()", is(2)))
+        .andExpect(jsonPath("$.address1[2].allergies.length()", is(1)))
+        .andExpect(jsonPath("$.address2[0].lastName", is("Adult3")))
+        .andExpect(jsonPath("$.address2[0].phone", is("061-846-0163")))
+        .andExpect(jsonPath("$.address2[0].age", notNullValue()))
+        .andExpect(jsonPath("$.address2[0].statusMedicalRecord", is("not yet created")))
         .andDo(print());
 
   }
@@ -480,7 +518,6 @@ class EmergencyRestContollerTest {
 
     //Given
     List<String> valuesStation = Arrays.asList("3");
-
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.addAll("stations", valuesStation);
 
@@ -500,47 +537,33 @@ class EmergencyRestContollerTest {
 
   }
 
-  @Test
-  @Order(12)
-  void getPersonsWhenFlood_whenOnePersonHasNoMedicalrecord_thenReturn200() throws Exception {
-
-    //Given
-    List<String> values = Arrays.asList("2");
-
-    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-    params.addAll("stations", values);
-
-    List<Object> personsInfo2 = new ArrayList<>();
-
-    for (Person person : persons2) {
-
-      Map<String, Object> personInfo = new LinkedHashMap<>();
-      personInfo.put("Name", person.getLastName() + " " + person.getFirstName());
-      personInfo.put("Phone", person.getPhone());
-      personInfo.put("Age", "not specified");
-      personInfo.put("MedicalRecord", "not yet created");
-
-      personsInfo2.add(personInfo);
-    }
-
-    mapReponsebody.put("address3", personsInfo2);
-
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-        .thenReturn(Optional.of(mockFireStation2));
-
-    when(personService.getPersonsWhenFloodByStations(Mockito.anyList()))
-        .thenReturn(mapReponsebody);
-    //When& then
-    mockMvc.perform(get("/flood/stations").params(params))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
-        .andExpect(jsonPath("$.['address3'][0].Name", is("Test Person5")))
-        .andExpect(jsonPath("$.['address3'][0].Phone", is("061-846-0164")))
-        .andExpect(jsonPath("$.['address3'][0].Age", is("not specified")))
-        .andExpect(jsonPath("$.['address3'][0].MedicalRecord", is("not yet created")))
-        .andDo(print());
-
-  }
+  //  @Test
+  //  @Order(12)
+  //  void getPersonsWhenFlood_whenOnePersonHasNoMedicalrecord_thenReturn200() throws Exception {
+  //
+  //    //Given
+  //    List<String> values = Arrays.asList("1");
+  //    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+  //    params.addAll("stations", values);
+  //
+  //    mapBodyResponse.put("address3", new ArrayList<>(persons2));
+  //
+  //    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+  //        .thenReturn(Optional.of(mockFireStation2));
+  //
+  //    when(personService.getPersonsWhenFloodByStations(Mockito.anyList()))
+  //        .thenReturn(mapresult);
+  //    //When& then
+  //    mockMvc.perform(get("/flood/stations").params(params))
+  //        .andExpect(status().isOk())
+  //        .andExpect(jsonPath("$.length()", is(1)))
+  //        .andExpect(jsonPath("$.address3[0].lastName", is("Test2")))
+  //        .andExpect(jsonPath("$.address3[0].phone", is("061-846-0164")))
+  //        .andExpect(jsonPath("$.address3[0].age", notNullValue()))
+  //        .andExpect(jsonPath("$.address3[0].statusMedicalRecord", is("not yet created")))
+  //        .andDo(print());
+  //
+  //  }
 
   @Test
   @Order(13)
@@ -548,43 +571,35 @@ class EmergencyRestContollerTest {
 
     //given
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("firstName", "Person3");
-    map.add("lastName", "Test");
+    map.add("firstName", "Person1");
+    map.add("lastName", "Adult1");
 
-    mockPerson3.setMedicalRecord(mockMedicalRecord);
-    mockPerson3.setEmail("person3@email.com");
+    mockAdult1.setEmail("person1@email.com");
+    // change name of Adult2 to "Adult1" to check if he's in the result
+    // and Adult1 is the first Row of result
+    mockAdult2.setLastName("Adult1");
+    mockAdult2.setEmail("adult2@email.com");
 
-    Map<String, Object> personsInfo = new LinkedHashMap<>();
-    personsInfo.put("Name", mockPerson3.getLastName() + " " + mockPerson3.getFirstName());
-    personsInfo.put("Phone", mockPerson3.getPhone());
-    personsInfo.put("Address", mockPerson3.getAddress());
-    personsInfo.put("Age", "age");
-    personsInfo.put("Email", mockPerson3.getEmail());
-    personsInfo.put("Medications", mockPerson3.getMedicalRecord().getMedications());
-    personsInfo.put("Allergies", mockPerson3.getMedicalRecord().getAllergies());
-
-    List<Object> mockInformations = new ArrayList<>();
-    mockInformations.add(personsInfo);
+    Set<Person> mockInformations = new LinkedHashSet<Person>();
+    mockInformations.add(mockAdult1);
+    mockInformations.add(mockAdult2);
 
     when(personService.getPersonInfoByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(mockInformations);
 
     //when & Then
     mockMvc.perform(get("/personInfo").params(map)).andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()", is(1)))
-        .andExpect(jsonPath("$[0].Name", is("Test Person3")))
-        .andExpect(jsonPath("$[0].Address", is("address1")))
-        .andExpect(jsonPath("$[0].Age", notNullValue()))
-        .andExpect(jsonPath("$[0].Email", is("person3@email.com")))
-        .andExpect(jsonPath("$[0].Medications.length()", is(2)))
-        .andExpect(jsonPath("$[0].Medications[0].designation", is("medication1")))
-        .andExpect(jsonPath("$[0].Medications[0].posology", is("100mg")))
-        .andExpect(jsonPath("$[0].Medications[1].designation",
-            is("medication2")))
-        .andExpect(jsonPath("$[0].Medications[1].posology", is("100mg")))
-        .andExpect(jsonPath("$[0].Allergies.length()", is(1)))
-        .andExpect(
-            jsonPath("$[0].Allergies[0].designation", is("allergy1")))
+        .andExpect(jsonPath("$.length()", is(2)))
+        .andExpect(jsonPath("$[0].lastName", is("Adult1")))
+        .andExpect(jsonPath("$[0].address", is("address1")))
+        .andExpect(jsonPath("$[0].age", notNullValue()))
+        .andExpect(jsonPath("$[0].email", is("person1@email.com")))
+        .andExpect(jsonPath("$[0].statusMedicalRecord", is("not yet created")))
+        .andExpect(jsonPath("$[1].lastName", is("Adult1")))
+        .andExpect(jsonPath("$[1].address", is("address1")))
+        .andExpect(jsonPath("$[1].age", notNullValue()))
+        .andExpect(jsonPath("$[1].email", is("adult2@email.com")))
+        .andExpect(jsonPath("$[1].statusMedicalRecord", is("not yet created")))
         .andDo(print());
 
   }
@@ -599,9 +614,9 @@ class EmergencyRestContollerTest {
     map.add("firstName", "Emilie");
     map.add("lastName", "Baudouin");
 
-    List<Object> mockInforamtions = new ArrayList<>();
+    Set<Person> mockInformations = new LinkedHashSet<Person>();
     when(personService.getPersonInfoByNames(Mockito.anyString(), Mockito.anyString()))
-        .thenReturn(mockInforamtions);
+        .thenReturn(mockInformations);
 
     //When & then
 
@@ -624,7 +639,7 @@ class EmergencyRestContollerTest {
     int i = 0;
     List<String> mockEmails = new ArrayList<>();
 
-    for (Person person : persons) {
+    for (Person person : persons1) {
 
       person.setCity("CityTest");
       person.setEmail("test" + i + "@email.com");

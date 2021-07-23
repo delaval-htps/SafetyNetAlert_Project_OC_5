@@ -27,15 +27,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class LoadDatabaseFromJsonIT {
 
   // instance to check database
-  private static Source source;
-  private static Table personTable;
-  private static Table fireStationTable;
-  private static Table fireStationPersonJointTable;
-  private static Table medicalRecordTable;
-  private static Table medicationTable;
-  private static Table allergyTable;
-  private static Table attributionAllergyJointTable;
-  private static Table attributionMedicationJointTable;
+  private Source source;
+  private Table personTable;
+  private Table fireStationTable;
+  private Table fireStationPersonJointTable;
+  private Table medicalRecordTable;
+  private Table medicationTable;
+  private Table allergyTable;
+  private Table attributionAllergyJointTable;
+  private Table attributionMedicationJointTable;
 
   // instance that CUT uses
   @Autowired
@@ -110,12 +110,10 @@ class LoadDatabaseFromJsonIT {
         "Boyd",
         "841-874-6512",
         97451,
-        1L,
         1L);
 
     // verify relationship between first person and medical record
-    assertThat(personTable).column(9).hasColumnName("id_fire_station");
-    assertThat(personTable).column(10).hasColumnName("id_medical_record");
+    assertThat(personTable).column(9).hasColumnName("id_medical_record");
     assertThat(attributionAllergyJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(0).hasValues(1L, 1L);
     assertThat(attributionMedicationJointTable).row(1).hasValues(2L, 1L);

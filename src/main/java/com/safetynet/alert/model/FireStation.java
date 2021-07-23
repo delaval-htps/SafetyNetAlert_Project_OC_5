@@ -2,7 +2,8 @@ package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiModelProperty;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -15,7 +16,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Min;
@@ -33,41 +35,54 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString(exclude = "persons")
+@ToString(exclude = {"persons",
+                     "addresses"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonPropertyOrder({"idFireStation",
+                    "numberStation",
+                    "addresses"})
 @Table(name = "FireStation",
        uniqueConstraints = @UniqueConstraint(columnNames = {"idFireStation",
                                                             "station"}))
-public class FireStation implements Serializable {
-
-  private static final long serialVersionUID = 5090513180865338976L;
+public class FireStation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
+  @ApiModelProperty(notes = "ID of FireStation", readOnly = true)
+
   private Long idFireStation;
 
   @Column(name = "station")
   @Min(value = 1)
   @JsonAlias("station")
-  private int numberStation;
+  @ApiModelProperty(notes = "numberStation of FireStation")
+
+  private Integer numberStation;
 
   @ElementCollection
-  @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation",
-                                             referencedColumnName = "idFireStation"))
+  @CollectionTable(joinColumns = @JoinColumn(name = "idFireStation"))
+  @Column(name = "adresses")
+  @ApiModelProperty(notes = "List of addresses mapped with FireStation")
+
   private Set<@NotBlank String> addresses = new HashSet<String>();
 
 
-  @OneToMany(fetch = FetchType.LAZY,
-             cascade = {CascadeType.REFRESH,
-                        CascadeType.DETACH,
-                        CascadeType.MERGE,
-                        CascadeType.PERSIST},
-             mappedBy = "fireStation")
+  @ManyToMany(fetch = FetchType.LAZY,
+              cascade = {CascadeType.DETACH,
+                         CascadeType.MERGE,
+                         CascadeType.PERSIST,
+                         CascadeType.REFRESH})
+  @JoinTable(
+             name = "person_firestation",
+             joinColumns = @JoinColumn(name = "idFireStation"),
+             inverseJoinColumns = @JoinColumn(name = "idPerson"))
+
   @JsonIgnore
-  //  @OrderBy("idPerson")
+  @ApiModelProperty(notes = "List of Persons managed by FireStation")
+
   private Set<Person> persons = new HashSet<>();
 
   /**
@@ -78,7 +93,7 @@ public class FireStation implements Serializable {
    */
   public void addPerson(Person person) {
 
-    persons.add(person);
+    this.persons.add(person);
 
   }
 
@@ -90,7 +105,7 @@ public class FireStation implements Serializable {
    */
   public void removePerson(Person person) {
 
-    persons.remove(person);
+    this.persons.remove(person);
 
   }
 
@@ -102,7 +117,7 @@ public class FireStation implements Serializable {
    */
   public void addAddress(String address) {
 
-    addresses.add(address);
+    this.addresses.add(address);
 
   }
 

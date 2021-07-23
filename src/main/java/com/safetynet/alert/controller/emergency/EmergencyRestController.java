@@ -1,5 +1,6 @@
 package com.safetynet.alert.controller.emergency;
 
+import com.safetynet.alert.dto.PersonDto;
 import com.safetynet.alert.exceptions.address.AddressNotFoundException;
 import com.safetynet.alert.exceptions.firestation.FireStationNotFoundException;
 import com.safetynet.alert.exceptions.person.PersonNotFoundException;
@@ -7,12 +8,15 @@ import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.PersonService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
+@Api(description = "API for Emergency's Services")
+@Log4j2
 public class EmergencyRestController {
 
   @Autowired
@@ -49,14 +55,16 @@ public class EmergencyRestController {
    * @return     a ResponseEntity with as body a Map with Key/Value:
    *            <ul>
    *            <li> AdultCount/adultCount </li>
-   *            <li> ChildrenCount/childrenCount</li><
+   *            <li> ChildrenCount/childrenCount</li>
    *            <li> Persons/ List of persons mapped with FireStation</li>
    *            </ul>
    */
-  @GetMapping("/firestation/getpersons")
-  public ResponseEntity<?>
-      getPersonsMappedWithFireStation(
-          @RequestParam(name = "stationNumber") int stationNumber) {
+  @GetMapping(value = "/firestation/getpersons", produces = "application/json")
+  @ApiOperation(value = "Persons mapped by FireStation",
+                notes = "Retrieve all Persons mapped by FireStation with given numberStation",
+                responseContainer = "Map")
+  public ResponseEntity<Map<String, Object>> getPersonsMappedWithFireStation(
+      @RequestParam(name = "stationNumber") int stationNumber) {
 
     Optional<FireStation> existedfireStation =
         fireStationService.getFireStationByNumberStation(stationNumber);
@@ -87,14 +95,44 @@ public class EmergencyRestController {
    *
    * @throws        a {@link AddressNotFoundException} if address is not found.
    */
-  @GetMapping("/childAlert")
-  public ResponseEntity<?> getChildAlert(@RequestParam(name = "address") String address) {
+  @GetMapping(value = "/childAlert", produces = "application/json")
+  @ApiOperation(value = "children living in the given address",
+                notes = "Retrieve list of children living in the given address"
+                    + " + list of other members living at this address")
 
-    Map<String, Object> childrenByAddress = personService.getChildrenByAddress(address);
+  public ResponseEntity<Map<String, List<PersonDto>>> getChildAlert(
+      @RequestParam(name = "address") String address) {
+
+    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
+
+    Map<String, List<Person>> childrenByAddress =
+        personService.getChildrenByAddress(address);
 
     if (childrenByAddress != null) {
 
-      return new ResponseEntity<>(childrenByAddress, HttpStatus.OK);
+      if (!childrenByAddress.get("children").isEmpty()) {
+
+        result.put("children", new ArrayList<PersonDto>());
+        result.put("otherMembers", new ArrayList<PersonDto>());
+
+        for (Person person : childrenByAddress.get("children")) {
+
+          result.get("children").add(new PersonDto(person.getFirstName(),
+                                                   person.getLastName(),
+                                                   person.getBirthDate()));
+        }
+
+
+
+        for (Person person : childrenByAddress.get("otherMembers")) {
+
+          result.get("otherMembers").add(new PersonDto(person.getFirstName(),
+                                                       person.getLastName(),
+                                                       person.getBirthDate()));
+        }
+      }
+
+      return new ResponseEntity<>(result, HttpStatus.OK);
 
     } else {
 
@@ -111,25 +149,22 @@ public class EmergencyRestController {
    *
    * @return  a ResponseEntity with a list of phones sorted and unique.
    */
-  @GetMapping("/phoneAlert")
-  public ResponseEntity<?>
-      getPhoneAlert(@RequestParam(name = "firestation") int fireStationNumber) {
+  @GetMapping(value = "/phoneAlert", produces = "application/json")
+  @ApiOperation(value = "person's phones mapped by FireStation",
+                notes = "Retrieve list of person's phones mapped by FireStation"
+                    + " with given numberStation")
+  public ResponseEntity<Map<String, Object>> getPhoneAlert(
+      @RequestParam(name = "firestation") int fireStationNumber) {
 
     Optional<FireStation> existedFireStation =
         fireStationService.getFireStationByNumberStation(fireStationNumber);
 
-    SortedSet<String> phones = new TreeSet<>();
-
     if (existedFireStation.isPresent()) {
 
-      for (Person person : existedFireStation.get().getPersons()) {
-
-        phones.add(person.getPhone());
-
-      }
+      List<String> phones = personService.getPhonesByNumberStation(fireStationNumber);
 
       Map<String, Object> result = new LinkedHashMap<>();
-      result.put("Phones", phones);
+      result.put("phones", phones);
 
       return new ResponseEntity<>(result, HttpStatus.OK);
     } else {
@@ -149,16 +184,29 @@ public class EmergencyRestController {
    *
    * @return a ResponseEntity with a List of Persons and their informations described before
    */
-  @GetMapping("/fire")
-  public ResponseEntity<?>
-      getPersonsWhenFire(@RequestParam(name = "address") String address) {
+  @GetMapping(value = "/fire", produces = "application/json")
+  @ApiOperation(value = "persons living at address",
+                notes = "Retrieve list of persons living  at the given address",
+                response = PersonDto.class)
+  public ResponseEntity<List<PersonDto>> getPersonsWhenFire(
+      @RequestParam(name = "address") String address) {
 
-    List<Object> personsInfoWhenFireMappedByAddress =
+    List<Person> personsInfoWhenFireMappedByAddress =
         personService.getPersonsWhenFireMappedByAddress(address);
+
+    List<PersonDto> personsInfoFireDto = new ArrayList<>();
 
     if (!personsInfoWhenFireMappedByAddress.isEmpty()) {
 
-      return ResponseEntity.ok(personsInfoWhenFireMappedByAddress);
+      for (Person person : personsInfoWhenFireMappedByAddress) {
+
+        personsInfoFireDto.add(
+            new PersonDto(person.getFireStations(), person.getLastName(),
+                          person.getBirthDate(), person.getPhone(),
+                          person.getMedicalRecord()));
+
+      }
+      return ResponseEntity.ok(personsInfoFireDto);
 
     } else {
 
@@ -179,9 +227,14 @@ public class EmergencyRestController {
    * @return  ResponseEntity with the list of homes mapped by list of numberStation
    *             with information for each Person living in.
    */
-  @GetMapping("/flood/stations")
-  public ResponseEntity<?>
-      getPersonsWhenFlood(@RequestParam(name = "stations") List<Integer> numberStations) {
+  @GetMapping(value = "/flood/stations", produces = "application/json")
+  @ApiOperation(value = "homes mapped by FireStations",
+                notes = "Retrieve list of homes ( persons sorted by address (key of Map))"
+                    + " mapped by FireStations whith numberStations given in a list")
+  public ResponseEntity<Map<String, List<PersonDto>>> getPersonsWhenFlood(
+      @RequestParam(name = "stations") List<Integer> numberStations) {
+
+    Map<String, List<PersonDto>> result = new LinkedHashMap<>();
 
     //check list of existed numberStation
     for (Integer station : numberStations) {
@@ -193,10 +246,24 @@ public class EmergencyRestController {
       }
     }
 
-    Map<String, Object> personsWhenFloodGroupByAddress =
+    Map<String, List<Person>> personsWhenFloodGroupByAddress =
         personService.getPersonsWhenFloodByStations(numberStations);
 
-    return ResponseEntity.ok(personsWhenFloodGroupByAddress);
+
+
+    for (String key : personsWhenFloodGroupByAddress.keySet()) {
+
+      result.put(key, new ArrayList<PersonDto>());
+
+      for (Person person : personsWhenFloodGroupByAddress.get(key)) {
+
+        result.get(key)
+            .add(new PersonDto(person.getLastName(), person.getBirthDate(),
+                               person.getPhone(), person.getMedicalRecord()));
+      }
+    }
+    log.info("\n*********** GetPersonsWhenFlood finished ***********\n");
+    return ResponseEntity.ok(result);
 
   }
 
@@ -204,22 +271,39 @@ public class EmergencyRestController {
    * Retrieve informations of a Person with given lastname and firstname.
    * in this informations , we have lastName,address,age,email,medications and allergies.
    *
-   * @param names
-   *          a Map with firstName and lastName of person
+   * @param firstName
+   *            firstName of person
+   * @param  lastName
+   *            lastName of Person
    *
    * @return a ResponseEntity with informations of person with given lastname, firstname
    */
-  @GetMapping("/personInfo")
-  public ResponseEntity<?> getPersonInfo(@RequestParam Map<String, String> names) {
+  @GetMapping(value = "/personInfo", produces = "application/json")
+  @ApiOperation(value = "Informations about a Person by LastName and Firstname",
+                notes = "Retrieve informations about a Person with given LastName and Firstname."
+                    + "If other Persons have the same lastName"
+                    + " they are displayed just after the first response",
+                response = PersonDto.class)
+  public ResponseEntity<List<PersonDto>> getPersonInfo(
+      @RequestParam(name = "firstName") String firstName,
+      @RequestParam(name = "lastName") String lastName) {
 
-    String firstName = names.get("firstName");
-    String lastName = names.get("lastName");
 
-    List<Object> personsInfo = personService.getPersonInfoByNames(firstName, lastName);
+    List<PersonDto> personsInfoDto = new ArrayList<>();
+
+    Set<Person> personsInfo =
+        personService.getPersonInfoByNames(firstName, lastName);
+    System.out.println("\n personInfo: " + personsInfo);
 
     if (personsInfo.iterator().hasNext()) {
 
-      return ResponseEntity.ok(personsInfo);
+      for (Person person : personsInfo) {
+
+        personsInfoDto.add(
+            new PersonDto(person.getLastName(), person.getBirthDate(),
+                          person.getAddress(), person.getEmail(), person.getMedicalRecord()));
+      }
+      return ResponseEntity.ok(personsInfoDto);
     } else {
 
       throw new PersonNotFoundException("Person with firstName: " + firstName
@@ -237,8 +321,11 @@ public class EmergencyRestController {
    * @return a ResponseEntity with a list of all Email of persons in given city
    */
 
-  @GetMapping("/communityEmail")
-  public ResponseEntity<?> getEmailsFromCity(@RequestParam(name = "city") String city) {
+  @GetMapping(value = "/communityEmail", produces = "application/json")
+  @ApiOperation(value = "Retrieve list of person's email living in the given address",
+                response = String.class)
+  public ResponseEntity<?> getEmailsFromCity(
+      @RequestParam(name = "city") String city) {
 
     List<String> emails = personService.getEmailsByCity(city);
 

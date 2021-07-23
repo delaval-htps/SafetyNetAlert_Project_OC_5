@@ -5,14 +5,22 @@ import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 
 /** class main of application safetynet Alert .
  *
  * @author delaval */
 
 @SpringBootApplication
+@EnableOpenApi
 public class SafetyNetAlertApplication {
 
+  /**
+   * Main method for SafetyNet Application.
+   *
+   * @param args
+   *
+   */
   public static void main(String[] args) {
 
     SpringApplication.run(SafetyNetAlertApplication.class, args);

@@ -39,7 +39,7 @@ public class MedicationService {
    *
    * @return    the collection of all Medications.Iterable.empty() if there is no one.
    */
-  public Iterable<Medication> getMedications() {
+  public List<Medication> getMedications() {
 
     return medicationRepository.findAll();
 

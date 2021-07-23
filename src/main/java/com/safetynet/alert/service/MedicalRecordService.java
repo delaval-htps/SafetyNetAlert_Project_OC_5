@@ -2,6 +2,7 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.MedicalRecord;
 import com.safetynet.alert.repository.MedicalRecordRepository;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,9 @@ public class MedicalRecordService {
    *
    * @return    collection of all existed medicalRecords.Iterable.empty() if there is no one.
    */
-  public Iterable<MedicalRecord> getMedicalRecords() {
+  public List<MedicalRecord> getMedicalRecords() {
 
-    return medicalRecordRepository.findAll();
+    return medicalRecordRepository.findAllFetchAll();
 
   }
 
@@ -48,14 +49,14 @@ public class MedicalRecordService {
    * retrieve a MedicalRecord with all its fields ( Person,Medications,Allergies).
    * Use to avoid the lazy Fetch of getMedicalRecordById().
    *
-   * @param l
+   * @param id
    *           the identification of MedicalRecord.
    *
    * @return the MedicalRecord with its all fields.Optioonal.empty() if it doesn't exist.
    */
-  public Optional<MedicalRecord> getMedicalRecordJoinAllById(long l) {
+  public Optional<MedicalRecord> getMedicalRecordJoinAllById(long id) {
 
-    return medicalRecordRepository.getOneJoinAllOtherById(l);
+    return medicalRecordRepository.getOneJoinAllOtherById(id);
 
   }
 

@@ -3,6 +3,7 @@ package com.safetynet.alert.controller.admin;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordAlreadyExistedException;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordChangedNamesException;
 import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordNotFoundException;
+import com.safetynet.alert.exceptions.medicalrecord.MedicalRecordWithIdException;
 import com.safetynet.alert.model.Allergy;
 import com.safetynet.alert.model.FireStation;
 import com.safetynet.alert.model.MedicalRecord;
@@ -13,8 +14,11 @@ import com.safetynet.alert.service.FireStationService;
 import com.safetynet.alert.service.MedicalRecordService;
 import com.safetynet.alert.service.MedicationService;
 import com.safetynet.alert.service.PersonService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.validation.Valid;
@@ -39,6 +43,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  *
  */
 @RestController
+@Api(description = "Api to Manage MedicalRecord")
 @RequestMapping("/")
 @Log4j2
 public class MedicalRecordRestController {
@@ -59,8 +64,11 @@ public class MedicalRecordRestController {
    *
    *@return  a collection of MedicalRecord.
    */
-  @GetMapping("/medicalRecord")
-  public Iterable<MedicalRecord> getMedicalRecords() {
+  @GetMapping(value = "/medicalRecord", produces = "application/json")
+  @ApiOperation(value = "MedicalRecords",
+                notes = "Retrieve all existed MedicalRecords",
+                response = MedicalRecord.class)
+  public List<MedicalRecord> getMedicalRecords() {
 
     return medicalRecordService.getMedicalRecords();
 
@@ -76,14 +84,18 @@ public class MedicalRecordRestController {
    *
    * @throws    a {@link MedicalRecordNotFoundException} if MedicalRecord doesn't exist.
    */
-  @GetMapping("/medicalRecord/{id}")
-  public ResponseEntity<MedicalRecord> getMedicalRecords(@Valid @PathVariable Long id) {
+  @GetMapping(value = "/medicalRecord/{id}", produces = "application/json")
+  @ApiOperation(value = "MedicalRecord by Id",
+                notes = "Retrieve an existed MedicalRecord by given ID",
+                response = MedicalRecord.class)
+  public ResponseEntity<MedicalRecord> getMedicalRecordById(@Valid @PathVariable Long id) {
 
     Optional<MedicalRecord> currentMedicalRecord =
-        medicalRecordService.getMedicalRecordById(id);
+        medicalRecordService.getMedicalRecordJoinAllById(id);
 
     if (currentMedicalRecord.isPresent()) {
 
+      log.info("MedicalRecord with id {} is diplayed in response", id);
       return new ResponseEntity<MedicalRecord>(currentMedicalRecord.get(), HttpStatus.OK);
     } else {
 
@@ -106,57 +118,108 @@ public class MedicalRecordRestController {
    *            for a Person.
    *
    */
-  @PostMapping("/medicalRecord")
+  @PostMapping(value = "/medicalRecord", produces = "application/json")
+  @ApiOperation(value = "Create a MedicalRecord",
+                notes = "create a MedicalRecord for a Person",
+                response = MedicalRecord.class)
   public ResponseEntity<MedicalRecord>
       postMedicalRecord(@Valid @RequestBody MedicalRecord medicalRecord) {
 
-    //check if MedicalRecord already exist
-    //by find if person is already existed cause of relation one to one
-    Optional<Person> existedPerson =
-        personService.getPersonByNames(medicalRecord.getPerson().getFirstName(),
-            medicalRecord.getPerson().getLastName());
+    boolean idPresent = false;
 
-    MedicalRecord savedMedicalRecord = new MedicalRecord();
+    for (Medication medication : medicalRecord.getMedications()) {
 
-    if (existedPerson.isPresent()) {
+      if (medication.getIdMedication() != null) {
 
-      if (existedPerson.get().getMedicalRecord() != null) {
+        idPresent = true;
+      }
+    }
 
-        throw new MedicalRecordAlreadyExistedException("MedicalRecord for this person "
-            + "already exist! Please chose another Person to map with");
+    for (Allergy allergy : medicalRecord.getAllergies()) {
+
+      if (allergy.getIdAllergy() != null) {
+
+        idPresent = true;
+      }
+    }
+
+    if ((medicalRecord.getIdMedicalRecord() == null)
+        && (medicalRecord.getPerson().getIdPerson() == null)
+        && (idPresent == false)) {
+
+      //check if MedicalRecord already exist by find
+      // if person is already existed cause of relation one to one.
+      // We first find person because it can be not mapped with a medicalRecord
+      // and in this case we have to create it.
+      //If we search only by medicalRecord we can't find this person (not mapped with medicalRecord)
+
+      Optional<Person> existedPerson =
+          personService.getPersonByNames(medicalRecord.getPerson().getFirstName(),
+              medicalRecord.getPerson().getLastName());
+
+      MedicalRecord savedMedicalRecord = new MedicalRecord();
+
+      if (existedPerson.isPresent()) {
+
+        // case of person is already mapped with MedicalRecord.
+        if (existedPerson.get().getMedicalRecord() != null) {
+
+          throw new MedicalRecordAlreadyExistedException("MedicalRecord for this person "
+              + "already exist! Please chose another Person to map with");
+
+        } else {
+
+          //case of Person is not mapped to medicalRecord
+
+          // map new medicalRecord to existed Person and save it in database
+
+          medicalRecord.setPerson(existedPerson.get());
+          savedMedicalRecord = medicalRecordService.saveMedicalRecord(medicalRecord);
+
+          //map existed Person to the new MedicalRecord and update it
+
+          existedPerson.get().setMedicalRecord(savedMedicalRecord);
+          personService.savePerson(existedPerson.get());
+        }
 
       } else {
 
-        //map new medicalRecord to existed Person and save it in database
-        //  if we don't setPerson to medicalRecord:
-        //  hibernate create a new person (so duplicate!) and map this new to medicalRecord
-        medicalRecord.setPerson(existedPerson.get());
+        // save the new medicalRecord and new Person(Hibernate do it by one to one relationship)
         savedMedicalRecord = medicalRecordService.saveMedicalRecord(medicalRecord);
-
-        //map existed Person to the new MedicalRecord and update it
-        existedPerson.get().setMedicalRecord(savedMedicalRecord);
-        personService.savePerson(existedPerson.get());
       }
 
+      // check if given address in person is mapped with fireStation(s).
+      List<FireStation> fireStationsMappedToAddress =
+          fireStationService.getFireStationsFetchPersonMappedToAddress(
+              savedMedicalRecord.getPerson().getAddress());
+
+      if (!fireStationsMappedToAddress.isEmpty()) {
+
+        for (FireStation fireStation : fireStationsMappedToAddress) {
+
+          fireStation.addPerson(savedMedicalRecord.getPerson());
+          fireStationService.saveFireStation(fireStation);
+        }
+      }
+
+      // creation of URI
+      URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+          .buildAndExpand(savedMedicalRecord.getIdMedicalRecord()).toUri();
+
+      log.info(
+          "POST /medicalRecord: Creation of MedicalRecord :{} with Id :{} "
+              + "mapped with Person : {}, Medications: {} and Allergies:{}",
+          savedMedicalRecord,
+          savedMedicalRecord.getIdMedicalRecord(),
+          savedMedicalRecord.getPerson(),
+          savedMedicalRecord.getMedications(),
+          savedMedicalRecord.getAllergies());
+
+      return ResponseEntity.created(locationUri).body(savedMedicalRecord);
     } else {
 
-      // save the new medicalRecord and the new Person ( Hibernate do it by one to one relationship)
-      savedMedicalRecord = medicalRecordService.saveMedicalRecord(medicalRecord);
+      throw new MedicalRecordWithIdException("Don't use a Id in body request !");
     }
-
-    URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-        .buildAndExpand(savedMedicalRecord.getIdMedicalRecord()).toUri();
-
-    log.info(
-        "POST /medicalRecord: Creation of MedicalRecord :{} with Id :{} "
-            + "mapped with Person : {}, Medications: {} and Allergies:{}",
-        savedMedicalRecord,
-        savedMedicalRecord.getIdMedicalRecord(),
-        savedMedicalRecord.getPerson(),
-        savedMedicalRecord.getMedications(),
-        savedMedicalRecord.getAllergies());
-
-    return ResponseEntity.created(locationUri).body(savedMedicalRecord);
 
   }
 
@@ -179,105 +242,138 @@ public class MedicalRecordRestController {
    * @throws  a {@link MedicalRecordNotFoundException}
    *          if there isn't a existed MedicalRecord with Id given in parameter.
    */
-  @PutMapping("/medicalRecord/{id}")
+
+  @PutMapping(value = "/medicalRecord/{id}", produces = "application/json")
+  @ApiOperation(value = "Update MedicalRecord",
+                notes = "Update a MedicalRecord by it's given ID",
+                response = MedicalRecord.class)
   public ResponseEntity<MedicalRecord> putMedicalRecord(@Valid @PathVariable Long id,
       @Valid @RequestBody MedicalRecord medicalRecord) {
 
-    Optional<MedicalRecord> existedMedicalRecord =
-        medicalRecordService.getMedicalRecordById(id);
+    boolean idPresent = false;
 
-    //check if medicalRecord is present
-    if (existedMedicalRecord.isPresent()) {
+    for (Medication medication : medicalRecord.getMedications()) {
 
-      MedicalRecord currentMedicalRecord = existedMedicalRecord.get();
+      if (medication.getIdMedication() != null) {
 
-      // check if lastName and firstName are the same that in requestBody
-      if ((currentMedicalRecord.getPerson().getLastName()
-          .equals(medicalRecord.getPerson().getLastName()))
-          && (currentMedicalRecord.getPerson().getFirstName()
-              .equals(medicalRecord.getPerson().getFirstName()))) {
+        idPresent = true;
+      }
+    }
 
-        // ******************** update Person *************************
+    for (Allergy allergy : medicalRecord.getAllergies()) {
 
-        Person currentPerson = currentMedicalRecord.getPerson();
+      if (allergy.getIdAllergy() != null) {
 
-        // if modification of address of Person -> update relationship
-        //between Person and FireStation to be sure to respect map fireStation/address
-        if (!currentPerson.getAddress().equals(medicalRecord.getPerson().getAddress())) {
+        idPresent = true;
+      }
+    }
 
-          currentPerson.setAddress(medicalRecord.getPerson().getAddress());
+    if ((medicalRecord.getIdMedicalRecord() == null)
+        && (medicalRecord.getPerson().getIdPerson() == null)
+        && (idPresent == false)) {
 
-          Optional<FireStation> fireStationMappedToAddress =
-              fireStationService.getFireStationMappedToAddress(currentPerson.getAddress());
+      Optional<MedicalRecord> existedMedicalRecord =
+          medicalRecordService.getMedicalRecordJoinAllById(id);
 
-          if (fireStationMappedToAddress.isPresent()) {
+      //check if medicalRecord is present
+      if (existedMedicalRecord.isPresent()) {
 
-            currentPerson.setFireStation(fireStationMappedToAddress.get());
-          } else {
+        MedicalRecord currentMedicalRecord = existedMedicalRecord.get();
 
-            currentPerson.setFireStation(null);
+        // check if lastName and firstName are the same that in requestBody
+        if ((currentMedicalRecord.getPerson().getLastName()
+            .equals(medicalRecord.getPerson().getLastName()))
+            && (currentMedicalRecord.getPerson().getFirstName()
+                .equals(medicalRecord.getPerson().getFirstName()))) {
+
+          // ******************** update Person *************************
+
+          Person currentPerson = currentMedicalRecord.getPerson();
+
+          // if modification of address of Person -> update relationship
+          //between Person and FireStation to be sure to respect map fireStation/address
+          if (!currentPerson.getAddress().equals(medicalRecord.getPerson().getAddress())) {
+
+            currentPerson.setAddress(medicalRecord.getPerson().getAddress());
+
+            List<FireStation> fireStationMappedToAddress =
+                fireStationService
+                    .getFireStationsMappedToAddress(medicalRecord.getPerson().getAddress());
+
+            currentPerson.setFireStations(new HashSet<>());
+
+            if (!fireStationMappedToAddress.isEmpty()) {
+
+              currentPerson.addFireStations(fireStationMappedToAddress);
+            }
           }
+          currentPerson.setBirthDate(medicalRecord.getPerson().getBirthDate());
+          currentPerson.setCity(medicalRecord.getPerson().getCity());
+          currentPerson.setEmail(medicalRecord.getPerson().getEmail());
+          currentPerson.setPhone(medicalRecord.getPerson().getPhone());
+          currentPerson.setZip(medicalRecord.getPerson().getZip());
+
+          // ****************** update Medications *****************************
+
+          Set<Medication> currentMedications = currentMedicalRecord.getMedications();
+
+          Set<Medication> medicationsToUpdate =
+              medicationsToUpdateBetween(currentMedications, medicalRecord.getMedications());
+
+          log.info("\n Medications to Update = {} \n", medicationsToUpdate);
+
+          currentMedications.clear();
+          currentMedications = medicationsToUpdate;
+          currentMedicalRecord.setMedications(currentMedications);
+
+          // ****************** update Allergies ****************************
+          // same logic business that for medications
+
+          Set<Allergy> currentAllergies = currentMedicalRecord.getAllergies();
+
+          Set<Allergy> allergiesToUpdate =
+              allergiesToUpdateBetween(currentAllergies,
+                  medicalRecord.getAllergies(),
+                  currentMedicalRecord);
+          log.info("\n allergies to Update = {} \n", allergiesToUpdate);
+          currentAllergies.clear();
+          currentAllergies = allergiesToUpdate;
+          currentMedicalRecord.setAllergies(currentAllergies);
+          log.info("\n Curentallergies ={}\n", currentMedicalRecord.getAllergies());
+          //**************** save of MedicalRecord **********************
+
+          MedicalRecord savedMedicalRecord =
+              medicalRecordService.saveMedicalRecord(currentMedicalRecord);
+
+
+          log.info(
+              " Update of MedicalRecord with Id {} was successed :"
+                  + " all fields was updated ! :{} , {}",
+              savedMedicalRecord.getIdMedicalRecord(),
+              savedMedicalRecord.getMedications(),
+              savedMedicalRecord.getAllergies());
+
+          return new ResponseEntity<MedicalRecord>(savedMedicalRecord, HttpStatus.OK);
+
+        } else {
+
+          throw new MedicalRecordChangedNamesException("Can't change names of person "
+              + "in a MedicalRecord! Please don't modify fistName and LastName of the Person");
+
         }
-        currentPerson.setBirthDate(medicalRecord.getPerson().getBirthDate());
-        currentPerson.setCity(medicalRecord.getPerson().getCity());
-        currentPerson.setEmail(medicalRecord.getPerson().getEmail());
-        currentPerson.setPhone(medicalRecord.getPerson().getPhone());
-        currentPerson.setZip(medicalRecord.getPerson().getZip());
-
-        // ****************** update Medications *****************************
-
-        Set<Medication> currentMedications = currentMedicalRecord.getMedications();
-
-        Set<Medication> medicationsToUpdate =
-            medicationsToUpdateBetween(currentMedications, medicalRecord.getMedications());
-
-        log.info("\n Medications to Update = {} \n", medicationsToUpdate);
-
-        currentMedications.clear();
-        currentMedications = medicationsToUpdate;
-        currentMedicalRecord.setMedications(currentMedications);
-
-        // ****************** update Allergies ****************************
-        // same logic business that for medications
-
-        Set<Allergy> currentAllergies = currentMedicalRecord.getAllergies();
-
-        Set<Allergy> allergiesToUpdate =
-            allergiesToUpdateBetween(currentAllergies,
-                medicalRecord.getAllergies(),
-                currentMedicalRecord);
-        log.info("\n allergies to Update = {} \n", allergiesToUpdate);
-        currentAllergies.clear();
-        currentAllergies = allergiesToUpdate;
-        currentMedicalRecord.setAllergies(currentAllergies);
-        log.info("\n Cuurentallergies ={}\n", currentMedicalRecord.getAllergies());
-        //**************** save of MedicalRecord **********************
-
-        MedicalRecord savedMedicalRecord =
-            medicalRecordService.saveMedicalRecord(currentMedicalRecord);
-
-
-        log.info(
-            " Update of MedicalRecord with Id {} was successed : all fields was updated ! :{} , {}",
-            savedMedicalRecord.getIdMedicalRecord(),
-            savedMedicalRecord.getMedications(),
-            savedMedicalRecord.getAllergies());
-
-        return new ResponseEntity<MedicalRecord>(savedMedicalRecord, HttpStatus.OK);
 
       } else {
 
-        throw new MedicalRecordChangedNamesException("Can't change names of person "
-            + "in a MedicalRecord! Please don't modify fistName and LastName of the Person");
+        throw new MedicalRecordNotFoundException("MedicalRecord with id: " + id
+            + " was not found ! please chose a existed medicalRecord.");
 
       }
 
     } else {
 
-      throw new MedicalRecordNotFoundException("MedicalRecord with id: " + id
-          + " was not found ! please chose a existed medicalRecord.");
-
+      throw new MedicalRecordWithIdException("Don't use a Id in body request !");
     }
+
 
   }
 
@@ -296,7 +392,11 @@ public class MedicalRecordRestController {
    * @Throws    a {@link MedicalRecordNotFoundException}
    *            if couple firstname/lastName doesn't match with any Person.
    */
-  @DeleteMapping("/medicalRecord/{lastName}/{firstName}")
+  @DeleteMapping(value = "/medicalRecord/{lastName}/{firstName}",
+                 produces = "application/json")
+  @ApiOperation(value = "Delete MedicalRecord",
+                notes = "Delete a MedicalRecord by given owner's LastName and FirstName",
+                response = MedicalRecord.class)
   public ResponseEntity<?> deleteMedicalRecord(
       @Valid @PathVariable String lastName,
       @Valid @PathVariable String firstName) {
@@ -315,7 +415,10 @@ public class MedicalRecordRestController {
       currentMedicalRecord.clearSet(currentMedicalRecord.getAllergies());
 
       medicalRecordService.deleteMedicalRecord(medicalRecordByNames.get());
-      return new ResponseEntity<MedicalRecord>(HttpStatus.OK);
+
+      log.info("MedicalRecord of Person {} {} was deleted", lastName, firstName);
+      return new ResponseEntity<>("MedicalRecord of Person " + lastName + " " + firstName
+          + " was deleted", HttpStatus.OK);
 
     } else {
 

@@ -1,6 +1,8 @@
 package com.safetynet.alert.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiModelProperty;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -33,17 +35,26 @@ import lombok.ToString;
 @ToString(exclude = "medicalRecords")
 @Table(name = "Medication")
 @Entity
+@JsonPropertyOrder({"idMedication",
+                    "designation",
+                    "posology"})
 public class Medication {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
+  @ApiModelProperty(notes = "Id of medication", readOnly = true)
+
   private Long idMedication;
 
   @Column
+  @ApiModelProperty(notes = "designation of medication")
+
   private String designation;
 
   @Column
+  @ApiModelProperty(notes = "posology of medication")
+
   private String posology;
 
   @ManyToMany(
@@ -57,6 +68,7 @@ public class Medication {
              joinColumns = @JoinColumn(name = "idMedication"),
              inverseJoinColumns = @JoinColumn(name = "idMedicalRecord"))
   @JsonIgnore
+
   private Set<MedicalRecord> medicalRecords = new HashSet<>();
 
   /**

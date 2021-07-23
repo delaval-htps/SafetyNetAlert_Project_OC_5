@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns="http://maven.apache.org/DECORATION/1.8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd"
+  name="SafetyNet-Alert"> 
+  
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.9</version>
+  </skin>
+  
+  <publishDate position="right"/>
+  <version position="right"/>
+ 
+  <bannerLeft>
+    <name>SafetyNet Alert</name>
+    <src>https://maven.apache.org/images/apache-maven-project.png</src>
+    <href>https://maven.apache.org/</href>
+  </bannerLeft>
+  
+  <bannerRight>
+    <src>https://maven.apache.org/images/maven-small.gif</src>
+  </bannerRight>
+
+  <body>
+    <menu name="Maven 2.0">
+      <item name="Introduction" href="index.html"/>
+      <item name="General Information" href="about.html"/>
+      <item name="Release Notes" href="release-notes.html" />
+    </menu>
+ 
+    <menu ref="reports"/>
+ 
+  </body>
+</project>
