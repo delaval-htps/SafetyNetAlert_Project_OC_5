@@ -401,7 +401,9 @@ class FireStationRestControllerIT {
     // when & then
     mockMvc.perform(delete("/firestation/station/{numberStation}", 3))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", is("FireStation with NumberStation:3 was deleted!")))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.numberStation", is(3)))
+        .andExpect(jsonPath("$.addresses.length()", is(0)))
         .andDo(print());
 
   }
@@ -439,10 +441,13 @@ class FireStationRestControllerIT {
 
     // when & then
 
-    mockMvc.perform(delete("/firestation/address/{address}", "1509 Culver St"))
+    mockMvc.perform(delete("/firestation/address/{address}", "1509 Av marechal foch"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$",
-            is("FireStation with numberStations = {[3]} mapped to address was deleted")))
+        .andExpect(jsonPath("$.length()", is(1)))
+        .andExpect(jsonPath("$[0].idFireStation", notNullValue()))
+        .andExpect(jsonPath("$[0].numberStation", is(3)))
+        .andExpect(jsonPath("$[0].addresses.length()", is(1)))
+        .andExpect(jsonPath("$[0].addresses[0]", is("1509 Culver St")))
         .andDo(print());
 
 

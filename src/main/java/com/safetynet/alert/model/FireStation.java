@@ -121,5 +121,17 @@ public class FireStation {
 
   }
 
+  /**
+   * method to remove a address from Set addresses of fireStation.
+   *
+   * @param address   address to remove.
+   *
+   */
+  public void removeAddress(String address) {
+
+    this.addresses.remove(address);
+
+  }
+
 
 }

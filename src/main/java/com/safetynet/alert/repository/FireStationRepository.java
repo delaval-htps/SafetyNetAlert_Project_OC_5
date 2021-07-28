@@ -38,20 +38,20 @@ public interface FireStationRepository
 
   @Query("SELECT distinct f"
       + " FROM FireStation as f "
-      + " JOIN FETCH f.addresses ")
-  Iterable<FireStation> findAllFetchAddress();
+      + " LEFT JOIN FETCH f.addresses ")
+  List<FireStation> findAllFetchAddress();
 
   @Query("SELECT distinct f"
       + " FROM FireStation AS f"
       + " JOIN fetch f.addresses a"
-      + " WHERE a = ?1")
+      + " where :address member of a")
   List<FireStation> findFireStationsByAddress(@Valid String address);
 
   @Query("SELECT distinct f"
       + " FROM FireStation AS f"
       + " LEFT JOIN fetch f.addresses a"
       + " LEFT JOIN Fetch f.persons"
-      + " WHERE a = ?1")
+      + " where :address member of a")
   List<FireStation> findFireStationsFetchPersonByAddress(@Valid String address);
 
 }

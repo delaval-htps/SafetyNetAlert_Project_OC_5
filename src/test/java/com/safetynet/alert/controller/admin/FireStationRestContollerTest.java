@@ -589,17 +589,19 @@ class FireStationRestContollerTest {
 
     //given
 
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.of(fireStationTest1));
 
     // when & then
     mockMvc.perform(delete("/firestation/station/{numberStation}", 1))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$",
-            is("FireStation with NumberStation:1 was deleted!")));
+        .andExpect(jsonPath("$.length()", is(3)))
+        .andExpect(jsonPath("$.idFireStation", notNullValue()))
+        .andExpect(jsonPath("$.numberStation", is(1)))
+        .andExpect(jsonPath("$.addresses.length()", is(0)));
 
     ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-    verify(fireStationService, times(1)).deleteFireStation(fireStationCaptor.capture());
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
     assertThat(fireStationCaptor.getValue().getAddresses()).isEqualTo(addresses1);
     assertThat(fireStationCaptor.getValue().getIdFireStation()).isNotNull();
     assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
@@ -612,7 +614,7 @@ class FireStationRestContollerTest {
       throws Exception {
 
     //given
-    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
+    when(fireStationService.getFireStationAllFetchByNumberStation(Mockito.anyInt()))
         .thenReturn(Optional.empty());
 
     // when & then
@@ -632,20 +634,31 @@ class FireStationRestContollerTest {
   void deleteAddressfromFireStation_withValidAddress_thenReturn200() throws Exception {
 
     //Given
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+    when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
         .thenReturn(Arrays.asList(fireStationTest1));
+
+    // map 2 persons with different address to fireStationTest1
+    person1.setAddress("26 av maréchal Foch");
+    person2.setAddress("310 rue jean jaures");
+
+    fireStationTest1.addPerson(person1);
+    fireStationTest1.addPerson(person2);
 
     // when & then
     mockMvc.perform(delete("/firestation/address/{address}", "26 av maréchal Foch"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$",
-            is("FireStation with numberStations = {[1]} mapped to address was deleted")));
+        .andExpect(jsonPath("$.length()", is(1)))
+        .andExpect(jsonPath("$[0].idFireStation", notNullValue()))
+        .andExpect(jsonPath("$[0].numberStation", is(1)))
+        .andExpect(jsonPath("$[0].addresses.length()", is(1)))
+        .andExpect(jsonPath("$[0].addresses[0]", is("310 rue jean jaures")));
 
     ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-    verify(fireStationService, times(1)).deleteFireStation(fireStationCaptor.capture());
-    assertThat(fireStationCaptor.getValue().getAddresses()).isEqualTo(addresses1);
+    verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
+    assertThat(fireStationCaptor.getValue().getAddresses().size()).isEqualTo(1);
     assertThat(fireStationCaptor.getValue().getIdFireStation()).isNotNull();
     assertThat(fireStationCaptor.getValue().getNumberStation()).isEqualTo(1);
+    assertThat(fireStationCaptor.getValue().getPersons().size()).isEqualTo(1);
 
   }
 
@@ -654,7 +667,7 @@ class FireStationRestContollerTest {
   void deleteAddressfromFireStation_withNotFoundAddress_thenReturn404() throws Exception {
 
     //given
-    when(fireStationService.getFireStationsMappedToAddress(Mockito.anyString()))
+    when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
         .thenReturn(new ArrayList());
 
     // when & then

@@ -38,7 +38,7 @@ public class FireStationService {
    *
    * @return    Iterable&lsaquo;FireStation&rsaquo;  the collection of all FireStation
    */
-  public Iterable<FireStation> getFireStations() {
+  public List<FireStation> getFireStations() {
 
     return fireStationRepository.findAllFetchAddress();
 
