@@ -99,7 +99,8 @@ public class FireStationRestController {
 
       log.info(
           "Request accepted and Response sent \n "
-              + "Request: {}\n Parameters: {}\n "
+              + "Request: {}\n "
+              + "Parameters: {}\n "
               + "Response: {}\n",
           request.getRequestURL(),
           request.getParameterMap(),
@@ -121,7 +122,7 @@ public class FireStationRestController {
    *
    * @param fireStationToSave
              a representation in Json of the new Object of FireStation.
-  
+
    * @return   a ResponseEntity containing in body the FireStation
    *            with its new identification Id and its LocationUri.
    *
