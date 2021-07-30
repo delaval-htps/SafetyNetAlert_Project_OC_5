@@ -415,7 +415,8 @@ public class MedicalRecordRestController {
 
           // if modification of address of Person -> update relationship
           //between Person and FireStation to be sure to respect map fireStation/address
-          if (!currentPerson.getAddress().equals(medicalRecord.getPerson().getAddress())) {
+          if (!currentPerson.getAddress().equals(medicalRecord.getPerson().getAddress())
+              && (medicalRecord.getPerson().getAddress() != null)) {
 
             currentPerson.setAddress(medicalRecord.getPerson().getAddress());
 
@@ -430,11 +431,32 @@ public class MedicalRecordRestController {
               currentPerson.addFireStations(fireStationMappedToAddress);
             }
           }
-          currentPerson.setBirthDate(medicalRecord.getPerson().getBirthDate());
-          currentPerson.setCity(medicalRecord.getPerson().getCity());
-          currentPerson.setEmail(medicalRecord.getPerson().getEmail());
-          currentPerson.setPhone(medicalRecord.getPerson().getPhone());
-          currentPerson.setZip(medicalRecord.getPerson().getZip());
+
+          //update information on Person checking datas are not null
+          if (medicalRecord.getPerson().getBirthDate() != null) {
+
+            currentPerson.setBirthDate(medicalRecord.getPerson().getBirthDate());
+          }
+
+          if (medicalRecord.getPerson().getCity() != null) {
+
+            currentPerson.setCity(medicalRecord.getPerson().getCity());
+          }
+
+          if (medicalRecord.getPerson().getEmail() != null) {
+
+            currentPerson.setEmail(medicalRecord.getPerson().getEmail());
+          }
+
+          if (medicalRecord.getPerson().getPhone() != null) {
+
+            currentPerson.setPhone(medicalRecord.getPerson().getPhone());
+          }
+
+          if (medicalRecord.getPerson().getZip() != null) {
+
+            currentPerson.setZip(medicalRecord.getPerson().getZip());
+          }
 
           // ****************** update Medications *****************************
 
@@ -443,7 +465,7 @@ public class MedicalRecordRestController {
           Set<Medication> medicationsToUpdate =
               medicationsToUpdateBetween(currentMedications, medicalRecord.getMedications());
 
-          log.info("\n Medications to Update = {} \n", medicationsToUpdate);
+          log.debug("\n Medications to Update = {} \n", medicationsToUpdate);
 
           currentMedications.clear();
           currentMedications = medicationsToUpdate;
@@ -458,11 +480,11 @@ public class MedicalRecordRestController {
               allergiesToUpdateBetween(currentAllergies,
                   medicalRecord.getAllergies(),
                   currentMedicalRecord);
-          log.info("\n allergies to Update = {} \n", allergiesToUpdate);
+          log.debug("\n allergies to Update = {} \n", allergiesToUpdate);
           currentAllergies.clear();
           currentAllergies = allergiesToUpdate;
           currentMedicalRecord.setAllergies(currentAllergies);
-          log.info("\n Curentallergies ={}\n", currentMedicalRecord.getAllergies());
+
           //**************** save of MedicalRecord **********************
 
           MedicalRecord savedMedicalRecord =
