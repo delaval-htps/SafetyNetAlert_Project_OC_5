@@ -26,4 +26,9 @@ public interface AllergyRepository extends JpaRepository<Allergy, Long> {
       + " where mrs.idMedicalRecord =?1")
   List<Allergy> getAllergiesByIdMedicalRecord(Long idMedicalRecord);
 
+  @Query("select a from Allergy as a "
+      + " Left join fetch a.medicalRecords as mrs "
+      + " where a.designation=?1")
+  Optional<Allergy> getOneFetchMedicalRecordsByDesignation(String designation);
+
 }
