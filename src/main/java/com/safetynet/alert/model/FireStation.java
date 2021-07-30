@@ -73,7 +73,6 @@ public class FireStation {
   @ManyToMany(fetch = FetchType.LAZY,
               cascade = {CascadeType.DETACH,
                          CascadeType.MERGE,
-                         CascadeType.PERSIST,
                          CascadeType.REFRESH})
   @JoinTable(
              name = "person_firestation",
