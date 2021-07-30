@@ -104,4 +104,10 @@ public class MedicalRecordService {
 
   }
 
+  public MedicalRecord getMedicalRecordFetchAllByNames(String lastName, String firstName) {
+
+    return medicalRecordRepository.getOneFetchAllByNames(lastName, firstName);
+
+  }
+
 }
