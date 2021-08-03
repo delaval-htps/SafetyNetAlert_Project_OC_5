@@ -331,8 +331,7 @@ public class EmergencyRestController {
 
       Person firstPerson = personsInfo.iterator().next();
 
-      if ((firstPerson.getLastName().equals(lastName))
-          && (firstPerson.getFirstName().equals(firstName))) {
+      if (firstPerson.getFirstName().equals(firstName)) {
 
         for (Person person : personsInfo) {
 
