@@ -213,6 +213,7 @@ public class MedicalRecordRestController {
 
         // map  Person to new MedicalRecord
         savedMedicalRecord.setPerson(currentPerson);
+        log.debug("Adding Person to new MedicalRecord\n");
 
         // map new allergies  to savedMedicalRecord
         // and save in a list existed ones.
@@ -232,6 +233,7 @@ public class MedicalRecordRestController {
           } else {
 
             savedMedicalRecord.add(allergy);
+            log.debug("\nAdding new Allergy:{} to new MedicalRecord\n", allergy);
           }
         }
 
@@ -251,11 +253,13 @@ public class MedicalRecordRestController {
           } else {
 
             savedMedicalRecord.add(medication);
+            log.debug("\nAdding new Medication:{} to new MedicalRecord\n", medication);
           }
         }
 
         //map new MedicalRecord to existed Person
         currentPerson.setMedicalRecord(savedMedicalRecord);
+        log.debug("\nAdding new MedicalRecord to Person\n");
 
         //save Person and medicalRecord
         if (alreadyExistedPerson) {
@@ -265,41 +269,12 @@ public class MedicalRecordRestController {
           // because if we use MedicalRecord.save( new medicalRecord) ,
           // we have a detached entity with person because it's already in DB
           personService.savePerson(currentPerson);
+          log.debug("\nUpdate the already existed Person with new MedicalRecord\n");
 
         } else {
 
-
-
-          // use of MedicalRecordService to save new Person, allergies,Medications
-          // with Cascade.Type PERSIST
-          medicalRecordService.saveMedicalRecord(savedMedicalRecord);
-        }
-
-        // retrieve savedMedicalRecord with all fetching collections
-        // to add existed FireStations , allergies and medications
-        savedMedicalRecord =
-            medicalRecordService.getMedicalRecordFetchAllByNames(currentPerson.getLastName(),
-                currentPerson.getFirstName());
-
-        // For all existed medications and allergy, add saveMedicalRecord and save it
-        // CascadeType.PERSIST doesn't exist for medication and allergy
-
-        for (Medication medication : existedMedications) {
-
-          medication.add(savedMedicalRecord);
-          medicationService.saveMedication(medication);
-        }
-
-        for (Allergy allergy : existedAllergies) {
-
-          allergy.add(savedMedicalRecord);
-          allergyService.saveAllergy(allergy);
-        }
-
-        // check when it's a new person if there is a fireStation
-        // to map with address of Person
-
-        if ((currentPerson.getAddress() != null) && (!alreadyExistedPerson)) {
+          // check when it's a new person if there is a fireStation
+          // to map with address of Person
 
           List<FireStation> fireStationsMappedToAddress =
               fireStationService.getFireStationsFetchPersonMappedToAddress(
@@ -310,13 +285,53 @@ public class MedicalRecordRestController {
             for (FireStation fireStation : fireStationsMappedToAddress) {
 
               fireStation.addPerson(currentPerson);
+              // saving fireStation -> person is only updated but
+              // medicalRecord is saved too because of Cascade Persist of Person
               fireStationService.saveFireStation(fireStation);
+              log.debug("\nAdd Mapped FireStation to new Person\n");
+              log.debug("\nSave new MedicalRecord and new Person\n");
             }
+
+          } else {
+
+            // use of MedicalRecordService to save new Person, allergies,Medications
+            // with Cascade.Type PERSIST
+            medicalRecordService.saveMedicalRecord(savedMedicalRecord);
+            log.debug("\nSave new MedicalRecord and new Person\n");
           }
         }
 
+        if ((!existedMedications.isEmpty()) || (!existedAllergies.isEmpty())) {
+
+          // retrieve savedMedicalRecord with  fetching collections
+          // medications and allergies to add  existed allergies and medications
+          savedMedicalRecord =
+              medicalRecordService.getMedicalRecordByNames(currentPerson.getLastName(),
+                  currentPerson.getFirstName()).get();
+
+          // For all existed medications and allergy, add saveMedicalRecord and save it
+          // CascadeType.PERSIST doesn't exist for medication and allergy
+
+          for (Medication medication : existedMedications) {
+
+            medication.add(savedMedicalRecord);
+            medicationService.saveMedication(medication);
+            log.debug("\nSave new Medication and add to new MedicalRecord\n Medication:{}\n",
+                medication);
+          }
+
+          for (Allergy allergy : existedAllergies) {
+
+            allergy.add(savedMedicalRecord);
+            allergyService.saveAllergy(allergy);
+            log.debug("\nSave new Allergy and add to new MedicalRecord\n Allergy:{}\n",
+                allergy);
+          }
+
+        }
+
         //retrieve SavedMedicalRecord with all fetching collections
-        // to display add of existed allergies,medications,firestations
+        // just to display add of existed allergies,medications,firestations
         savedMedicalRecord =
             medicalRecordService.getMedicalRecordFetchAllByNames(currentPerson.getLastName(),
                 currentPerson.getFirstName());
@@ -328,13 +343,18 @@ public class MedicalRecordRestController {
           .buildAndExpand(savedMedicalRecord.getIdMedicalRecord()).toUri();
 
       log.info(
-          "POST /medicalRecord: Creation of MedicalRecord :{} with Id :{} "
-              + "mapped with Person : {}, Medications: {} and Allergies:{}",
-          savedMedicalRecord,
+          "Creation of new MedicalRecord with Id :{} mapped with:\n "
+              + "Person:{}\n "
+              + "Medications:{}\n "
+              + "Allergies:{}\n "
+              + "Resquest:{}\n"
+              + "Response:{}\n",
           savedMedicalRecord.getIdMedicalRecord(),
           savedMedicalRecord.getPerson(),
           savedMedicalRecord.getMedications(),
-          savedMedicalRecord.getAllergies());
+          savedMedicalRecord.getAllergies(),
+          request.getRequestURL(),
+          savedMedicalRecord);
 
       return ResponseEntity.created(locationUri).body(savedMedicalRecord);
 
@@ -503,7 +523,8 @@ public class MedicalRecordRestController {
         } else {
 
           throw new MedicalRecordChangedNamesException("Can't change names of person "
-              + "in a MedicalRecord! Please don't modify fistName and LastName of the Person");
+              + "in a MedicalRecord! "
+              + "Please don't modify or forget firstName and LastName of the Person");
 
         }
 

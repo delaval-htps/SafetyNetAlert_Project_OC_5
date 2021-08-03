@@ -62,8 +62,7 @@ public class MedicalRecordService {
 
   /**
    * Retrieve a MedicalRecord with its given LAstName and FirstName 's mapped Person.
-   *    using a inner join to avoid LazyInitialization.
-   *
+   * Fetching Medications and allergies
    * @param lastName
    *            lastname of the Person mapped with MedicalRecord.
    *
@@ -76,6 +75,25 @@ public class MedicalRecordService {
       @Valid String firstName) {
 
     return medicalRecordRepository.getOneByNames(lastName, firstName);
+
+  }
+
+
+  /**
+   * Retrieve a MedicalRecord with its given LAstName and FirstName 's mapped Person.
+   *   fetching all collections
+   *
+   * @param lastName
+   *            lastname of the Person mapped with MedicalRecord.
+   *
+   * @param firstName
+   *            firstName of the Person mapped with MedicalRecord.
+   *
+   * @return the medicalRecord mapped with Person with the given lastname and firstname.
+   */
+  public MedicalRecord getMedicalRecordFetchAllByNames(String lastName, String firstName) {
+
+    return medicalRecordRepository.getOneFetchAllByNames(lastName, firstName);
 
   }
 
@@ -104,10 +122,6 @@ public class MedicalRecordService {
 
   }
 
-  public MedicalRecord getMedicalRecordFetchAllByNames(String lastName, String firstName) {
 
-    return medicalRecordRepository.getOneFetchAllByNames(lastName, firstName);
-
-  }
 
 }

@@ -50,4 +50,5 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
   MedicalRecord getOneFetchAllByNames(String lastName, String firstName);
 
 
+
 }
