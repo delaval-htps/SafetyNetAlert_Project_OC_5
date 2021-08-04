@@ -1,128 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <class-diagram version="1.2.4" icons="true" automaticImage="PNG" always-add-relationships="false" generalizations="true" 
   realizations="true" associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
-  <class id="1" language="java" name="com.safetynet.alert.model.FireStation" project="SafetyNetAlert" 
-    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/model/FireStation.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="-222" y="229"/>    
+  <class id="1" language="java" name="com.safetynet.alert.controller.admin.MedicalRecordRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/admin/MedicalRecordRestController.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="237" y="153"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="2" language="java" name="com.safetynet.alert.model.Medication" project="SafetyNetAlert" 
-    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/model/Medication.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="765" y="440"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="3" language="java" name="com.safetynet.alert.model.Allergy" project="SafetyNetAlert" 
-    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/model/Allergy.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1155" y="12"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="4" language="java" name="com.safetynet.alert.model.Person" project="SafetyNetAlert" 
-    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/model/Person.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="255" y="228"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="5" language="java" name="com.safetynet.alert.model.MedicalRecord" project="SafetyNetAlert" 
-    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/model/MedicalRecord.java" binary="false" 
+  <class id="2" language="java" name="com.safetynet.alert.controller.admin.PersonRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/admin/PersonRestController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="761" y="9"/>    
+    <position height="-1" width="-1" x="684" y="108"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <association id="6">    
-    <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="7" name="medicalRecords"/>      
-      <multiplicity id="8" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="9">    
-    <bendpoint x="928" y="434"/>    
-    <bendpoint x="927" y="265"/>    
-    <end type="SOURCE" refId="2" navigable="false">      
-      <attribute id="10" name="medicalRecords"/>      
-      <multiplicity id="11" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="12">    
-    <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="13" name="fireStations"/>      
-      <multiplicity id="14" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="1" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="15">    
-    <bendpoint x="-169" y="455"/>    
-    <bendpoint x="-11" y="456"/>    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="16" name="persons">        
-        <position height="17" width="46" x="-58" y="436"/>      
-      </attribute>      
-      <multiplicity id="17" minimum="0" maximum="2147483647">        
-        <position height="15" width="21" x="-36" y="461"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="4" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="18">    
-    <end type="SOURCE" refId="5" navigable="false">      
-      <attribute id="19" name="medications"/>      
-      <multiplicity id="20" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="21">    
-    <bendpoint x="950" y="191"/>    
-    <bendpoint x="1157" y="191"/>    
-    <end type="SOURCE" refId="5" navigable="false">      
-      <attribute id="22" name="allergies"/>      
-      <multiplicity id="23" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="3" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="24">    
-    <bendpoint x="513" y="5"/>    
-    <end type="SOURCE" refId="5" navigable="false">      
-      <attribute id="25" name="person"/>      
-      <multiplicity id="26" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="4" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="27">    
-    <bendpoint x="655" y="225"/>    
-    <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="28" name="medicalRecord"/>      
-      <multiplicity id="29" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
+  <class id="3" language="java" name="com.safetynet.alert.controller.admin.FireStationRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/admin/FireStationRestController.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="761" y="353"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="4" language="java" name="com.safetynet.alert.controller.admin.AllergyRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/admin/AllergyRestController.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="97" y="383"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="5" language="java" name="com.safetynet.alert.controller.admin.MedicationRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/admin/MedicationRestController.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="351" y="382"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="6" language="java" name="com.safetynet.alert.controller.emergency.EmergencyRestController" 
+    project="SafetyNetAlert" 
+    file="/SafetyNetAlert/src/main/java/com/safetynet/alert/controller/emergency/EmergencyRestController.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="285" y="665"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true" static="true"/>    
