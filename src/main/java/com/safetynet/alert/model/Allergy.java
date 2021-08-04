@@ -58,7 +58,6 @@ public class Allergy {
               fetch = FetchType.LAZY,
               cascade = {CascadeType.DETACH,
                          CascadeType.MERGE,
-                         CascadeType.PERSIST,
                          CascadeType.REFRESH})
   @JoinTable(
              name = "attribution_allergy",

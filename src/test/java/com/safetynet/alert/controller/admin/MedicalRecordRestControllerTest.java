@@ -304,14 +304,25 @@ class MedicalRecordRestControllerTest {
     //Given
     ObjectMapper mapper = mapperBuilder.build();
 
+    // person not existed , need to create it
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
-    when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
-        .thenReturn(mockMedicalRecord1);
+    // no medication or allergy are existed
+    when(allergyService.getAllergyFetchMedicalRecordsByDesignation(Mockito.anyString()))
+        .thenReturn(Optional.empty());
+    when(medicationService.getMedicationFetchMedicalRecordsByDesignationAndPosology(
+        Mockito.anyString(),
+        Mockito.anyString())).thenReturn(Optional.empty());
 
+    // no fireStation mapped with address of new Person( address= 26 av maréchal Foch")
     when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
         .thenReturn(new ArrayList());
+
+    // need to retrieve MockmedicalRecord1 with all fetching collection for display in response
+    when(medicalRecordService.getMedicalRecordFetchAllByNames(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(mockMedicalRecord1);
+
 
     //when & then
     mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
@@ -338,9 +349,16 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
+    // check that no update of mapping FireStation/address because new address not mapped
+    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
+
+    //check if no new medication or allergy was created and save
+    verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
+    verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
+
+    //check that it's by using MedicalRecordService that medicalRecord was Saved
     ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
         ArgumentCaptor.forClass(MedicalRecord.class);
-    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
     verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
 
     assertThat(medicalRecordCaptor.getValue().getPerson().getIdPerson()).isNull();
@@ -368,18 +386,27 @@ class MedicalRecordRestControllerTest {
       throws Exception {
 
     //Given
+
+    // person not existed , need to create it
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.empty());
 
-    when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
-        .thenReturn(mockMedicalRecord1);
+    // no medication or allergy are existed
+    when(allergyService.getAllergyFetchMedicalRecordsByDesignation(Mockito.anyString()))
+        .thenReturn(Optional.empty());
+    when(medicationService.getMedicationFetchMedicalRecordsByDesignationAndPosology(
+        Mockito.anyString(),
+        Mockito.anyString())).thenReturn(Optional.empty());
 
     // fireStations mapped to address 26 av marechal Foch
     mockAddresses.add("26 av marechal foch");
     mockFireStation.setAddresses(mockAddresses);
-
     when(fireStationService.getFireStationsFetchPersonMappedToAddress(Mockito.anyString()))
         .thenReturn(Arrays.asList(mockFireStation));
+
+    // need to retrieve MockmedicalRecord1 with all fetching collection for display in response
+    when(medicalRecordService.getMedicalRecordFetchAllByNames(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(mockMedicalRecord1);
 
     ObjectMapper mapper = mapperBuilder.build();
 
@@ -408,37 +435,30 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
-    ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
-        ArgumentCaptor.forClass(MedicalRecord.class);
+    // chek that mapping fireStation/address was update and
+    // medicalRecord automatically saved with fireStationService.saveFirestation()
 
     ArgumentCaptor<FireStation> fireStationCaptor = ArgumentCaptor.forClass(FireStation.class);
-
     verify(fireStationService, times(1)).saveFireStation(fireStationCaptor.capture());
-    assertThat(fireStationCaptor.getValue().getPersons()).contains(mockPerson1);
 
-    verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
-    assertThat(medicalRecordCaptor.getValue().getPerson().getIdPerson()).isNull();
-    assertThat(medicalRecordCaptor.getValue().getPerson().getLastName()).isEqualTo("Delaval");
-    assertThat(medicalRecordCaptor.getValue().getPerson().getFirstName()).isEqualTo("Dorian");
-    assertThat(medicalRecordCaptor.getValue().getPerson().getAddress())
-        .isEqualTo("26 av maréchal Foch");
-    assertThat(medicalRecordCaptor.getValue().getPerson().getCity()).isEqualTo("Cassis");
-    assertThat(medicalRecordCaptor.getValue().getPerson().getZip()).isEqualTo(13260);
-    assertThat(medicalRecordCaptor.getValue().getPerson().getEmail())
-        .isEqualTo("delaval.htps@gmail.com");
-    assertThat(medicalRecordCaptor.getValue().getPerson().getPhone())
-        .isEqualTo("061-846-0160");
-    assertThat(medicalRecordCaptor.getValue().getMedications().size()).isEqualTo(1);
-    assertThat(medicalRecordCaptor.getValue().getMedications().toString()).isEqualTo(
-        "[Medication(idMedication=null, designation=medication1, posology=100mg)]");
-    assertThat(medicalRecordCaptor.getValue().getAllergies().toString()).isEqualTo(
-        "[Allergy(idAllergy=null, designation=allergy1)]");
+    // need to delete id of MockPerson1 to verify that arguments are saving correctly
+
+    assertThat(fireStationCaptor.getValue().getPersons()).hasSize(1);
+    assertThat(fireStationCaptor.getValue().getPersons()).extracting("lastName")
+        .contains("Delaval");
+
+    //check if no new medication or allergy was created and save
+    verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
+    verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
+
+    // check that save of MedicalRecord was not done by this:
+    verify(medicalRecordService, never()).saveMedicalRecord(Mockito.any(MedicalRecord.class));
 
   }
 
   @Test
   @Order(6)
-  void postMedicalRecord_whenExistedPersonWithoutMedicalRecord_thenReturn201()
+  void postMedicalRecord_whenExistedPersonWithoutRecordWithNewMedicationOrAllergy_thenReturn201()
       throws Exception {
 
     //given
@@ -450,11 +470,16 @@ class MedicalRecordRestControllerTest {
     when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(Optional.of(mockPerson1));
 
-    when(medicalRecordService.saveMedicalRecord(Mockito.any(MedicalRecord.class)))
-        .thenReturn(mockMedicalRecord1);
+    // no medication or allergy are existed
+    when(allergyService.getAllergyFetchMedicalRecordsByDesignation(Mockito.anyString()))
+        .thenReturn(Optional.empty());
+    when(medicationService.getMedicationFetchMedicalRecordsByDesignationAndPosology(
+        Mockito.anyString(),
+        Mockito.anyString())).thenReturn(Optional.empty());
 
-    when(personService.savePerson(Mockito.any(Person.class)))
-        .thenReturn(mockPerson1WithMedicalRecord);
+    // need to retrieve MockmedicalRecord1 with all fetching collection for display in response
+    when(medicalRecordService.getMedicalRecordFetchAllByNames(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(mockMedicalRecord1);
 
     ObjectMapper mapper = mapperBuilder.build();
     //when & then
@@ -481,16 +506,88 @@ class MedicalRecordRestControllerTest {
         .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
         .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
 
-    // check if person was correctly mapped to new medicalRecord
-    ArgumentCaptor<Person> personCaptor = ArgumentCaptor.forClass(Person.class);
-    verify(personService, times(1)).savePerson(personCaptor.capture());
-    assertThat(personCaptor.getValue().getMedicalRecord()).isEqualTo(mockMedicalRecord1);
+    // check if save of medicalrecord was creating by using personService
+    verify(personService, times(1)).savePerson(Mockito.any(Person.class));
 
-    //check if medicalRecord was correctly mapped to the existed person
-    ArgumentCaptor<MedicalRecord> medicalRecordCaptor =
-        ArgumentCaptor.forClass(MedicalRecord.class);
-    verify(medicalRecordService, times(1)).saveMedicalRecord(medicalRecordCaptor.capture());
-    assertThat(medicalRecordCaptor.getValue().getPerson()).isEqualTo(mockPerson1);
+    //check if no new medication or allergy was created and save
+    verify(medicationService, never()).saveMedication(Mockito.any(Medication.class));
+    verify(allergyService, never()).saveAllergy(Mockito.any(Allergy.class));
+
+    //check if no firestation was mapped with adress of person because it's existed Person
+    // existed Person normally already mapped with Firestation by address
+    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
+
+  }
+
+  @Test
+  @Order(6)
+  void postMedicalRecord_whenExistedPersonWithoutRecordWithExistedMedicationOrAllergy_thenReturn201()
+      throws Exception {
+
+    //given
+
+    // we delete medicalRecord from Person1
+    mockPerson1.setMedicalRecord(null);
+    // we had SetMedicalRecords to existed mockallergy and MockMedication
+    mockAllergy1.setMedicalRecords(mockMedicalRecords);
+    mockMedication1.setMedicalRecords(mockMedicalRecords);
+
+    // we retrieve person without medicalRecord
+    when(personService.getPersonByNames(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(Optional.of(mockPerson1));
+
+    //  medication or allergy are already existed
+    when(allergyService.getAllergyFetchMedicalRecordsByDesignation(Mockito.anyString()))
+        .thenReturn(Optional.of(mockAllergy1));
+
+    when(medicationService.getMedicationFetchMedicalRecordsByDesignationAndPosology(
+        Mockito.anyString(),
+        Mockito.anyString())).thenReturn(Optional.of(mockMedication1));
+
+    // need to retrieve MockMedicalRecord1 when update existed medications an allergies
+    when(
+        medicalRecordService.getMedicalRecordByNames(Mockito.anyString(), Mockito.anyString()))
+            .thenReturn(Optional.of(mockMedicalRecord1));
+
+    // need to retrieve MockmedicalRecord1 with all fetching collection for display in response
+    when(medicalRecordService.getMedicalRecordFetchAllByNames(Mockito.anyString(),
+        Mockito.anyString())).thenReturn(mockMedicalRecord1);
+
+    ObjectMapper mapper = mapperBuilder.build();
+    //when & then
+    mockMvc.perform(post("/medicalRecord").accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(mockMedicalRecordWithoutId)))
+        .andExpect(status().isCreated())
+        .andExpect(redirectedUrlPattern("http://*/medicalRecord/*"))
+        .andExpect(jsonPath("$.length()", is(4)))
+        .andExpect(jsonPath("$.idMedicalRecord", notNullValue()))
+        .andExpect(jsonPath("$.person.idPerson", notNullValue()))
+        .andExpect(jsonPath("$.person.address", is("26 av maréchal Foch")))
+        .andExpect(jsonPath("$.person.firstName", is("Dorian")))
+        .andExpect(jsonPath("$.person.lastName", is("Delaval")))
+        .andExpect(jsonPath("$.person.birthDate", is("12/27/1976")))
+        .andExpect(jsonPath("$.person.city", is("Cassis")))
+        .andExpect(jsonPath("$.person.zip", is(13260)))
+        .andExpect(jsonPath("$.person.phone", is("061-846-0160")))
+        .andExpect(jsonPath("$.person.email", is("delaval.htps@gmail.com")))
+        .andExpect(jsonPath("$.medications.length()", is(1)))
+        .andExpect(jsonPath("$.medications[0].idMedication", notNullValue()))
+        .andExpect(jsonPath("$.medications[0].designation", is("medication1")))
+        .andExpect(jsonPath("$.medications[0].posology", is("100mg")))
+        .andExpect(jsonPath("$.allergies[0].idAllergy", notNullValue()))
+        .andExpect(jsonPath("$.allergies[0].designation", is("allergy1"))).andDo(print());
+
+    // check if save of medicalrecord was creating by using personService
+    verify(personService, times(1)).savePerson(Mockito.any(Person.class));
+
+    //check if no new medication or allergy was created and save
+    verify(medicationService, times(1)).saveMedication(Mockito.any(Medication.class));
+    verify(allergyService, times(1)).saveAllergy(Mockito.any(Allergy.class));
+
+    //check if no firestation was mapped with adress of person because it's existed Person
+    // existed Person normally already mapped with Firestation by address
+    verify(fireStationService, never()).saveFireStation(Mockito.any(FireStation.class));
 
   }
 
@@ -518,14 +615,23 @@ class MedicalRecordRestControllerTest {
 
   }
 
-  @Test
+  @ParameterizedTest
+  @CsvSource(value = {" ,1,1,1",
+                      "1, ,1,1",
+                      "1,1, ,1",
+                      "1,1,1, "})
+
   @Order(8)
-  void postMedicalRecord_whenIdPresentInBody_thenReturn400() throws Exception {
+  void postMedicalRecord_whenIdPresentInBody_thenReturn400(ArgumentsAccessor id)
+      throws Exception {
 
     //given
-    ObjectMapper mapper = mapperBuilder.build();
+    mockMedicalRecord1.setIdMedicalRecord(id.getLong(0));
+    mockPerson1.setIdPerson(id.getLong(1));
+    mockMedication1.setIdMedication(id.getLong(2));
+    mockAllergy1.setIdAllergy(id.getLong(3));
 
-    //    Optional<MedicalRecord> mrTest = medicalRecordService.getMedicalRecordJoinAllById(1L);
+    ObjectMapper mapper = mapperBuilder.build();
 
     //when & then
     MvcResult result = mockMvc.perform(post("/medicalRecord")
@@ -540,6 +646,7 @@ class MedicalRecordRestControllerTest {
         .isEqualTo("Don't use a Id in body request !");
 
   }
+
 
   @Test
   @Order(9)
@@ -599,7 +706,7 @@ class MedicalRecordRestControllerTest {
         .isInstanceOf(MedicalRecordChangedNamesException.class);
     assertThat(result.getResolvedException().getMessage()).isEqualTo(
         "Can't change names of person in a MedicalRecord! "
-            + "Please don't modify fistName and LastName of the Person");
+            + "Please don't modify or forget firstName and LastName of the Person");
 
   }
 

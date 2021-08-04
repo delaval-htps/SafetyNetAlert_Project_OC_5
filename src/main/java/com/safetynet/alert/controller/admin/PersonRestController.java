@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +58,17 @@ public class PersonRestController {
                 notes = "Retrieve all existed Persons",
                 response = Person.class,
                 responseContainer = "List")
-  public List<Person> getPersons() {
+  public List<Person> getPersons(HttpServletRequest request) {
 
-    return personService.getPersons();
+    List<Person> persons = personService.getPersons();
+    log.info(
+        "Request accepted and Response sent \n "
+            + "Request: {}\n Parameters: {}\n "
+            + "Response: {}\n",
+        request.getRequestURL(),
+        request.getParameterMap(),
+        persons);
+    return persons;
 
   }
 
@@ -78,14 +87,21 @@ public class PersonRestController {
   @ApiOperation(value = "Person with ID",
                 notes = "Retrieve an existed Person with it's given ID",
                 response = Person.class)
-  public ResponseEntity<Person> getPersonById(@PathVariable Long id) {
+  public ResponseEntity<Person> getPersonById(
+      @PathVariable Long id,
+      HttpServletRequest request) {
 
     Optional<Person> person = personService.getPersonById(id);
 
     if (person.isPresent()) {
 
-      log.info("Person with id {} was found and show in body response",
-          id);
+      log.info(
+          "Request accepted and Response sent \n "
+              + "Request: {}\n Parameters: {}\n "
+              + "Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          person.get());
       return new ResponseEntity<Person>(person.get(),
                                         HttpStatus.OK);
 
@@ -115,8 +131,8 @@ public class PersonRestController {
   @ApiOperation(value = "Create a new Person",
                 response = Person.class)
   public ResponseEntity<Person> postPerson(
-      @Valid
-      @RequestBody Person personToAdd) {
+      @Valid @RequestBody Person personToAdd,
+      HttpServletRequest request) {
 
     if (personToAdd.getIdPerson() == null) {
 
@@ -137,6 +153,7 @@ public class PersonRestController {
 
           savedPerson.addFireStations(fireStationMappedToAddress);
           personService.savePerson(savedPerson); // update of savedPerson to add firestations
+          log.debug("\n Update mapping FireStation/Address for new Person\n");
         }
 
         URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -144,7 +161,12 @@ public class PersonRestController {
             .buildAndExpand(savedPerson.getIdPerson())
             .toUri();
 
-        log.info("POST /person: Creation of Person {} sucessed with the locationId {}",
+        log.info("Request accepted and Response sent \n "
+            + "Request: {}\n : {}\n "
+            + "Response: {}\n"
+            + "locationUri: {}\n",
+            request.getRequestURL(),
+            request.getParameterMap(),
             savedPerson,
             locationUri.getPath());
 
@@ -186,8 +208,8 @@ public class PersonRestController {
   @ApiOperation(value = "Update an existed Person by giving it's ID", response = Person.class)
   public ResponseEntity<Person> putPerson(
       @PathVariable Long id,
-      @RequestBody
-      @Valid Person updatedPerson)
+      @RequestBody @Valid Person updatedPerson,
+      HttpServletRequest request)
       throws PersonNotFoundException, PersonChangedNamesException {
 
     if (updatedPerson.getIdPerson() == null) {
@@ -232,11 +254,17 @@ public class PersonRestController {
               savedPerson.clearFireStations(); // need to clear last fireStations mapped
               savedPerson.addFireStations(fireStationMappedToAddress);
               personService.savePerson(savedPerson);
+              log.debug("\n Update mapping FireStation/Person \n");
 
             }
           }
 
-          log.info("Person with id {} was correctly updated", id);
+          log.info("Request accepted and Response sent \n "
+              + "Request: {}\n : {}\n "
+              + "Response: {}\n",
+              request.getRequestURL(),
+              request.getParameterMap(),
+              currentPerson);
 
           return new ResponseEntity<Person>(currentPerson, HttpStatus.OK);
 
@@ -274,7 +302,8 @@ public class PersonRestController {
   @DeleteMapping(value = "/person/{lastName}/{firstName}", produces = "application/json")
   @ApiOperation(value = "Delete an existed Person by giving it's LastName and FirstName")
   public ResponseEntity<?> deletePerson(@PathVariable String lastName,
-      @PathVariable String firstName) {
+      @PathVariable String firstName,
+      HttpServletRequest request) {
 
     Optional<Person> personToDelete = personService.getPersonByNames(firstName, lastName);
 
@@ -286,15 +315,18 @@ public class PersonRestController {
 
       //For FireStation, as we delete Person, hibernate automatically
       //    remove this person in mapped fireStation without deleting fireStation
-      //    cause of relation M:1 in Cascade without DELETE even if fetch.LAZY
+      //    cause of relation M:1 in Cascade without DELETE
       personService.deletePerson(personToDelete.get());
 
-      log.info(
-          "DELETE \"/person/{lastName}/{firstName}\" :"
-              + " Person with lastName: {} and firstName: {} was successed",
-          lastName,
-          firstName);
-      return new ResponseEntity<>(HttpStatus.OK);
+      log.info("Request accepted and Response sent \n "
+          + "Request: {}\n : {}\n "
+          + "Response: person with firstName:{} and LastName:{} was deleted\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          firstName,
+          lastName);
+      return new ResponseEntity<>("Person with FirstName " + firstName + " and lastName: "
+          + lastName + " was deleted", HttpStatus.OK);
 
     } else {
 

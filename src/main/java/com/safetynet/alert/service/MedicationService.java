@@ -4,7 +4,6 @@ import com.safetynet.alert.model.Medication;
 import com.safetynet.alert.repository.MedicationRepository;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +64,28 @@ public class MedicationService {
   }
 
   /**
+   * Retrieve a Medication with its given designation and posology Fetching Set MedicalRecords.
+   *
+   * @param designation
+   *          the designation of Medication.
+   *
+   * @param posology
+   *          the posology of Medication.
+   *
+   * @return  the existed Medication with its given designation and posology.
+   *            Optional.empty() if it doesn't exist.
+   */
+  public Optional<Medication> getMedicationFetchMedicalRecordsByDesignationAndPosology(
+      String designation,
+      String posology) {
+
+    return medicationRepository.getOneFetchMedicalRecordsByDesignationAndPosology(designation,
+        posology);
+
+  }
+
+
+  /**
    * retrieve all Medications not mapped with a MedicalRecord.
    *
    * @return a collection of existed Medications not mapped with any MedicalRecord.
@@ -112,7 +133,7 @@ public class MedicationService {
    *
    * @return    a List of saved Medications.
    */
-  public List<Medication> saveAll(Set<Medication> missingMedications) {
+  public List<Medication> saveAll(List<Medication> missingMedications) {
 
     return medicationRepository.saveAll(missingMedications);
 

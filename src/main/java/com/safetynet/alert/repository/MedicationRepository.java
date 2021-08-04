@@ -26,4 +26,10 @@ public interface MedicationRepository extends JpaRepository<Medication, Long> {
       + " where mrs.idMedicalRecord=?1")
   List<Medication> getMedicationsByIdMedicalRecord(Long idMedicalRecord);
 
+  @Query("select m from Medication as m  "
+      + " Left Join fetch m.medicalRecords as mrs"
+      + " where m.designation=?1 and m.posology=?2")
+  Optional<Medication> getOneFetchMedicalRecordsByDesignationAndPosology(String designation,
+      String posology);
+
 }

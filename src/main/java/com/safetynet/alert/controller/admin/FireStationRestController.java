@@ -14,6 +14,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +53,23 @@ public class FireStationRestController {
    *
    * @return    a collection of all FireStations
    */
+
   @GetMapping(value = "/firestation", produces = "application/json")
   @ApiOperation(value = "Get all Firestations",
                 notes = "Retrieve all fireStations",
                 response = FireStation.class)
-  public List<FireStation> getFireStations() {
+  public List<FireStation> getFireStations(HttpServletRequest request) {
 
-    return (List<FireStation>) fireStationService.getFireStations();
+    List<FireStation> fireStations = fireStationService.getFireStations();
+    log.info(
+        "Request accepted and Response sent \n "
+            + "Request: {}\n Parameters: {}\n "
+            + "Response: {}\n",
+        request.getRequestURL(),
+        request.getParameterMap(),
+        fireStations);
+
+    return fireStations;
 
   }
 
@@ -73,18 +84,28 @@ public class FireStationRestController {
    * @throws    a {@link FireStationNotFoundException}
    *            if there isn't a FireStation mapped by this Id.
    */
+
   @GetMapping(value = "/firestation/{id}", produces = "application/json")
   @ApiOperation(value = "Get FireStation by ID",
                 notes = "Retrieve a Firestation by it's given ID",
                 response = FireStation.class)
-  public ResponseEntity<FireStation> getFireStationById(@PathVariable Long id) {
+  public ResponseEntity<FireStation> getFireStationById(
+      @PathVariable Long id,
+      HttpServletRequest request) {
 
     Optional<FireStation> fireStation = fireStationService.getFireStationJoinAddressesById(id);
 
     if (fireStation.isPresent()) {
 
-      log.info("FireStation with Id :{} was found and displayed in body response",
-          id);
+      log.info(
+          "Request accepted and Response sent \n "
+              + "Request: {}\n "
+              + "Parameters: {}\n "
+              + "Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          fireStation.get());
+
       return new ResponseEntity<FireStation>(fireStation.get(), HttpStatus.OK);
 
     } else {
@@ -108,12 +129,14 @@ public class FireStationRestController {
    * @throws    a {@link FireStationAlreadyExistedException}
    *            if the FireStation already exists with the given numberStation.
    */
+
   @PostMapping(value = "/firestation", produces = "application/json")
   @ApiOperation(value = "Creation of FireStation",
                 notes = "Create a new FireStationby",
                 response = FireStation.class)
-  public ResponseEntity<FireStation>
-      postMappingStationAddress(@Valid @RequestBody FireStation fireStationToSave) {
+  public ResponseEntity<FireStation> postMappingStationAddress(
+      @Valid @RequestBody FireStation fireStationToSave,
+      HttpServletRequest request) {
 
     if (fireStationToSave.getIdFireStation() == null) {
 
@@ -123,6 +146,7 @@ public class FireStationRestController {
       if (!existedFireStation.isPresent()) {
 
         FireStation savedFireStation = fireStationService.saveFireStation(fireStationToSave);
+        log.debug("\n Save new FireStation:{}", savedFireStation);
 
         URI locationUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
             .buildAndExpand(savedFireStation.getIdFireStation()).toUri();
@@ -144,6 +168,7 @@ public class FireStationRestController {
               personsMappedWithAddress.forEach(person -> {
 
                 savedFireStation.addPerson(person);
+                log.debug("\n Mapping person:{} to FireStation:{}", person, savedFireStation);
               });
             }
           }
@@ -152,11 +177,14 @@ public class FireStationRestController {
           if (addedPersons) {
 
             fireStationService.saveFireStation(savedFireStation);
+            log.debug("\n Update FireStation:{}", savedFireStation);
           }
         }
 
-        log.info("POST /fireStation: Creation of FireStation {} sucessed "
+        log.info("\nRequest: {}\n"
+            + "Creation of FireStation {} sucessed "
             + "with the locationId {} and mapping with address:{}",
+            request.getRequestURL(),
             savedFireStation,
             savedFireStation.getIdFireStation(),
             savedFireStation.getAddresses());
@@ -199,13 +227,15 @@ public class FireStationRestController {
    *                    doesn't exist.
    *
    */
+
   @PutMapping(value = "/firestation/{address}", produces = "application/json")
   @ApiOperation(value = "Update address/FireStation",
                 notes = "Change the mapping of a address with a existed FireStation",
                 response = FireStation.class)
   public ResponseEntity<FireStation> putMappingNumberStationAddress(
       @Valid @PathVariable String address,
-      @Valid @RequestBody FireStation fireStationToMapWithAddress) {
+      @Valid @RequestBody FireStation fireStationToMapWithAddress,
+      HttpServletRequest request) {
 
     if (fireStationToMapWithAddress.getIdFireStation() == null) {
       //check if given body request fireStation exist
@@ -231,6 +261,7 @@ public class FireStationRestController {
           // add address to fireStationToMapWithAddress and save it .
 
           existedFireStation.addAddress(address);
+          log.debug("\n Add address:{} to Firestation:{}", address, existedFireStation);
 
           //add persons Mapped by address to updated Firestation
 
@@ -242,17 +273,22 @@ public class FireStationRestController {
             personsMappedByAddress.forEach(person -> {
 
               existedFireStation.addPerson(person);
+              log.debug("\n Add Person:{} to Firestation:{}", person, existedFireStation);
+
             });
           }
           //update existedFireStation with new address
           // and new Person mapped with it
 
           fireStationService.saveFireStation(existedFireStation);
+          log.debug("\n Update Firestation:{}", existedFireStation);
 
-          log.info("PUT/firestation/address: the address {} was correctly mapped"
-              + " with fireStation number{}",
+          log.info("\nRequest: {}\n"
+              + "Update of FireStation sucessed mapping with new address{}\n"
+              + "Response:{}\n",
+              request.getRequestURL(),
               address,
-              existedFireStation.getNumberStation());
+              existedFireStation);
 
           return new ResponseEntity<FireStation>(existedFireStation, HttpStatus.OK);
         }
@@ -286,21 +322,34 @@ public class FireStationRestController {
   @DeleteMapping(value = "/firestation/station/{numberStation}", produces = "application/json")
   @ApiOperation(value = "Delete FireStation",
                 notes = "Delete a FireStation and all mapping with it's addresses")
-  public ResponseEntity<?> deleteMappingFireStation(@Valid @PathVariable int numberStation) {
+  public ResponseEntity<FireStation> deleteMappingFireStation(
+      @Valid @PathVariable int numberStation,
+      HttpServletRequest request) {
 
     Optional<FireStation> fireStationWithNumberStation =
-        fireStationService.getFireStationByNumberStation(numberStation);
+        fireStationService.getFireStationAllFetchByNumberStation(numberStation);
 
     if (fireStationWithNumberStation.isPresent()) {
 
       FireStation currentFireStation = fireStationWithNumberStation.get();
 
-      fireStationService.deleteFireStation(currentFireStation);
+      //clear addresses
+      currentFireStation.getAddresses().clear();
+      log.debug("\n Set addresses of firestation:{} was cleared\n", currentFireStation);
 
-      log.info("FireStation with numberStation {} was deleted", numberStation);
+      //clear persons
+      currentFireStation.getPersons().clear();
+      log.debug("\n Set Persons of firestation:{} was cleared\n", currentFireStation);
 
-      return new ResponseEntity<>("FireStation with NumberStation:"
-          + numberStation + " was deleted!", HttpStatus.OK);
+      //update Firestation
+      fireStationService.saveFireStation(currentFireStation);
+
+      log.info("Mapping FireStation/Addresses was deleted!\n"
+          + "Request:{}\n"
+          + "Response:{}\n",
+          request.getRequestURL(),
+          currentFireStation);
+      return new ResponseEntity<FireStation>(currentFireStation, HttpStatus.OK);
 
     } else {
 
@@ -323,31 +372,56 @@ public class FireStationRestController {
    * @throws    a {@link FireStationNotFoundException}
    *            if address isn't mapped with any fireStation
    */
+
   @DeleteMapping(value = "/firestation/address/{address}", produces = "application/json")
   @ApiOperation(value = "Delete address of FireStation",
                 notes = "Delete mapping of address to FireStations")
-  public ResponseEntity<?>
-      deleteAddressFromFireStations(@PathVariable @Valid String address) {
+  public ResponseEntity<List<FireStation>> deleteAddressFromFireStations(
+      @PathVariable @Valid String address,
+      HttpServletRequest request) {
 
     List<FireStation> fireStationWithAddress =
-        fireStationService.getFireStationsMappedToAddress(address);
-
-    List<Integer> numberStationsDeleted = new ArrayList<Integer>();
+        fireStationService.getFireStationsFetchPersonMappedToAddress(address);
 
     if (!fireStationWithAddress.isEmpty()) {
 
       for (FireStation currentFireStation : fireStationWithAddress) {
 
-        numberStationsDeleted.add(currentFireStation.getNumberStation());
-        fireStationService.deleteFireStation(currentFireStation);
+        // remove address from FireStation SetAddresses
+        currentFireStation.removeAddress(address);
+        log.debug("\nAddress {} was deleted from FireStation:{}\n",
+            address,
+            currentFireStation);
 
+        //Remove Person Mapped to address in currentFirestation
+        // to Update junction Table person-fireStation
+        List<Person> personsToRemove = new ArrayList<Person>();
+
+        for (Person person : currentFireStation.getPersons()) {
+
+          if (person.getAddress().equals(address)) {
+
+            personsToRemove.add(person);
+          }
+        }
+        currentFireStation.getPersons().removeAll(personsToRemove);
+        log.debug("\n remove Persons:{} from FireStation:{}\n",
+            personsToRemove,
+            currentFireStation);
+
+        //update FireStation after remove address and persons
+        fireStationService.saveFireStation(currentFireStation);
+        log.debug("\n Update fireStation:{}\n", currentFireStation);
       }
 
-      log.info("FireStation with numberStations = {} mapped to address was deleted",
-          numberStationsDeleted);
+      log.info("\"Mapping address: {} /Firestation(s) was deleted!\n"
+          + "Request:{}\n"
+          + "Response:{}\n",
+          address,
+          request.getRequestURL(),
+          fireStationWithAddress);
 
-      return new ResponseEntity<>("FireStation with numberStations = {" + numberStationsDeleted
-          + "} mapped to address was deleted", HttpStatus.OK);
+      return new ResponseEntity<>(fireStationWithAddress, HttpStatus.OK);
 
     } else {
 

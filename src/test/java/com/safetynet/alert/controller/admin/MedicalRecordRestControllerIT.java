@@ -419,7 +419,7 @@ class MedicalRecordRestControllerIT {
         .isInstanceOf(MedicalRecordChangedNamesException.class);
     assertThat(result.getResolvedException().getMessage()).isEqualTo(
         "Can't change names of person in a MedicalRecord! "
-            + "Please don't modify fistName and LastName of the Person");
+            + "Please don't modify or forget firstName and LastName of the Person");
 
   }
 
