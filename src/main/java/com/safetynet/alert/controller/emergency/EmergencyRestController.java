@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,8 @@ public class EmergencyRestController {
                 notes = "Retrieve all Persons mapped by FireStation with given numberStation",
                 responseContainer = "Map")
   public ResponseEntity<Map<String, Object>> getPersonsMappedWithFireStation(
-      @RequestParam(name = "stationNumber") int stationNumber) {
+      @RequestParam(name = "stationNumber") int stationNumber,
+      HttpServletRequest request) {
 
     Optional<FireStation> existedfireStation =
         fireStationService.getFireStationByNumberStation(stationNumber);
@@ -73,7 +75,11 @@ public class EmergencyRestController {
 
       Map<String, Object> personsMappedWithFireStation =
           personService.getPersonsMappedWithFireStation(stationNumber);
-
+      log.info(
+          "Request accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          personsMappedWithFireStation);
       return ResponseEntity.ok(personsMappedWithFireStation);
 
     } else {
@@ -101,7 +107,8 @@ public class EmergencyRestController {
                     + " + list of other members living at this address")
 
   public ResponseEntity<Map<String, List<PersonDto>>> getChildAlert(
-      @RequestParam(name = "address") String address) {
+      @RequestParam(name = "address") String address,
+      HttpServletRequest request) {
 
     Map<String, List<PersonDto>> result = new LinkedHashMap<>();
 
@@ -131,7 +138,11 @@ public class EmergencyRestController {
                                                        person.getBirthDate()));
         }
       }
-
+      log.info(
+          "Request accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          result);
       return new ResponseEntity<>(result, HttpStatus.OK);
 
     } else {
@@ -154,7 +165,8 @@ public class EmergencyRestController {
                 notes = "Retrieve list of person's phones mapped by FireStation"
                     + " with given numberStation")
   public ResponseEntity<Map<String, Object>> getPhoneAlert(
-      @RequestParam(name = "firestation") int fireStationNumber) {
+      @RequestParam(name = "firestation") int fireStationNumber,
+      HttpServletRequest request) {
 
     Optional<FireStation> existedFireStation =
         fireStationService.getFireStationByNumberStation(fireStationNumber);
@@ -165,6 +177,12 @@ public class EmergencyRestController {
 
       Map<String, Object> result = new LinkedHashMap<>();
       result.put("phones", phones);
+
+      log.info(
+          "\nRequest accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          result);
 
       return new ResponseEntity<>(result, HttpStatus.OK);
     } else {
@@ -189,7 +207,8 @@ public class EmergencyRestController {
                 notes = "Retrieve list of persons living  at the given address",
                 response = PersonDto.class)
   public ResponseEntity<List<PersonDto>> getPersonsWhenFire(
-      @RequestParam(name = "address") String address) {
+      @RequestParam(name = "address") String address,
+      HttpServletRequest request) {
 
     List<Person> personsInfoWhenFireMappedByAddress =
         personService.getPersonsWhenFireMappedByAddress(address);
@@ -206,6 +225,12 @@ public class EmergencyRestController {
                           person.getMedicalRecord()));
 
       }
+
+      log.info(
+          "\nRequest accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          personsInfoFireDto);
       return ResponseEntity.ok(personsInfoFireDto);
 
     } else {
@@ -232,7 +257,8 @@ public class EmergencyRestController {
                 notes = "Retrieve list of homes ( persons sorted by address (key of Map))"
                     + " mapped by FireStations whith numberStations given in a list")
   public ResponseEntity<Map<String, List<PersonDto>>> getPersonsWhenFlood(
-      @RequestParam(name = "stations") List<Integer> numberStations) {
+      @RequestParam(name = "stations") List<Integer> numberStations,
+      HttpServletRequest request) {
 
     Map<String, List<PersonDto>> result = new LinkedHashMap<>();
 
@@ -262,7 +288,12 @@ public class EmergencyRestController {
                                person.getPhone(), person.getMedicalRecord()));
       }
     }
-    log.info("\n*********** GetPersonsWhenFlood finished ***********\n");
+
+    log.info(
+        "\nRequest accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+        request.getRequestURL(),
+        request.getParameterMap(),
+        result);
     return ResponseEntity.ok(result);
 
   }
@@ -286,24 +317,46 @@ public class EmergencyRestController {
                 response = PersonDto.class)
   public ResponseEntity<List<PersonDto>> getPersonInfo(
       @RequestParam(name = "firstName") String firstName,
-      @RequestParam(name = "lastName") String lastName) {
+      @RequestParam(name = "lastName") String lastName,
+      HttpServletRequest request) {
 
 
     List<PersonDto> personsInfoDto = new ArrayList<>();
 
     Set<Person> personsInfo =
         personService.getPersonInfoByNames(firstName, lastName);
-    System.out.println("\n personInfo: " + personsInfo);
+
 
     if (personsInfo.iterator().hasNext()) {
 
-      for (Person person : personsInfo) {
+      Person firstPerson = personsInfo.iterator().next();
 
-        personsInfoDto.add(
-            new PersonDto(person.getLastName(), person.getBirthDate(),
-                          person.getAddress(), person.getEmail(), person.getMedicalRecord()));
+      if (firstPerson.getFirstName().equals(firstName)) {
+
+        for (Person person : personsInfo) {
+
+          personsInfoDto.add(
+              new PersonDto(person.getLastName(), person.getBirthDate(),
+                            person.getAddress(), person.getEmail(),
+                            person.getMedicalRecord()));
+        }
+
+        log.info(
+            "\nRequest accepted and Response sent \n Request: {}\n Parameters: {}\n Response: {}\n",
+            request.getRequestURL(),
+            request.getParameterMap(),
+            personsInfoDto);
+
+        return ResponseEntity.ok(personsInfoDto);
+
+      } else {
+
+        throw new PersonNotFoundException("Person with firstName: " + firstName
+            + " and lastName: " + lastName
+            + " was not found."
+            + " But some persons with this LastName " + lastName
+            + " exist! Please choose another firstName !");
       }
-      return ResponseEntity.ok(personsInfoDto);
     } else {
 
       throw new PersonNotFoundException("Person with firstName: " + firstName
@@ -325,16 +378,27 @@ public class EmergencyRestController {
   @ApiOperation(value = "Retrieve list of person's email living in the given address",
                 response = String.class)
   public ResponseEntity<?> getEmailsFromCity(
-      @RequestParam(name = "city") String city) {
+      @RequestParam(name = "city") String city,
+      HttpServletRequest request) {
 
     List<String> emails = personService.getEmailsByCity(city);
 
     if (emails.isEmpty()) {
 
+      log.info(
+          "\nRequest accepted But the city doesn't exist or there is nobody in."
+              + "\n Request: {}\n Parameters: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap());
       return ResponseEntity
           .ok("there is nobody in this city or the city is not indexed in database");
     } else {
 
+      log.info(
+          "\nRequest accepted and Response sent\n Request: {}\n Parameters: {}\n Response: {}\n",
+          request.getRequestURL(),
+          request.getParameterMap(),
+          emails);
       return ResponseEntity.ok(emails);
     }
 

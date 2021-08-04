@@ -4,7 +4,6 @@ import com.safetynet.alert.model.Allergy;
 import com.safetynet.alert.repository.AllergyRepository;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +72,20 @@ public class AllergyService {
   }
 
   /**
+   * Retrieve the Allergy with its given designation with Set MedicalRecords.
+   *
+   * @param designation
+   *          the designation of allergy to research.
+   *
+   * @return  the allergy with this designation. Optional.empty() if doesn't exist.
+   */
+  public Optional<Allergy> getAllergyFetchMedicalRecordsByDesignation(String designation) {
+
+    return allergyRepository.getOneFetchMedicalRecordsByDesignation(designation);
+
+  }
+
+  /**
    * Retrieve the Allergies of given MedicalRecord with its ID.
    *
    * @param idMedicalRecord
@@ -108,7 +121,7 @@ public class AllergyService {
    *
    * @return    a List of saved allergies.
    */
-  public List<Allergy> saveAll(Set<Allergy> missingAllergies) {
+  public List<Allergy> saveAll(List<Allergy> missingAllergies) {
 
     return allergyRepository.saveAll(missingAllergies);
 

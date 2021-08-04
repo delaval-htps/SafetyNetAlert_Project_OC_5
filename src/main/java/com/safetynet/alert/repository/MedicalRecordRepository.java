@@ -41,5 +41,14 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
       + " order by mr.idMedicalRecord,m.idMedication, a.idAllergy asc")
   List<MedicalRecord> findAllFetchAll();
 
+  @Query("select mr from MedicalRecord as mr "
+      + " left join fetch mr.person as p "
+      + " left join fetch p.fireStations"
+      + " left join fetch mr.medications m "
+      + " left join fetch mr.allergies a "
+      + " where p.lastName=?1 and p.firstName=?2")
+  MedicalRecord getOneFetchAllByNames(String lastName, String firstName);
+
+
 
 }

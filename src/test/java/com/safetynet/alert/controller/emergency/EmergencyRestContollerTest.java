@@ -537,33 +537,6 @@ class EmergencyRestContollerTest {
 
   }
 
-  //  @Test
-  //  @Order(12)
-  //  void getPersonsWhenFlood_whenOnePersonHasNoMedicalrecord_thenReturn200() throws Exception {
-  //
-  //    //Given
-  //    List<String> values = Arrays.asList("1");
-  //    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-  //    params.addAll("stations", values);
-  //
-  //    mapBodyResponse.put("address3", new ArrayList<>(persons2));
-  //
-  //    when(fireStationService.getFireStationByNumberStation(Mockito.anyInt()))
-  //        .thenReturn(Optional.of(mockFireStation2));
-  //
-  //    when(personService.getPersonsWhenFloodByStations(Mockito.anyList()))
-  //        .thenReturn(mapresult);
-  //    //When& then
-  //    mockMvc.perform(get("/flood/stations").params(params))
-  //        .andExpect(status().isOk())
-  //        .andExpect(jsonPath("$.length()", is(1)))
-  //        .andExpect(jsonPath("$.address3[0].lastName", is("Test2")))
-  //        .andExpect(jsonPath("$.address3[0].phone", is("061-846-0164")))
-  //        .andExpect(jsonPath("$.address3[0].age", notNullValue()))
-  //        .andExpect(jsonPath("$.address3[0].statusMedicalRecord", is("not yet created")))
-  //        .andDo(print());
-  //
-  //  }
 
   @Test
   @Order(13)
@@ -607,6 +580,34 @@ class EmergencyRestContollerTest {
   @Test
   @Order(14)
   void getPersonsInfo_whenNoExistedPerson_thenReturn404() throws Exception {
+
+    //Given
+
+    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    map.add("firstName", "Emilie");
+    map.add("lastName", "Baudouin");
+
+    Set<Person> mockInformations = new LinkedHashSet<Person>();
+    when(personService.getPersonInfoByNames(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(mockInformations);
+
+    //When & then
+
+    MvcResult mvcResult = mockMvc.perform(get("/personInfo").params(map))
+        .andExpect(status().isNotFound()).andReturn();
+
+    assertThat(mvcResult.getResolvedException())
+        .isInstanceOf(PersonNotFoundException.class);
+    assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo(
+        "Person with firstName: Emilie and lastName: Baudouin was not found."
+            + "Please choose another names!");
+
+  }
+
+  @Test
+  @Order(14)
+  void getPersonsInfo_whenExistedPersonButErrorWithLastNameOrFirstName_thenReturn404()
+      throws Exception {
 
     //Given
 
