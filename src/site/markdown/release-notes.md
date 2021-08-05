@@ -1,5 +1,12 @@
 # Releases
 
+* **V1.1.0**	:	Lastest version of application with upgrade tests and logs:
+
+1. Check code with logger to correctly display and save errors(Level ERROR), calculations(Level DEBUG), requests and responses(Level INFO)
+2. Update of method POST medicalRecord for all cases tests: update integration and unit tests to pass to green
+3. creation of class diagrams
+4. update Javadoc and README 
+
 * **V1.0.0**	:	Forth and Lastest version of application with upgrade tests and documentation:
 
 1. Update relationship between Person and fireStation to M:M
